@@ -1,17 +1,17 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "Plunk API",
+    "title": "Merlin API",
     "description": "Open-source email platform API for transactional emails, campaigns, and marketing automation",
     "version": "1.0.0",
     "contact": {
-      "name": "Plunk Support",
-      "url": "https://www.useplunk.com"
+      "name": "Merlin Support",
+      "url": "https://www.merlin.example"
     }
   },
   "servers": [
     {
-      "url": "https://next-api.useplunk.com",
+      "url": "https://next-api.merlin.example",
       "description": "Production server"
     }
   ],
@@ -303,7 +303,7 @@
                   "data": {
                     "type": "object",
                     "additionalProperties": true,
-                    "description": "Variables for template rendering and contact data updates. Each value can be:\n- A primitive (string, number, boolean) — saved on the contact and available as a template variable.\n- `null` — deletes the field from the contact.\n- An empty string — skipped (does not overwrite existing data).\n- An object `{ value, persistent: false }` — used for this send only, not stored on the contact (good for one-shot password reset codes, magic links).\n\nReserved keys (`id`, `plunk_id`, `plunk_email`, `email`, `unsubscribeUrl`, `subscribeUrl`, `manageUrl`) are silently filtered out."
+                    "description": "Variables for template rendering and contact data updates. Each value can be:\n- A primitive (string, number, boolean) — saved on the contact and available as a template variable.\n- `null` — deletes the field from the contact.\n- An empty string — skipped (does not overwrite existing data).\n- An object `{ value, persistent: false }` — used for this send only, not stored on the contact (good for one-shot password reset codes, magic links).\n\nReserved keys (`id`, `merlin_id`, `merlin_email`, `email`, `unsubscribeUrl`, `subscribeUrl`, `manageUrl`) are silently filtered out."
                   },
                   "headers": {
                     "type": "object",
@@ -493,7 +493,7 @@
                               },
                               "email": {
                                 "type": "string",
-                                "description": "Plunk email record ID. Use this to correlate webhook events (which include this ID as 'emailId' in the event data) with your send requests."
+                                "description": "Merlin email record ID. Use this to correlate webhook events (which include this ID as 'emailId' in the event data) with your send requests."
                               }
                             }
                           }
@@ -583,7 +583,7 @@
       "post": {
         "tags": ["Public API"],
         "summary": "Track event",
-        "description": "Track an event for a contact. Automatically creates or upserts the contact, then records the event. Tracked events can be used as workflow triggers, segment filters, and audience filters.\n\n**Reserved event names** (rejected with `VALIDATION_ERROR` and code `reserved_event`): anything matching `email.*`, `contact.subscribed`, `contact.unsubscribed`, `segment.<slug>.entry`, `segment.<slug>.exit`. These are emitted by Plunk itself.\n\n**Idempotency**: re-tracking the same event creates a new event record. Send an `Idempotency-Key` header to have a repeated request refused with `409` instead.",
+        "description": "Track an event for a contact. Automatically creates or upserts the contact, then records the event. Tracked events can be used as workflow triggers, segment filters, and audience filters.\n\n**Reserved event names** (rejected with `VALIDATION_ERROR` and code `reserved_event`): anything matching `email.*`, `contact.subscribed`, `contact.unsubscribed`, `segment.<slug>.entry`, `segment.<slug>.exit`. These are emitted by Merlin itself.\n\n**Idempotency**: re-tracking the same event creates a new event record. Send an `Idempotency-Key` header to have a repeated request refused with `409` instead.",
         "operationId": "trackEvent",
         "requestBody": {
           "required": true,

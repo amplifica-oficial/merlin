@@ -6,7 +6,7 @@ description: Configure email delivery
 ## 1. Create IAM User
 
 1. Go to IAM Console → Users → Create user
-2. Name: `plunk-ses`
+2. Name: `merlin-ses`
 3. Attach a custom policy with required permissions (see below)
 4. Create access keys → Save credentials
 
@@ -37,27 +37,27 @@ description: Configure email delivery
 
 1. Go to SNS Console → Topics → Create topic
 2. Type: Standard
-3. Name: `plunk-ses-events`
+3. Name: `merlin-ses-events`
 4. Create topic
 5. Create subscription:
    - Protocol: HTTPS
    - Endpoint: `https://api.yourdomain.com/webhooks/sns`
-6. Plunk automatically confirms the subscription. If it fails, check your logs for the confirmation URL.
+6. Merlin automatically confirms the subscription. If it fails, check your logs for the confirmation URL.
 
 ## 3. Create Configuration Sets
 
 ### Tracking Configuration Set
 
 1. SES Console → Configuration sets → Create set
-2. Name: `plunk-tracking`
+2. Name: `merlin-tracking`
 3. Add event destination:
    - Name: `sns-events`
    - Event types: **Sends, Deliveries, Opens, Clicks, Bounces, Complaints**
-   - Destination: SNS → Select `plunk-ses-events` topic
+   - Destination: SNS → Select `merlin-ses-events` topic
 
 ### No-Tracking Configuration Set
 
-1. Create another set named `plunk-no-tracking`
+1. Create another set named `merlin-no-tracking`
 2. Add event destination with only: **Sends, Deliveries, Bounces, Complaints**
 
 ## 4. Configure Environment
@@ -66,17 +66,17 @@ description: Configure email delivery
 AWS_SES_REGION="us-east-1"
 AWS_SES_ACCESS_KEY_ID="your-access-key"
 AWS_SES_SECRET_ACCESS_KEY="your-secret-key"
-SES_CONFIGURATION_SET="plunk-tracking"
-SES_CONFIGURATION_SET_NO_TRACKING="plunk-no-tracking"
+SES_CONFIGURATION_SET="merlin-tracking"
+SES_CONFIGURATION_SET_NO_TRACKING="merlin-no-tracking"
 ```
 
-## 5. Add Your Domain in Plunk
+## 5. Add Your Domain in Merlin
 
-Once you have configured AWS SES with the above settings, you can add and verify your domain directly through the Plunk dashboard. Plunk will handle the domain verification and DKIM setup with AWS SES automatically and show you the right records to add to your DNS.
+Once you have configured AWS SES with the above settings, you can add and verify your domain directly through the Merlin dashboard. Merlin will handle the domain verification and DKIM setup with AWS SES automatically and show you the right records to add to your DNS.
 
 ## 6. (Optional) Configure Inbound Email
 
-If you want to use Plunk's [Receiving emails](/guides/receiving-emails) feature, configure SES inbound separately. Plunk does not auto-provision receipt rules, so this is a manual one-time setup in your AWS account.
+If you want to use Merlin's [Receiving emails](/guides/receiving-emails) feature, configure SES inbound separately. Merlin does not auto-provision receipt rules, so this is a manual one-time setup in your AWS account.
 
 Not all AWS regions support SES inbound — confirm `inbound-smtp.<your-region>.amazonaws.com` exists for your `AWS_SES_REGION` before continuing. If your region doesn't support inbound, you can keep outbound on your current region and run a separate identity in a region that does.
 
@@ -85,12 +85,12 @@ Not all AWS regions support SES inbound — confirm `inbound-smtp.<your-region>.
 1. SES Console → **Email receiving** → **Rule sets** → Create rule set (or use an existing one)
 2. Add a rule:
    - **Recipient conditions**: `*@yourdomain.com` (or specific addresses you want to receive)
-   - **Actions**: Publish to Amazon SNS topic → select your `plunk-ses-events` topic (or create a separate topic that's also subscribed to `https://api.yourdomain.com/webhooks/sns`)
+   - **Actions**: Publish to Amazon SNS topic → select your `merlin-ses-events` topic (or create a separate topic that's also subscribed to `https://api.yourdomain.com/webhooks/sns`)
 3. Set the rule set as **active**
 
 ### Inbound IAM permissions
 
-Plunk doesn't call SES inbound APIs at runtime — the IAM policy from step 1 covers everything Plunk needs. Configuring receipt rules in AWS is a manual one-time action you do as an AWS admin.
+Merlin doesn't call SES inbound APIs at runtime — the IAM policy from step 1 covers everything Merlin needs. Configuring receipt rules in AWS is a manual one-time action you do as an AWS admin.
 
 ### Add an MX record
 
@@ -102,7 +102,7 @@ Name:  yourdomain.com
 Value: 10 inbound-smtp.<your-region>.amazonaws.com
 ```
 
-Plunk's dashboard will show the exact value to use for your configured region.
+Merlin's dashboard will show the exact value to use for your configured region.
 
 ## 7. (Optional) Move Out of the SES Sandbox
 
@@ -118,5 +118,5 @@ After approval, your sending quota will reflect a much higher daily and per-seco
 
 ## 8. (Optional) Configure a MAIL FROM Domain
 
-For better DMARC alignment, you can configure a custom MAIL FROM subdomain (e.g. `mail.yourdomain.com`). In the SES console under **Verified identities** → your domain → **MAIL FROM domain**, set a subdomain and add the additional MX and TXT records SES displays. Plunk's IAM policy already includes `ses:SetIdentityMailFromDomain` to support this.
+For better DMARC alignment, you can configure a custom MAIL FROM subdomain (e.g. `mail.yourdomain.com`). In the SES console under **Verified identities** → your domain → **MAIL FROM domain**, set a subdomain and add the additional MX and TXT records SES displays. Merlin's IAM policy already includes `ses:SetIdentityMailFromDomain` to support this.
 

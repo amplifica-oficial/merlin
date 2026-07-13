@@ -4,11 +4,11 @@ description: Receive incoming email at your verified domain and turn it into eve
 icon: Inbox
 ---
 
-Plunk can receive emails sent to any address at your verified domain, store them in your project, and emit an `email.received` event you can drive workflows from. This unlocks auto-replies, ticketing, conditional forwarding, and any other "do something when an email arrives" pattern.
+Merlin can receive emails sent to any address at your verified domain, store them in your project, and emit an `email.received` event you can drive workflows from. This unlocks auto-replies, ticketing, conditional forwarding, and any other "do something when an email arrives" pattern.
 
 ## What happens when an email arrives
 
-When someone emails an address at your verified domain, Plunk:
+When someone emails an address at your verified domain, Merlin:
 
 1. Parses the message and stores it as an inbound `Email` record visible in your project's Activity feed.
 2. Creates the sender as a contact in your project (or updates them if they already exist), subscribed by default.
@@ -34,10 +34,10 @@ Inbound is only enabled on domains that are fully verified for sending (DKIM + S
 
 ### Add the inbound MX record
 
-Open your project's **Domains** tab, expand the verified domain, and look for the **Inbound Email** section. Plunk shows you the exact MX record value to add to your DNS — copy it from there and add it as an MX record on your domain.
+Open your project's **Domains** tab, expand the verified domain, and look for the **Inbound Email** section. Merlin shows you the exact MX record value to add to your DNS — copy it from there and add it as an MX record on your domain.
 
 <Callout title="Conflict with existing email" type="warn">
-A domain can only have one primary inbound MX target. If you already use Google Workspace, Microsoft 365, or another provider for receiving email on the apex domain, your existing email will break if you switch the MX to point at Plunk. The usual fix is to receive Plunk inbound on a subdomain (e.g. `mail.yourdomain.com` or `support.yourdomain.com`) so you can keep your main mailbox on the existing provider. The subdomain still needs to be verified for sending in Plunk before its MX will be accepted.
+A domain can only have one primary inbound MX target. If you already use Google Workspace, Microsoft 365, or another provider for receiving email on the apex domain, your existing email will break if you switch the MX to point at Merlin. The usual fix is to receive Merlin inbound on a subdomain (e.g. `mail.yourdomain.com` or `support.yourdomain.com`) so you can keep your main mailbox on the existing provider. The subdomain still needs to be verified for sending in Merlin before its MX will be accepted.
 </Callout>
 
 </Step>
@@ -52,7 +52,7 @@ DNS changes take anywhere from a few minutes to 48 hours to propagate. You can v
 dig MX yourdomain.com
 ```
 
-You should see the value Plunk gave you in the response.
+You should see the value Merlin gave you in the response.
 
 </Step>
 
@@ -74,9 +74,9 @@ Send an email from any external account to any address at your domain (e.g. `any
 
 Every accepted inbound email shows up in your project's Activity feed alongside outbound emails — you can search, filter, and inspect them the same way.
 
-Plunk stores: the parsed and sanitized HTML body (or plain text if no HTML is available), the headers surfaced in the event payload below, the authentication and spam verdicts, and the message ID.
+Merlin stores: the parsed and sanitized HTML body (or plain text if no HTML is available), the headers surfaced in the event payload below, the authentication and spam verdicts, and the message ID.
 
-**Plunk does not store**: the original raw message, attachments, threading headers (`In-Reply-To`, `References`), or headers beyond what's exposed on the event. If you need any of those, forward the email to your own service via a `WEBHOOK` step in the workflow that fires.
+**Merlin does not store**: the original raw message, attachments, threading headers (`In-Reply-To`, `References`), or headers beyond what's exposed on the event. If you need any of those, forward the email to your own service via a `WEBHOOK` step in the workflow that fires.
 
 ## The `email.received` event
 
@@ -104,7 +104,7 @@ import {TypeTable} from 'fumadocs-ui/components/type-table';
   }}
 />
 
-The event is **always** emitted — Plunk does not block emails based on the spam, virus, or authentication verdicts. Filter them yourself in the workflow that fires.
+The event is **always** emitted — Merlin does not block emails based on the spam, virus, or authentication verdicts. Filter them yourself in the workflow that fires.
 
 In templates and workflow steps, access these fields via the event variable namespace, e.g. `{{event.subject}}`, `{{event.from}}`, or `{{event.body}}`.
 
@@ -135,7 +135,7 @@ Route different addresses to different downstream actions in a single workflow:
 
 ### Forward to your API
 
-For richer processing (NLP classification, ticket creation, attachments not captured by Plunk), forward the email to your own backend:
+For richer processing (NLP classification, ticket creation, attachments not captured by Merlin), forward the email to your own backend:
 
 1. **Trigger**: `email.received`.
 2. **Webhook**:
@@ -161,7 +161,7 @@ For richer processing (NLP classification, ticket creation, attachments not capt
 
 ### Filter spam and virus before processing
 
-Always include a `CONDITION` step early in the workflow that drops anything where `spamVerdict` or `virusVerdict` is `FAIL`. Plunk does not pre-filter for you.
+Always include a `CONDITION` step early in the workflow that drops anything where `spamVerdict` or `virusVerdict` is `FAIL`. Merlin does not pre-filter for you.
 
 ## Multi-project domains
 
@@ -177,17 +177,17 @@ You can set a per-project inbound cap under **Billing → Limits**. Once the cap
 
 ## Security considerations
 
-- **Treat the body as untrusted user input.** Plunk sanitizes HTML to prevent the obvious script-injection paths, but the message can still contain phishing links, social-engineering content, and unicode lookalikes. Don't render the body verbatim in any UI you control without re-escaping it for that context.
-- **Authentication verdicts are advisory.** Plunk records SPF / DKIM / DMARC results on the event but does not enforce them. Build your own policy: dropping unauthenticated mail at the workflow's first `CONDITION` step is a sensible default for sensitive inboxes (billing, account changes).
+- **Treat the body as untrusted user input.** Merlin sanitizes HTML to prevent the obvious script-injection paths, but the message can still contain phishing links, social-engineering content, and unicode lookalikes. Don't render the body verbatim in any UI you control without re-escaping it for that context.
+- **Authentication verdicts are advisory.** Merlin records SPF / DKIM / DMARC results on the event but does not enforce them. Build your own policy: dropping unauthenticated mail at the workflow's first `CONDITION` step is a sensible default for sensitive inboxes (billing, account changes).
 - **Senders are auto-subscribed.** Inbound senders enter your audience as subscribed contacts. If you don't want that, add an `UPDATE_CONTACT` step at the end of the inbound workflow to set `subscribed: false`.
 - **Reply-loop risk.** If your auto-reply sends back to a domain you also receive on (or to a list address), you can create an infinite loop. Add a `CONDITION` that drops messages where `event.from` matches your own domain.
 
 ## Limitations
 
-- **Catch-all only**: Plunk routes anything sent to any address at your domain to the same handler. You filter on `event.to` inside the workflow.
+- **Catch-all only**: Merlin routes anything sent to any address at your domain to the same handler. You filter on `event.to` inside the workflow.
 - **No attachments**: attachments are dropped during parsing. Forward to your own service if you need them.
 - **No raw MIME**: the original message is not retained.
-- **No threading**: Plunk doesn't group inbound messages into threads or correlate them with outbound replies.
+- **No threading**: Merlin doesn't group inbound messages into threads or correlate them with outbound replies.
 - **40 MB size cap**: messages larger than 40 MB are rejected before processing.
 
 ## Troubleshooting
@@ -198,7 +198,7 @@ import {Accordion, Accordions} from 'fumadocs-ui/components/accordion';
 
 <Accordion title="Emails are not being received">
 
-1. **DNS**: `dig MX yourdomain.com` — confirm the value Plunk gave you appears in the response.
+1. **DNS**: `dig MX yourdomain.com` — confirm the value Merlin gave you appears in the response.
 2. **Domain verification**: in the dashboard, confirm the domain is fully verified for sending. Inbound MX won't process anything on an unverified domain.
 3. **Workflow not firing**: build a test workflow with just an `email.received` trigger and a webhook to a service like webhook.site to see whether events are being emitted at all. If yes, the issue is in your workflow logic; if no, it's upstream.
 4. **Sender DNS cache**: some senders cache MX lookups for hours. Test from a different email provider.

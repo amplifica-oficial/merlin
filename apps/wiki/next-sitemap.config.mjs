@@ -46,7 +46,7 @@ function filePathToUrl(filePath) {
 }
 
 const config = {
-  siteUrl: process.env.NEXT_PUBLIC_WIKI_URI || 'https://docs.useplunk.com',
+  siteUrl: process.env.NEXT_PUBLIC_WIKI_URI || 'https://docs.merlin.example',
   generateRobotsTxt: true,
   additionalPaths: async () => {
     const contentDocsPath = path.join(__dirname, 'content', 'docs');

@@ -4,11 +4,11 @@ description: Manage and organize your contacts effectively
 icon: Users
 ---
 
-Contacts in Plunk represent an individual email recipient. Each contact has an identifier and is linked to an email address.
+Contacts in Merlin represent an individual email recipient. Each contact has an identifier and is linked to an email address.
 
 ## Adding contacts
 
-Contacts can be added to your Plunk project in several ways:
+Contacts can be added to your Merlin project in several ways:
 
 - Using [`/v1/track`](/api-reference/public-api/trackEvent) — tracking an event for a contact that doesn't exist yet automatically creates it (subscribed by default).
 - Using [`POST /contacts`](/api-reference/contacts/createContact) — create or upsert a single contact. Existing emails are **updated**, not rejected; the response includes a `_meta: { isNew, isUpdate }` block and uses status `201` for new contacts and `200` for updates.
@@ -24,7 +24,7 @@ You can associate custom data with each contact using key-value pairs. This data
 
 ### Data types
 
-Contact data types are inferred from the **first non-null value** Plunk sees for a given key in your project:
+Contact data types are inferred from the **first non-null value** Merlin sees for a given key in your project:
 
 | Type    | Description                                                                                                  |
 | ------- | ------------------------------------------------------------------------------------------------------------ |
@@ -72,7 +72,7 @@ When creating or updating contacts, certain values are handled specially:
 
 ### Reserved keys
 
-Some keys are reserved by Plunk and managed at the contact level (not inside `data`). You can read them but you can't set them through `data`:
+Some keys are reserved by Merlin and managed at the contact level (not inside `data`). You can read them but you can't set them through `data`:
 
 | Key          | Description                                                              |
 | ------------ | ------------------------------------------------------------------------ |
@@ -83,7 +83,7 @@ Some keys are reserved by Plunk and managed at the contact level (not inside `da
 
 The following keys are also **silently filtered out** of any `data` payload — sending them through `/v1/track`, `POST /contacts`, or `PATCH /contacts/:id` will not store them and will not return an error:
 
-`id`, `plunk_id`, `plunk_email`, `unsubscribeUrl`, `subscribeUrl`, `manageUrl`
+`id`, `merlin_id`, `merlin_email`, `unsubscribeUrl`, `subscribeUrl`, `manageUrl`
 
 The last three are auto-generated per-recipient at send time and exposed as template variables (see [Templates](/concepts/templates)).
 
@@ -113,7 +113,7 @@ A contact can become unsubscribed in several ways:
 - **Manually** through the dashboard or via the API.
 - **Self-service** by clicking the unsubscribe link in an email (powered by the public unsubscribe pages).
 - **Automatically** on a permanent (hard) email bounce. Soft bounces don't change subscription state.
-- **Automatically** when a recipient marks one of your emails as spam (their mailbox provider reports the complaint back to Plunk).
+- **Automatically** when a recipient marks one of your emails as spam (their mailbox provider reports the complaint back to Merlin).
 
 ### Emails by subscription state
 

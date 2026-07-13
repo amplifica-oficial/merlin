@@ -24,7 +24,7 @@ export default async function Page(props: {params: Promise<{slug?: string[]}>}) 
         <LLMCopyButton markdownUrl={`/llms.mdx${page.url}`} />
         <ViewOptions
           markdownUrl={`/llms.mdx${page.url}`}
-          githubUrl={`https://github.com/useplunk/plunk/blob/next/apps/wiki/content/docs/${page.path}`}
+          githubUrl={`https://github.com/amplifica-oficial/merlin/blob/next/apps/wiki/content/docs/${page.path}`}
         />
         <p className="ml-auto hidden text-[11px] text-fd-muted-foreground sm:block">
           Reading this with electronic eyes? Add{' '}
@@ -55,7 +55,7 @@ export async function generateMetadata(props: {params: Promise<{slug?: string[]}
   const page = source.getPage(params.slug);
   if (!page) notFound();
 
-  const ogUrl = new URL('https://docs.useplunk.com/api/og');
+  const ogUrl = new URL('https://docs.merlin.example/api/og');
   ogUrl.searchParams.set('title', page.data.title);
   if (page.data.description) {
     ogUrl.searchParams.set('description', page.data.description);

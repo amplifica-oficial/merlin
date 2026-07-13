@@ -5,7 +5,7 @@ description: Deploy with Docker Compose
 
 ## Quick Start
 
-1. Download [docker-compose.yml](https://raw.githubusercontent.com/useplunk/plunk/next/docker-compose.yml)
+1. Download [docker-compose.yml](https://raw.githubusercontent.com/amplifica-oficial/merlin/next/docker-compose.yml)
 2. Configure environment variables
 3. Run `docker compose up -d`
 
@@ -26,7 +26,7 @@ USE_HTTPS="true"
 AWS_SES_REGION="us-east-1"
 AWS_SES_ACCESS_KEY_ID="your-key"
 AWS_SES_SECRET_ACCESS_KEY="your-secret"
-SES_CONFIGURATION_SET="plunk-tracking"
+SES_CONFIGURATION_SET="merlin-tracking"
 ```
 
 See [Environment Variables](/self-hosting/environment-variables) for all options.
@@ -35,7 +35,7 @@ See [Environment Variables](/self-hosting/environment-variables) for all options
 
 | Service | Purpose |
 |---------|---------|
-| `plunk` | All apps + nginx (API, Web, Wiki) |
+| `merlin` | All apps + nginx (API, Web, Wiki) |
 | `postgres` | PostgreSQL 16 database |
 | `redis` | Redis 7 queue |
 | `minio` | S3-compatible storage |
@@ -77,5 +77,5 @@ SERVICE=all    # Everything (default)
 ## Building from Source
 
 ```bash
-docker build -t plunk:custom .
+docker build -t merlin:custom .
 ```

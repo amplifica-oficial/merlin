@@ -1,10 +1,10 @@
 ---
 title: Unsubscribe & preferences pages
-description: Plunk's hosted pages for letting recipients unsubscribe, resubscribe, and manage their email preferences
+description: Merlin's hosted pages for letting recipients unsubscribe, resubscribe, and manage their email preferences
 icon: UserX
 ---
 
-Every email Plunk sends to a recipient who can unsubscribe (marketing or headless templates) carries a personalized link to a hosted page where they can manage their subscription. You don't need to build any of this — Plunk hosts the pages, handles the state changes, and tracks the events for you.
+Every email Merlin sends to a recipient who can unsubscribe (marketing or headless templates) carries a personalized link to a hosted page where they can manage their subscription. You don't need to build any of this — Merlin hosts the pages, handles the state changes, and tracks the events for you.
 
 ## The three URL variables
 
@@ -20,11 +20,11 @@ Use them anywhere in a template's body or subject line. The placeholder is repla
 
 ## Default behaviour by template type
 
-Where Plunk drops these links depends on the template type:
+Where Merlin drops these links depends on the template type:
 
 | Template type     | Auto footer with `{{unsubscribeUrl}}`?      | Notes                                                                  |
 | ----------------- | -------------------------------------------- | ---------------------------------------------------------------------- |
-| **Marketing**     | Yes — Plunk appends a localized footer      | You don't need to do anything. The footer respects the recipient's `locale`. |
+| **Marketing**     | Yes — Merlin appends a localized footer      | You don't need to do anything. The footer respects the recipient's `locale`. |
 | **Headless**      | No                                          | You must include `{{unsubscribeUrl}}` (or `{{manageUrl}}`) in your body or the recipient has no way to opt out. |
 | **Transactional** | No                                          | Transactional emails skip subscription checks; an unsubscribe link is not added (and shouldn't be needed). |
 

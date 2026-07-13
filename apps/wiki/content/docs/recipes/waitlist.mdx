@@ -4,7 +4,7 @@ description: Track signups as a custom event, store everyone who joins as a cont
 icon: ListOrdered
 ---
 
-A waitlist is the simplest possible Plunk workflow: one tracked event from your app, one workflow that listens for it, one email.
+A waitlist is the simplest possible Merlin workflow: one tracked event from your app, one workflow that listens for it, one email.
 
 <Callout title="No-code alternative" type="info">
   Use **Forms** in the dashboard to host a signup page without backend code. Submissions track `form.submitted` and write tags on the contact for dynamic segments. See [Forms](/concepts/forms).
@@ -38,7 +38,7 @@ We'll let you know as soon as your spot opens up.
 Call `POST /v1/track` when a user submits the form. Use a secret key (`sk_*`) — never call this from the browser.
 
 ```bash
-curl https://next-api.useplunk.com/v1/track \
+curl https://next-api.merlin.example/v1/track \
   -H "Authorization: Bearer sk_your_secret_key" \
   -H "Content-Type: application/json" \
   -d '{

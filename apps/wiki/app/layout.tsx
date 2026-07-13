@@ -17,32 +17,32 @@ export default function Layout({children}: {children: ReactNode}) {
         <script src="/__env.js" />
 
         {/* Primary Meta Tags */}
-        <title>Plunk Documentation</title>
-        <meta name="title" content="Plunk Documentation" />
+        <title>Merlin Documentation</title>
+        <meta name="title" content="Merlin Documentation" />
         <meta
           name="description"
-          content="Documentation for Plunk, the open-source email platform. Learn how to integrate Plunk into your application and manage your email communications."
+          content="Documentation for Merlin, the open-source email platform. Learn how to integrate Merlin into your application and manage your email communications."
         />
 
         {/* Open Graph / Facebook */}
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://docs.useplunk.com/" />
-        <meta property="og:title" content="Plunk Documentation" />
+        <meta property="og:url" content="https://docs.merlin.example/" />
+        <meta property="og:title" content="Merlin Documentation" />
         <meta
           property="og:description"
-          content="Documentation for Plunk, the open-source email platform. Learn how to integrate Plunk into your application and manage your email communications."
+          content="Documentation for Merlin, the open-source email platform. Learn how to integrate Merlin into your application and manage your email communications."
         />
-        <meta property="og:image" content="https://docs.useplunk.com/api/og?title=Documentation" />
+        <meta property="og:image" content="https://docs.merlin.example/api/og?title=Documentation" />
 
         {/* Twitter */}
         <meta property="twitter:card" content="summary_large_image" />
-        <meta property="twitter:url" content="https://docs.useplunk.com/" />
-        <meta property="twitter:title" content="Plunk Documentation" />
+        <meta property="twitter:url" content="https://docs.merlin.example/" />
+        <meta property="twitter:title" content="Merlin Documentation" />
         <meta
           property="twitter:description"
-          content="Documentation for Plunk, the open-source email platform. Learn how to integrate Plunk into your application and manage your email communications."
+          content="Documentation for Merlin, the open-source email platform. Learn how to integrate Merlin into your application and manage your email communications."
         />
-        <meta property="twitter:image" content="https://docs.useplunk.com/api/og?title=Documentation" />
+        <meta property="twitter:image" content="https://docs.merlin.example/api/og?title=Documentation" />
 
         {/* Fonts */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -60,8 +60,8 @@ export default function Layout({children}: {children: ReactNode}) {
         <link rel="shortcut icon" href="/favicon.ico" />
         <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png" />
         <link rel="mask-icon" href="/favicon/safari-pinned-tab.svg" color="#5bbad5" />
-        <meta name="apple-mobile-web-app-title" content="Plunk" />
-        <meta name="application-name" content="Plunk" />
+        <meta name="apple-mobile-web-app-title" content="Merlin" />
+        <meta name="application-name" content="Merlin" />
         <meta name="msapplication-TileColor" content="#da532c" />
         <meta name="theme-color" content="#ffffff" />
         <link rel="manifest" href="/favicon/site.webmanifest" />
@@ -70,7 +70,7 @@ export default function Layout({children}: {children: ReactNode}) {
         defer
         src="https://analytics.driaug.com/script.js"
         data-website-id="ba0b7094-e693-492e-902a-c62aab868715"
-        data-domains="docs.useplunk.com"
+        data-domains="docs.merlin.example"
       />
       <body className="flex flex-col min-h-screen antialiased text-neutral-800" suppressHydrationWarning>
         <RootProvider

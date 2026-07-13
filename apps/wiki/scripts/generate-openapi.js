@@ -33,7 +33,7 @@ try {
     const apiUrl = process.env.API_URI || process.env.NEXT_PUBLIC_API_URI || 'http://localhost:8080';
     const description = 'Development server';
 
-    content = content.replace(/"url":\s*"https:\/\/api\.useplunk\.com"/, `"url": "${apiUrl}"`);
+    content = content.replace(/"url":\s*"https:\/\/api\.merlin\.example"/, `"url": "${apiUrl}"`);
     content = content.replace(/"description":\s*"Production server"/, `"description": "${description}"`);
 
     fs.writeFileSync(localPath, content, 'utf-8');

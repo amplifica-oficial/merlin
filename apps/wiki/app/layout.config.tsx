@@ -17,8 +17,8 @@ export const baseOptions: BaseLayoutProps = {
   nav: {
     title: (
       <div className="flex items-center gap-2">
-        <Image src="/assets/logo.png" alt="Plunk" width={24} height={24} className="rounded" />
-        <span>Plunk</span>
+        <Image src="/assets/logo.png" alt="Merlin" width={24} height={24} className="rounded" />
+        <span>Merlin</span>
       </div>
     ),
   },
@@ -26,17 +26,17 @@ export const baseOptions: BaseLayoutProps = {
     {
       icon: <AppWindowIcon />,
       text: 'Dashboard',
-      url: 'https://next-app.useplunk.com',
+      url: 'https://next-app.merlin.example',
     },
     {
       icon: <GithubIcon />,
       text: 'GitHub',
-      url: 'https://github.com/useplunk/plunk',
+      url: 'https://github.com/amplifica-oficial/merlin',
     },
     {
       icon: <MessageSquareShareIcon />,
       text: 'Discord',
-      url: 'https://useplunk.com/discord',
+      url: 'https://merlin.example/discord',
     },
   ],
 };

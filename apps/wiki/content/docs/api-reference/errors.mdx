@@ -5,7 +5,7 @@ description: API error codes and troubleshooting
 
 ## Overview
 
-The Plunk API uses standardized error responses to help you quickly identify and resolve issues. All errors include:
+The Merlin API uses standardized error responses to help you quickly identify and resolve issues. All errors include:
 
 - **Machine-readable error codes** for programmatic handling
 - **Human-readable messages** explaining what went wrong
@@ -310,7 +310,7 @@ Successful API requests return a standardized format with `success: true` and a 
 
 ```typescript
 try {
-  const response = await fetch('https://next-api.useplunk.com/v1/track', {
+  const response = await fetch('https://next-api.merlin.example/v1/track', {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${publicKey}`,
@@ -368,7 +368,7 @@ try {
 import requests
 
 response = requests.post(
-    'https://next-api.useplunk.com/v1/track',
+    'https://next-api.merlin.example/v1/track',
     headers={
         'Authorization': f'Bearer {public_key}',
         'Content-Type': 'application/json'
@@ -433,7 +433,7 @@ Request IDs are included in:
 
 ```javascript
 // Example: Logging request ID in your application
-const response = await fetch('https://next-api.useplunk.com/v1/send', {
+const response = await fetch('https://next-api.merlin.example/v1/send', {
   // ... your request
 });
 
@@ -493,7 +493,7 @@ import {Accordion, Accordions} from 'fumadocs-ui/components/accordion';
 
 - Note the request ID from the error response.
 - Wait a moment and retry the request.
-- Check [status.useplunk.com](https://status.useplunk.com) for incidents.
+- Check [status.merlin.example](https://status.merlin.example) for incidents.
 - Contact support with the request ID if the issue persists.
 
 </Accordion>

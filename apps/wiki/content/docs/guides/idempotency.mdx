@@ -6,7 +6,7 @@ icon: KeyRound
 
 A retried request is a duplicate email. A double-submitted checkout form is a double receipt. To make sure a request runs **at most once**, send an `Idempotency-Key` header.
 
-If the key is new, Plunk processes the request normally. If your project has already used that key, Plunk **refuses** the request with `409` rather than performing it a second time.
+If the key is new, Merlin processes the request normally. If your project has already used that key, Merlin **refuses** the request with `409` rather than performing it a second time.
 
 Both public API write endpoints support it:
 
@@ -23,7 +23,7 @@ import {Tab, Tabs} from 'fumadocs-ui/components/tabs';
 <Tab value="cURL">
 
 ```bash
-curl -X POST https://api.useplunk.com/v1/send \
+curl -X POST https://api.merlin.example/v1/send \
   -H "Authorization: Bearer sk_your_secret_key" \
   -H "Idempotency-Key: receipt-order-1234" \
   -H "Content-Type: application/json" \
@@ -38,7 +38,7 @@ curl -X POST https://api.useplunk.com/v1/send \
 <Tab value="JavaScript">
 
 ```javascript
-await fetch('https://api.useplunk.com/v1/send', {
+await fetch('https://api.merlin.example/v1/send', {
   method: 'POST',
   headers: {
     Authorization: 'Bearer sk_your_secret_key',
@@ -60,7 +60,7 @@ await fetch('https://api.useplunk.com/v1/send', {
 import requests
 
 requests.post(
-    "https://api.useplunk.com/v1/send",
+    "https://api.merlin.example/v1/send",
     headers={
         "Authorization": "Bearer sk_your_secret_key",
         "Idempotency-Key": "receipt-order-1234",
@@ -100,7 +100,7 @@ Reusing a key returns `409` with the error code `IDEMPOTENCY_KEY_REUSED`. The `d
 An `originalStatusCode` of `null` means the original request is still in flight — two requests with the same key arrived at once, and this one lost the race.
 
 <Callout type="warn">
-Plunk **refuses** a reused key; it does not replay the original response. A `409` tells you the operation was not performed twice, but it does not return the original email or event ID. If you need that ID, record it when the first request succeeds.
+Merlin **refuses** a reused key; it does not replay the original response. A `409` tells you the operation was not performed twice, but it does not return the original email or event ID. If you need that ID, record it when the first request succeeds.
 </Callout>
 
 ## Which failures free the key

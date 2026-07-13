@@ -1,8 +1,8 @@
 import {visit} from 'unist-util-visit';
 
 // Default URLs that will be replaced at container startup by sed
-const API_URL = process.env.NEXT_PUBLIC_API_URI || 'https://next-api.useplunk.com';
-const DASHBOARD_URL = process.env.NEXT_PUBLIC_DASHBOARD_URI || 'https://next-app.useplunk.com';
+const API_URL = process.env.NEXT_PUBLIC_API_URI || 'https://next-api.merlin.example';
+const DASHBOARD_URL = process.env.NEXT_PUBLIC_DASHBOARD_URI || 'https://next-app.merlin.example';
 
 export function remarkReplaceEnv() {
   return tree => {
