@@ -14,11 +14,6 @@ export interface ConfigResponse {
     authProviders: {github: boolean; google: boolean};
     signup: {signupsDisabled: boolean};
     email: {trackingToggleEnabled: boolean};
-    smtp: {
-      enabled: boolean;
-      domain: string | null;
-      ports: {secure: number; submission: number} | null;
-    };
   };
   aws: {
     sesRegion: string;

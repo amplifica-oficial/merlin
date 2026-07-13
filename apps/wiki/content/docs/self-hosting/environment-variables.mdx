@@ -72,18 +72,6 @@ Callers can pass an `Idempotency-Key` header to `POST /v1/track` and `POST /v1/s
 | -------------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
 | `IDEMPOTENCY_KEY_TTL_HOURS` | No       | How long a used key stays claimed before it can be reused. Expired keys are swept hourly, so raising this grows the `idempotency_keys` table proportionally. | `24`    |
 
-## SMTP Server
-
-The optional SMTP relay lets you send emails through Plunk via the SMTP protocol.
-
-| Variable          | Required | Description                                                                                                                        | Default     |
-| ----------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------- | ----------- |
-| `SMTP_DOMAIN`     | No       | SMTP relay domain. Required when using Traefik's `acme.json` with multiple certificates so the correct cert can be selected.       | `localhost` |
-| `SMTP_ENABLED`    | No       | Explicitly enable SMTP features in the UI. Automatically enabled when `SMTP_DOMAIN` is set to a non-localhost value in production. | `false`     |
-| `PORT_SECURE`     | No       | SMTPS port (implicit TLS).                                                                                                         | `465`       |
-| `PORT_SUBMISSION` | No       | SMTP submission port (STARTTLS).                                                                                                   | `587`       |
-| `MAX_RECIPIENTS`  | No       | Maximum number of recipients per email.                                                                                            | `5`         |
-
 ## OAuth
 
 Enables social login. Register an OAuth app with each provider and add the credentials here.

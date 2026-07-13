@@ -36,7 +36,7 @@ See [Environment Variables](/self-hosting/environment-variables) for all options
 
 | Service | Purpose |
 |---------|---------|
-| `plunk` | All apps + nginx (API, Web, Landing, Wiki, SMTP) |
+| `plunk` | All apps + nginx (API, Web, Landing, Wiki) |
 | `postgres` | PostgreSQL 16 database |
 | `redis` | Redis 7 queue |
 | `minio` | S3-compatible storage |
@@ -47,13 +47,11 @@ See [Environment Variables](/self-hosting/environment-variables) for all options
 | Port  | Service                                  |
 | ----- | ---------------------------------------- |
 | 80    | Nginx (HTTP) — fronts API, dashboard, landing, wiki |
-| 465   | SMTP (implicit TLS)                      |
-| 587   | SMTP (STARTTLS)                          |
 | 8080  | API server (proxied through nginx; not usually exposed externally) |
 | 9000  | Minio API                                |
 | 9001  | Minio web console                        |
 
-When deploying behind a reverse proxy or load balancer, expose port 80 (and 465/587 if using SMTP). Postgres, Redis, and Minio are kept internal to the Docker network by default.
+When deploying behind a reverse proxy or load balancer, expose port 80. Postgres, Redis, and Minio are kept internal to the Docker network by default.
 
 ## Health check
 
@@ -76,35 +74,6 @@ SERVICE=worker # Worker only
 SERVICE=web    # Dashboard only
 SERVICE=all    # Everything (default)
 ```
-
-## SMTP TLS Certificates
-
-For TLS on ports 465/587, provide certificates via one of these methods:
-
-### Traefik acme.json (Dokploy, Coolify)
-
-Mount the `acme.json` file and set `SMTP_DOMAIN`:
-
-```yaml
-environment:
-  SMTP_DOMAIN: "smtp.yourdomain.com"
-volumes:
-  - /path/to/acme.json:/certs/acme.json:ro
-```
-
-Plunk automatically extracts the certificate for `SMTP_DOMAIN` from acme.json.
-
-### PEM Files
-
-Mount certificate files directly:
-
-```yaml
-volumes:
-  - /path/to/privkey.pem:/certs/privkey.pem:ro
-  - /path/to/fullchain.pem:/certs/fullchain.pem:ro
-```
-
-If no certificates are mounted, SMTP runs without TLS.
 
 ## Building from Source
 

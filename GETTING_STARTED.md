@@ -102,7 +102,7 @@ If you see `Environment variable not found: DIRECT_DATABASE_URL`, you are missin
 
 ## 5. Build shared packages
 
-The API, worker, and SMTP app import workspace packages from their compiled `dist/` output (for example `@plunk/db/dist/index.js`, `@plunk/shared/dist/index.js`, and `@plunk/email/dist/index.js`). Those files do not exist until you build.
+The API and worker import workspace packages from their compiled `dist/` output (for example `@plunk/db/dist/index.js`, `@plunk/shared/dist/index.js`, and `@plunk/email/dist/index.js`). Those files do not exist until you build.
 
 Build all packages the API depends on **before** running the dev stack:
 
@@ -130,7 +130,7 @@ Start all apps (API server, worker, and frontends):
 yarn dev
 ```
 
-If you skip step 5, Next.js apps (web, landing, wiki) may start, but the API and worker will crash with `ERR_MODULE_NOT_FOUND` for packages such as `@plunk/db/dist/index.js`, `@plunk/shared/dist/index.js`, or `@plunk/email/dist/index.js`. SMTP may start once `@plunk/db` is built but the API will still fail without `@plunk/email`.
+If you skip step 5, Next.js apps (web, landing, wiki) may start, but the API and worker will crash with `ERR_MODULE_NOT_FOUND` for packages such as `@plunk/db/dist/index.js`, `@plunk/shared/dist/index.js`, or `@plunk/email/dist/index.js`.
 
 Or run components separately for debugging:
 
@@ -283,7 +283,6 @@ This usually means workspace packages were never built, or `dist/` was removed (
 Symptoms when running `yarn dev`:
 
 - `api` and `api` worker fail immediately
-- `smtp` may fail if `@plunk/db` is missing
 - Frontends (web, landing, wiki) may still start
 
 Fix — run step 5, then restart dev:

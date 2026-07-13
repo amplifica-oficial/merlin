@@ -215,54 +215,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@aws-sdk/client-sesv2@npm:^3.839.0":
-  version: 3.950.0
-  resolution: "@aws-sdk/client-sesv2@npm:3.950.0"
-  dependencies:
-    "@aws-crypto/sha256-browser": "npm:5.2.0"
-    "@aws-crypto/sha256-js": "npm:5.2.0"
-    "@aws-sdk/core": "npm:3.947.0"
-    "@aws-sdk/credential-provider-node": "npm:3.948.0"
-    "@aws-sdk/middleware-host-header": "npm:3.936.0"
-    "@aws-sdk/middleware-logger": "npm:3.936.0"
-    "@aws-sdk/middleware-recursion-detection": "npm:3.948.0"
-    "@aws-sdk/middleware-user-agent": "npm:3.947.0"
-    "@aws-sdk/region-config-resolver": "npm:3.936.0"
-    "@aws-sdk/signature-v4-multi-region": "npm:3.947.0"
-    "@aws-sdk/types": "npm:3.936.0"
-    "@aws-sdk/util-endpoints": "npm:3.936.0"
-    "@aws-sdk/util-user-agent-browser": "npm:3.936.0"
-    "@aws-sdk/util-user-agent-node": "npm:3.947.0"
-    "@smithy/config-resolver": "npm:^4.4.3"
-    "@smithy/core": "npm:^3.18.7"
-    "@smithy/fetch-http-handler": "npm:^5.3.6"
-    "@smithy/hash-node": "npm:^4.2.5"
-    "@smithy/invalid-dependency": "npm:^4.2.5"
-    "@smithy/middleware-content-length": "npm:^4.2.5"
-    "@smithy/middleware-endpoint": "npm:^4.3.14"
-    "@smithy/middleware-retry": "npm:^4.4.14"
-    "@smithy/middleware-serde": "npm:^4.2.6"
-    "@smithy/middleware-stack": "npm:^4.2.5"
-    "@smithy/node-config-provider": "npm:^4.3.5"
-    "@smithy/node-http-handler": "npm:^4.4.5"
-    "@smithy/protocol-http": "npm:^5.3.5"
-    "@smithy/smithy-client": "npm:^4.9.10"
-    "@smithy/types": "npm:^4.9.0"
-    "@smithy/url-parser": "npm:^4.2.5"
-    "@smithy/util-base64": "npm:^4.3.0"
-    "@smithy/util-body-length-browser": "npm:^4.2.0"
-    "@smithy/util-body-length-node": "npm:^4.2.1"
-    "@smithy/util-defaults-mode-browser": "npm:^4.3.13"
-    "@smithy/util-defaults-mode-node": "npm:^4.2.16"
-    "@smithy/util-endpoints": "npm:^3.2.5"
-    "@smithy/util-middleware": "npm:^4.2.5"
-    "@smithy/util-retry": "npm:^4.2.5"
-    "@smithy/util-utf8": "npm:^4.2.0"
-    tslib: "npm:^2.6.2"
-  checksum: 10c0/6ea4c26f9f200352261b2fd5b3c36b4fc809daa94fe3fc9e2764c955e660cf9c1480c139c04c118084d2f41e14a0d82c238aa96321e561728833ca7257012337
-  languageName: node
-  linkType: hard
-
 "@aws-sdk/client-sso@npm:3.948.0":
   version: 3.948.0
   resolution: "@aws-sdk/client-sso@npm:3.948.0"
@@ -7133,7 +7085,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/mailparser@npm:^3.4.4, @types/mailparser@npm:^3.4.6":
+"@types/mailparser@npm:^3.4.6":
   version: 3.4.6
   resolution: "@types/mailparser@npm:3.4.6"
   dependencies:
@@ -7253,16 +7205,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/nodemailer@npm:*":
-  version: 7.0.4
-  resolution: "@types/nodemailer@npm:7.0.4"
-  dependencies:
-    "@aws-sdk/client-sesv2": "npm:^3.839.0"
-    "@types/node": "npm:*"
-  checksum: 10c0/8c98d4fc33a84ab0ba82d6f5a79ad9f70ae9cd86da857ef16f7896fa78203ed66c2f9f2440a0eb04ea0ab3d69c03252c8b1e5bab9371871080d223cfbdef41a4
-  languageName: node
-  linkType: hard
-
 "@types/normalize-path@npm:3.0.2":
   version: 3.0.2
   resolution: "@types/normalize-path@npm:3.0.2"
@@ -7361,16 +7303,6 @@ __metadata:
   dependencies:
     "@types/node": "npm:*"
   checksum: 10c0/deff3ccc072c7cdb5b97242799c45a5f477ee20a1150b0798e8e88ecb0cd266466ef25a535892ce672cb7ea7904024a1d58ab7492e58df5854ad519c4f72e518
-  languageName: node
-  linkType: hard
-
-"@types/smtp-server@npm:^3.5.10":
-  version: 3.5.12
-  resolution: "@types/smtp-server@npm:3.5.12"
-  dependencies:
-    "@types/node": "npm:*"
-    "@types/nodemailer": "npm:*"
-  checksum: 10c0/2c2936b0da6272a092adb3d06f9873be9c7122d95d31931f4ade8b1b8ee232bb2303f9b48a24e89e4e4e2843e02d992fc64755a45125a4d640c85e4d677bc213
   languageName: node
   linkType: hard
 
@@ -12815,13 +12747,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ipv6-normalize@npm:1.0.1":
-  version: 1.0.1
-  resolution: "ipv6-normalize@npm:1.0.1"
-  checksum: 10c0/89156fbfc4f8828b29adf8009332ec77cd93a17a6e28066d602c3154b7bbc37df07f981ab2b6debb46f9a716867262ae4ea5399f3fa9bb0fc8019e6dc2a96023
-  languageName: node
-  linkType: hard
-
 "is-alphabetical@npm:^2.0.0":
   version: 2.0.1
   resolution: "is-alphabetical@npm:2.0.1"
@@ -14137,24 +14062,6 @@ __metadata:
   version: 6.0.19
   resolution: "mailchecker@npm:6.0.19"
   checksum: 10c0/96269fc53d5103f1950926554ac92cb38ff6c8511c7628d13a36e74572f88484a47d8789d35902cb69589c1eeb7c8d96d46105f92d285c4dfabbb00b88e8b8a3
-  languageName: node
-  linkType: hard
-
-"mailparser@npm:^3.9.3":
-  version: 3.9.3
-  resolution: "mailparser@npm:3.9.3"
-  dependencies:
-    "@zone-eu/mailsplit": "npm:5.4.8"
-    encoding-japanese: "npm:2.2.0"
-    he: "npm:1.2.0"
-    html-to-text: "npm:9.0.5"
-    iconv-lite: "npm:0.7.2"
-    libmime: "npm:5.3.7"
-    linkify-it: "npm:5.0.0"
-    nodemailer: "npm:7.0.13"
-    punycode.js: "npm:2.3.1"
-    tlds: "npm:1.261.0"
-  checksum: 10c0/da62c7cd977867da8be0dd1e6cf3b137821258e0d1e0976a00d3ec17bbd8a92bbefbccc7b0ec1dd33bc5ccd28dc5d51bbae723fac8ca05be843e88b7d579c751
   languageName: node
   linkType: hard
 
@@ -15600,20 +15507,6 @@ __metadata:
   version: 2.0.27
   resolution: "node-releases@npm:2.0.27"
   checksum: 10c0/f1e6583b7833ea81880627748d28a3a7ff5703d5409328c216ae57befbced10ce2c991bea86434e8ec39003bd017f70481e2e5f8c1f7e0a7663241f81d6e00e2
-  languageName: node
-  linkType: hard
-
-"nodemailer@npm:7.0.13":
-  version: 7.0.13
-  resolution: "nodemailer@npm:7.0.13"
-  checksum: 10c0/b26aa5b9fa4a033bbc1e1c16ef75ee2a9c8641fd290c00a8361d6a251b3c1b8bad545a23efa627f59cb266340a448891ea8aa49d8a9307c767b8505219d95079
-  languageName: node
-  linkType: hard
-
-"nodemailer@npm:8.0.4":
-  version: 8.0.4
-  resolution: "nodemailer@npm:8.0.4"
-  checksum: 10c0/5fb6fa72645b541c18b84b861de46f4740449e1d7c987b4d9ef715d815d613f93262225bc319e217df6215d6f123efadb9a412dcf937fe0a41cbecf279dfb2a0
   languageName: node
   linkType: hard
 
@@ -18250,34 +18143,6 @@ __metadata:
   checksum: 10c0/a16775323e1404dd43fabafe7460be13a471e021637bc7889468eb45ce6a6b207261f454e4e530a19500cc962c4cc5348583520843b363f4193cee5c00e1e539
   languageName: node
   linkType: hard
-
-"smtp-server@npm:^3.18.3":
-  version: 3.18.3
-  resolution: "smtp-server@npm:3.18.3"
-  dependencies:
-    ipv6-normalize: "npm:1.0.1"
-    nodemailer: "npm:8.0.4"
-    punycode.js: "npm:2.3.1"
-  checksum: 10c0/46aa43801814a04b5a812631152d85eb49bb459c42546410b64fd31cdd9fa7210db969e94a22f82ab5d5dc47bf2612773571e7bd591ec087c2628be6781a232b
-  languageName: node
-  linkType: hard
-
-"smtp@workspace:apps/smtp":
-  version: 0.0.0-use.local
-  resolution: "smtp@workspace:apps/smtp"
-  dependencies:
-    "@plunk/db": "npm:*"
-    "@types/mailparser": "npm:^3.4.4"
-    "@types/node": "npm:^24.10.0"
-    "@types/signale": "npm:^1.4.7"
-    "@types/smtp-server": "npm:^3.5.10"
-    dotenv: "npm:^17.2.3"
-    mailparser: "npm:^3.9.3"
-    signale: "npm:^1.4.0"
-    smtp-server: "npm:^3.18.3"
-    tsx: "npm:^4.20.6"
-  languageName: unknown
-  linkType: soft
 
 "socket.io-adapter@npm:~2.5.2":
   version: 2.5.5
