@@ -6,7 +6,7 @@ version: '3.8'
 # Uses subdomain-based routing:
 #   - api.example.com -> API Server
 #   - app.example.com -> Web Dashboard
-#   - www.example.com -> Landing Page
+#   - docs.example.com -> Documentation
 #   - docs.example.com -> Documentation
 #
 # Usage:
@@ -127,7 +127,6 @@ services:
       # Each service gets its own subdomain
       API_DOMAIN: ${API_DOMAIN:-api.localhost}
       DASHBOARD_DOMAIN: ${DASHBOARD_DOMAIN:-app.localhost}
-      LANDING_DOMAIN: ${LANDING_DOMAIN:-www.localhost}
       WIKI_DOMAIN: ${WIKI_DOMAIN:-docs.localhost}
 
       # Protocol configuration (set to true for HTTPS in production)
@@ -137,7 +136,6 @@ services:
       # You can override these if needed
       API_URI: ${API_URI:-}
       DASHBOARD_URI: ${DASHBOARD_URI:-}
-      LANDING_URI: ${LANDING_URI:-}
       WIKI_URI: ${WIKI_URI:-}
 
       # AWS SES (for sending emails)
