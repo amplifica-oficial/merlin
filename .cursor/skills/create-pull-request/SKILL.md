@@ -21,6 +21,18 @@ Prepare and open a pull request from the current feature branch into `next`. Com
 | Protected | `next`, `main` — never force push |
 | CLI | `gh` (GitHub CLI) |
 
+## Sandbox / permissions (required)
+
+GitHub CLI auth **does not work inside the Cursor sandbox**. Every `gh` and GitHub `git push`/`git fetch` invocation **must** run unrestricted:
+
+```
+required_permissions: ["all"]
+```
+
+Applies to: `gh auth status`, `gh repo view`, `gh repo set-default`, `gh pr create`, `gh pr view`, and `git push -u origin HEAD`.
+
+Do **not** run these in the default sandbox or with only `full_network` — credential helper / keychain access fails. If a `gh` call fails with auth errors after running sandboxed, re-run the **exact same command** with `["all"]`.
+
 ## Workflow
 
 Copy this checklist and track progress:
@@ -36,6 +48,8 @@ Task Progress:
 ```
 
 ### Step 1: Verify gh authentication and target repo
+
+Run **outside the sandbox** (`required_permissions: ["all"]`):
 
 ```bash
 gh auth status
@@ -76,7 +90,7 @@ git diff next...HEAD --stat
 
 - Current branch must NOT be `next` or `main`. If it is, stop and tell the user to create a feature branch and commit first.
 - Working tree should be clean. If dirty, commit or stash before proceeding.
-- Ensure branch is pushed:
+- Ensure branch is pushed (**outside sandbox**, `required_permissions: ["all"]`):
 
 ```bash
 git push -u origin HEAD
@@ -162,7 +176,7 @@ If the user requests edits, update the draft and present again.
 
 ### Step 6: Create PR via gh
 
-After user confirmation:
+After user confirmation, run **outside the sandbox** (`required_permissions: ["all"]`):
 
 ```bash
 BRANCH=$(git branch --show-current)
@@ -200,6 +214,7 @@ Report the existing PR URL instead of creating a duplicate.
 
 **Never:**
 
+- Run `gh` or GitHub `git push` inside the Cursor sandbox (auth breaks)
 - `gh pr create` without `--repo amplifica-oficial/merlin`
 - `gh pr create --base main` (prod is not a direct PR target)
 - Open a PR against `useplunk/plunk` or any `*-fork` repo without explicit user request

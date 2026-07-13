@@ -22,6 +22,21 @@ Autonomously stage, commit, and push changes following this repo's Conventional 
 
 **Scope examples:** `web`, `api`, `forms`, `puck-config`, `landing-pages`, `marquee`.
 
+## Sandbox / permissions (required)
+
+Git credential helpers and GitHub auth **fail inside the Cursor sandbox**. Always run network git / `gh` commands with unrestricted permissions:
+
+```
+required_permissions: ["all"]
+```
+
+Apply to:
+
+- `git push` / `git pull` / `git fetch` against GitHub
+- Any `gh` command (auth, pr, repo)
+
+Do **not** retry these in the default sandbox — credentials will not work. Prefer `["all"]` over `["full_network"]` alone; network alone is not enough for local credential access.
+
 ## Workflow
 
 Copy this checklist and track progress:
@@ -113,6 +128,8 @@ After each commit, run `git status`. Repeat Steps 3–4 until all relevant chang
 
 ### Step 5: Push to origin
 
+Run **outside the sandbox** (`required_permissions: ["all"]`):
+
 ```bash
 git push -u origin HEAD
 ```
@@ -141,6 +158,7 @@ feat(landing): add marquee, update puck config, fix css, update docs, bump deps
 
 **Never:**
 
+- Run GitHub `git push`/`git fetch` or `gh` inside the Cursor sandbox (credentials fail — use `required_permissions: ["all"]`)
 - `git push --force` or `git push --force-with-lease` on any branch
 - `git reset --hard`
 - `git clean -fd` without explicit user request
