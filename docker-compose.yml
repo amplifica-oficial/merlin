@@ -7,7 +7,6 @@ version: '3.8'
 #   - api.example.com -> API Server
 #   - app.example.com -> Web Dashboard
 #   - docs.example.com -> Documentation
-#   - docs.example.com -> Documentation
 #
 # Usage:
 #   1. Copy .env.self-host.example to .env and configure
