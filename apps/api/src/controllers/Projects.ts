@@ -1,6 +1,6 @@
 import {Controller, Delete, Get, Middleware, Patch, Post} from '@overnightjs/core';
 import type {NextFunction, Request, Response} from 'express';
-import {MembershipSchemas, UtilitySchemas} from '@plunk/shared';
+import {MembershipSchemas, UtilitySchemas} from '@merlin/shared';
 
 import {prisma} from '../database/prisma.js';
 import {HttpException} from '../exceptions/index.js';

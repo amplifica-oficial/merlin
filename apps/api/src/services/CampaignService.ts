@@ -1,7 +1,7 @@
-import type {Campaign, Contact, Prisma} from '@plunk/db';
-import {CampaignAudienceType, CampaignStatus, EmailSourceType, EmailStatus, TemplateType} from '@plunk/db';
-import type {CreateCampaignData, FilterCondition, PaginatedResponse, UpdateCampaignData} from '@plunk/types';
-import {fromPrismaJson, toPrismaJson} from '@plunk/types';
+import type {Campaign, Contact, Prisma} from '@merlin/db';
+import {CampaignAudienceType, CampaignStatus, EmailSourceType, EmailStatus, TemplateType} from '@merlin/db';
+import type {CreateCampaignData, FilterCondition, PaginatedResponse, UpdateCampaignData} from '@merlin/types';
+import {fromPrismaJson, toPrismaJson} from '@merlin/types';
 import signale from 'signale';
 
 import {prisma} from '../database/prisma.js';
@@ -813,7 +813,7 @@ export class CampaignService {
     // Prepare the email content (no variable replacement for test emails)
     await sendRawEmail({
       from: {
-        name: campaign.fromName || project.name || 'Plunk',
+        name: campaign.fromName || project.name || 'Merlin',
         email: campaign.from,
       },
       to: [testEmail],
@@ -825,7 +825,7 @@ export class CampaignService {
       headers: buildEmailHeaders({
         emailClass,
         isCampaign: true,
-        customHeaders: {'X-Plunk-Test': 'true'},
+        customHeaders: {'X-Merlin-Test': 'true'},
       }),
       tracking: false, // Disable tracking for test emails
     });

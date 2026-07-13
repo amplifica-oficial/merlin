@@ -1,5 +1,5 @@
 import {Controller, Delete, Get, Middleware, Post} from '@overnightjs/core';
-import {DomainSchemas, UtilitySchemas} from '@plunk/shared';
+import {DomainSchemas, UtilitySchemas} from '@merlin/shared';
 import type {NextFunction, Request, Response} from 'express';
 
 import {redis} from '../database/redis.js';

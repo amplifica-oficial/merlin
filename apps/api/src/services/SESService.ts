@@ -237,8 +237,8 @@ export const verifyDomain = async (domain: string): Promise<string[]> => {
   // Verify DKIM for the domain
   const DKIM = await ses.verifyDomainDkim({Domain: domain});
 
-  // Set custom MAIL FROM domain. The subdomain defaults to `plunk` and can be
-  // overridden via the MAIL_FROM_SUBDOMAIN env var — useful when `plunk.<domain>`
+  // Set custom MAIL FROM domain. The subdomain defaults to `merlin` and can be
+  // overridden via the MAIL_FROM_SUBDOMAIN env var — useful when `merlin.<domain>`
   // is already in use for something else (e.g., a CNAME to a CDN), since the
   // MAIL FROM subdomain needs MX + TXT records that conflict with a CNAME.
   await ses.setIdentityMailFromDomain({

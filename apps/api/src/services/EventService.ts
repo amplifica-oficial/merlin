@@ -1,7 +1,7 @@
-import type {Event} from '@plunk/db';
-import {Prisma} from '@plunk/db';
-import type {FilterCondition, FilterGroup} from '@plunk/types';
-import {toPrismaJson} from '@plunk/types';
+import type {Event} from '@merlin/db';
+import {Prisma} from '@merlin/db';
+import type {FilterCondition, FilterGroup} from '@merlin/types';
+import {toPrismaJson} from '@merlin/types';
 import signale from 'signale';
 
 import {prisma} from '../database/prisma.js';

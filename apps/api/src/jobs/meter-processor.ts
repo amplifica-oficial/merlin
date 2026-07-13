@@ -3,7 +3,7 @@
  * Reliably records Stripe billing meter events with automatic retries
  */
 
-import type {MeterEventJobData} from '@plunk/types';
+import type {MeterEventJobData} from '@merlin/types';
 import {type Job, Worker} from 'bullmq';
 import signale from 'signale';
 

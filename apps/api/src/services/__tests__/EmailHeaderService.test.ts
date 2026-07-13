@@ -1,4 +1,4 @@
-import {EmailSourceType} from '@plunk/db';
+import {EmailSourceType} from '@merlin/db';
 import {describe, expect, it} from 'vitest';
 
 import {DASHBOARD_URI} from '../../app/constants';

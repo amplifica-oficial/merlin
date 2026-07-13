@@ -1,6 +1,6 @@
 import {Controller, Get, Post} from '@overnightjs/core';
-import {AuthenticationSchemas} from '@plunk/shared';
-import {EmailVerificationEmail, PasswordResetEmail, sendPlatformEmail} from '@plunk/email';
+import {AuthenticationSchemas} from '@merlin/shared';
+import {EmailVerificationEmail, PasswordResetEmail, sendPlatformEmail} from '@merlin/email';
 import {randomBytes} from 'node:crypto';
 import type {NextFunction, Request, Response} from 'express';
 import * as React from 'react';
@@ -13,7 +13,7 @@ import {
   GITHUB_OAUTH_ENABLED,
   GOOGLE_OAUTH_ENABLED,
   PASSWORD_RESET_RATE_LIMIT,
-  PLUNK_ENABLED,
+  MERLIN_ENABLED,
   TOKEN_EXPIRY_SECONDS,
   VERIFY_EMAIL_ON_SIGNUP,
 } from '../app/constants.js';
@@ -116,7 +116,7 @@ export class Auth {
         password: await AuthService.generateHash(password),
         type: 'PASSWORD',
         // Auto-verify email if platform emails are disabled
-        emailVerified: !PLUNK_ENABLED,
+        emailVerified: !MERLIN_ENABLED,
       },
     });
 
@@ -126,7 +126,7 @@ export class Auth {
     await NtfyService.notifyUserSignup(created_user.email, created_user.id);
 
     // Send email verification if platform emails are enabled
-    if (PLUNK_ENABLED) {
+    if (MERLIN_ENABLED) {
       const verificationToken = randomBytes(32).toString('hex');
       await redis.setex(
         Keys.User.emailVerificationToken(verificationToken),

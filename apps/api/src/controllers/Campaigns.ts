@@ -1,6 +1,6 @@
 import {Controller, Delete, Get, Middleware, Post, Put} from '@overnightjs/core';
-import {CampaignAudienceType, CampaignStatus, TemplateType} from '@plunk/db';
-import {CampaignSchemas, UtilitySchemas} from '@plunk/shared';
+import {CampaignAudienceType, CampaignStatus, TemplateType} from '@merlin/db';
+import {CampaignSchemas, UtilitySchemas} from '@merlin/shared';
 import type {NextFunction, Request, Response} from 'express';
 
 import {HttpException} from '../exceptions/index.js';

@@ -1,6 +1,6 @@
 import {beforeEach, describe, expect, it, vi, type Mock} from 'vitest';
-import {EmailSourceType, EmailStatus, TemplateType} from '@plunk/db';
-import {ActionSchemas} from '@plunk/shared';
+import {EmailSourceType, EmailStatus, TemplateType} from '@merlin/db';
+import {ActionSchemas} from '@merlin/shared';
 import {EmailService} from '../EmailService';
 import {sendRawEmail} from '../SESService';
 import {factories, getPrismaClient} from '../../../../../test/helpers';

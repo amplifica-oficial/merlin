@@ -1,10 +1,10 @@
 import {randomUUID} from 'node:crypto';
 
-import type {Form} from '@plunk/db';
-import {Prisma} from '@plunk/db';
-import {FormSchemas} from '@plunk/shared';
-import type {FormField, FormSettings, FormSubmitResult, PublicFormConfig} from '@plunk/types';
-import {fromPrismaJson, toPrismaJson} from '@plunk/types';
+import type {Form} from '@merlin/db';
+import {Prisma} from '@merlin/db';
+import {FormSchemas} from '@merlin/shared';
+import type {FormField, FormSettings, FormSubmitResult, PublicFormConfig} from '@merlin/types';
+import {fromPrismaJson, toPrismaJson} from '@merlin/types';
 
 import {VERIFY_EMAIL_ON_SIGNUP} from '../app/constants.js';
 import {prisma} from '../database/prisma.js';
@@ -21,7 +21,7 @@ import {SegmentService} from './SegmentService.js';
 const FORM_SUBMIT_RATE_LIMIT = 10;
 const FORM_SUBMIT_RATE_WINDOW_SECONDS = 3600;
 
-const RESERVED_FORM_DATA_KEYS = new Set(['plunk_id', 'plunk_email', 'id', 'email', 'locale']);
+const RESERVED_FORM_DATA_KEYS = new Set(['merlin_id', 'merlin_email', 'id', 'email', 'locale']);
 
 export class FormService {
   public static async list(projectId: string): Promise<Form[]> {

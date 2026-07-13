@@ -1,4 +1,4 @@
-import type {Prisma} from '@plunk/db';
+import type {Prisma} from '@merlin/db';
 
 /**
  * Shared utility for building Prisma update objects

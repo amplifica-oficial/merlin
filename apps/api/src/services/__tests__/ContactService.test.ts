@@ -177,18 +177,18 @@ describe('ContactService - Duplicate Prevention & Data Merging', () => {
       expect(contact.data).not.toHaveProperty('oneTimeCode');
     });
 
-    it('should ignore reserved fields (plunk_id, plunk_email)', async () => {
+    it('should ignore reserved fields (merlin_id, merlin_email)', async () => {
       const email = 'test@example.com';
 
       const contact = await ContactService.upsert(projectId, email, {
         firstName: 'John',
-        plunk_id: 'malicious-id',
-        plunk_email: 'hacker@evil.com',
+        merlin_id: 'malicious-id',
+        merlin_email: 'hacker@evil.com',
       });
 
       expect(contact.data).toHaveProperty('firstName', 'John');
-      expect(contact.data).not.toHaveProperty('plunk_id');
-      expect(contact.data).not.toHaveProperty('plunk_email');
+      expect(contact.data).not.toHaveProperty('merlin_id');
+      expect(contact.data).not.toHaveProperty('merlin_email');
     });
 
     it('should handle null data gracefully', async () => {
@@ -231,7 +231,7 @@ describe('ContactService - Duplicate Prevention & Data Merging', () => {
   });
 
   describe('getMergedData - Template Rendering', () => {
-    it('should include reserved plunk_id and plunk_email fields', async () => {
+    it('should include reserved merlin_id and merlin_email fields', async () => {
       const contact = await factories.createContact({
         projectId,
         email: 'test@example.com',
@@ -239,8 +239,8 @@ describe('ContactService - Duplicate Prevention & Data Merging', () => {
 
       const merged = ContactService.getMergedData(contact);
 
-      expect(merged.plunk_id).toBe(contact.id);
-      expect(merged.plunk_email).toBe('test@example.com');
+      expect(merged.merlin_id).toBe(contact.id);
+      expect(merged.merlin_email).toBe('test@example.com');
     });
 
     it('should merge persistent contact data', async () => {
@@ -295,14 +295,14 @@ describe('ContactService - Duplicate Prevention & Data Merging', () => {
       });
 
       const temporaryData = {
-        plunk_id: 'fake-id',
-        plunk_email: 'fake@example.com',
+        merlin_id: 'fake-id',
+        merlin_email: 'fake@example.com',
       };
 
       const merged = ContactService.getMergedData(contact, temporaryData);
 
-      expect(merged.plunk_id).toBe(contact.id);
-      expect(merged.plunk_email).toBe('real@example.com');
+      expect(merged.merlin_id).toBe(contact.id);
+      expect(merged.merlin_email).toBe('real@example.com');
     });
   });
 

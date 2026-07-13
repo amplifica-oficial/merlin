@@ -1,5 +1,5 @@
 import {beforeEach, describe, expect, it} from 'vitest';
-import {ActionSchemas} from '@plunk/shared';
+import {ActionSchemas} from '@merlin/shared';
 import {factories, getPrismaClient} from '../../../../../test/helpers';
 import {
   BadRequest,

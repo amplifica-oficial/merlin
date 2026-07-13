@@ -1,5 +1,5 @@
 import {beforeEach, describe, expect, it, vi} from 'vitest';
-import {EmailStatus, EmailSourceType} from '@plunk/db';
+import {EmailStatus, EmailSourceType} from '@merlin/db';
 import {SecurityService} from '../SecurityService';
 import {factories, getPrismaClient} from '../../../../../test/helpers';
 import {redis} from '../../database/redis';
@@ -21,7 +21,7 @@ vi.mock('../NtfyService.js', () => ({
 }));
 
 // Mock email sending for project disabled notifications
-vi.mock('@plunk/email', () => ({
+vi.mock('@merlin/email', () => ({
   ProjectDisabledEmail: vi.fn(),
   sendPlatformEmail: vi.fn(),
 }));

@@ -2,9 +2,9 @@ import dayjs from 'dayjs';
 import type {NextFunction, Request, Response} from 'express';
 import jsonwebtoken from 'jsonwebtoken';
 
-import type {AuthResponse} from '@plunk/types';
+import type {AuthResponse} from '@merlin/types';
 
-import {JWT_SECRET, PLUNK_ENABLED} from '../app/constants.js';
+import {JWT_SECRET, MERLIN_ENABLED} from '../app/constants.js';
 import {ErrorCode, HttpException, NotAuthenticated} from '../exceptions/index.js';
 import {MembershipService} from '../services/MembershipService.js';
 import {ProjectService} from '../services/ProjectService.js';
@@ -353,7 +353,7 @@ export const requireEmailVerified = async (req: Request, res: Response, next: Ne
     }
 
     // If platform email verification is disabled, skip check
-    if (!PLUNK_ENABLED) {
+    if (!MERLIN_ENABLED) {
       return next();
     }
 

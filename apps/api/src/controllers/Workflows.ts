@@ -1,6 +1,6 @@
 import {Controller, Delete, Get, Middleware, Patch, Post} from '@overnightjs/core';
-import {WorkflowExecutionStatus} from '@plunk/db';
-import {WorkflowSchemas} from '@plunk/shared';
+import {WorkflowExecutionStatus} from '@merlin/db';
+import {WorkflowSchemas} from '@merlin/shared';
 import type {NextFunction, Request, Response} from 'express';
 import signale from 'signale';
 import {requireAuth, requireEmailVerified} from '../middleware/auth.js';

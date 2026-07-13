@@ -1,4 +1,4 @@
-import type {EmailBodyCleanupJobData} from '@plunk/types';
+import type {EmailBodyCleanupJobData} from '@merlin/types';
 import type {Job} from 'bullmq';
 import {Worker} from 'bullmq';
 import type {RedisOptions} from 'ioredis';

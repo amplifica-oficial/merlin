@@ -1,6 +1,6 @@
 import {beforeEach, describe, expect, it, vi} from 'vitest';
-import {StepExecutionStatus, WorkflowExecutionStatus, WorkflowStepType} from '@plunk/db';
-import {toPrismaJson} from '@plunk/types';
+import {StepExecutionStatus, WorkflowExecutionStatus, WorkflowStepType} from '@merlin/db';
+import {toPrismaJson} from '@merlin/types';
 import {WorkflowExecutionService} from '../WorkflowExecutionService';
 import {factories, getPrismaClient} from '../../../../../test/helpers';
 
@@ -1099,8 +1099,8 @@ describe('WorkflowExecutionService - Integration Tests', () => {
           status: WorkflowExecutionStatus.RUNNING,
           currentStepId: triggerStep!.id,
           context: toPrismaJson({
-            subject: 'Welcome to Plunk!',
-            from: 'team@plunk.com',
+            subject: 'Welcome to Merlin!',
+            from: 'team@merlin.example',
           }),
         },
       });

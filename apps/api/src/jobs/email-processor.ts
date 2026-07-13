@@ -3,8 +3,8 @@
  * Processes individual emails from the queue (for all sources: transactional, campaign, workflow)
  */
 
-import {EmailStatus} from '@plunk/db';
-import type {SendEmailJobData} from '@plunk/types';
+import {EmailStatus} from '@merlin/db';
+import type {SendEmailJobData} from '@merlin/types';
 import {type Job, Worker} from 'bullmq';
 import signale from 'signale';
 
@@ -151,7 +151,7 @@ export async function createEmailWorker() {
         });
 
         // Compile HTML with unsubscribe footer and badge.
-        // Only marketing emails get the Plunk unsubscribe footer.
+        // Only marketing emails get the Merlin unsubscribe footer.
         const compiledHtml = EmailService.compile({
           content: formattedEmail.body,
           contact: email.contact,
@@ -171,12 +171,12 @@ export async function createEmailWorker() {
             : undefined;
 
         // Check for custom recipient override in headers
-        const recipientEmail = customHeaders?.['X-Plunk-Recipient-Override'] || email.contact.email;
+        const recipientEmail = customHeaders?.['X-Merlin-Recipient-Override'] || email.contact.email;
 
         // Remove internal headers before sending
         const publicHeaders = customHeaders ? {...customHeaders} : undefined;
-        if (publicHeaders && 'X-Plunk-Recipient-Override' in publicHeaders) {
-          delete publicHeaders['X-Plunk-Recipient-Override'];
+        if (publicHeaders && 'X-Merlin-Recipient-Override' in publicHeaders) {
+          delete publicHeaders['X-Merlin-Recipient-Override'];
         }
 
         // Build the outbound headers: standards-based defaults for the email class

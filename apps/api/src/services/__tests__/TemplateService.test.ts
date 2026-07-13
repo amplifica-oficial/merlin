@@ -1,5 +1,5 @@
 import {beforeEach, describe, expect, it} from 'vitest';
-import {TemplateType} from '@plunk/db';
+import {TemplateType} from '@merlin/db';
 import {TemplateService} from '../TemplateService';
 import {factories, getPrismaClient} from '../../../../../test/helpers';
 

@@ -13,7 +13,7 @@ import {
   GITHUB_OAUTH_ENABLED,
   GOOGLE_OAUTH_ENABLED,
   NODE_ENV,
-  PLUNK_ENABLED,
+  MERLIN_ENABLED,
   PORT,
   S3_ENABLED,
   STRIPE_ENABLED,
@@ -443,8 +443,8 @@ void prisma.$connect().then(async () => {
     },
     {
       name: 'Platform emails',
-      enabled: PLUNK_ENABLED,
-      details: PLUNK_ENABLED ? 'Platform email notifications enabled' : 'PLUNK_API_KEY not configured',
+      enabled: MERLIN_ENABLED,
+      details: MERLIN_ENABLED ? 'Platform email notifications enabled' : 'MERLIN_API_KEY not configured',
     },
   ];
 

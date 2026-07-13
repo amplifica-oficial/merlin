@@ -45,10 +45,10 @@ export const AWS_SES_ACCESS_KEY_ID = validateEnv('AWS_SES_ACCESS_KEY_ID');
 export const AWS_SES_SECRET_ACCESS_KEY = validateEnv('AWS_SES_SECRET_ACCESS_KEY');
 
 // Custom MAIL FROM subdomain used to construct `<subdomain>.<your-domain>`
-// when a domain is added. Defaults to `plunk`. Override when `plunk.<your-domain>`
+// when a domain is added. Defaults to `merlin`. Override when `merlin.<your-domain>`
 // is already used for something else (e.g. a CDN), since the MAIL FROM hostname
 // needs MX + TXT records that can't coexist with a CNAME.
-export const MAIL_FROM_SUBDOMAIN = validateEnv('MAIL_FROM_SUBDOMAIN', '').trim() || 'plunk';
+export const MAIL_FROM_SUBDOMAIN = validateEnv('MAIL_FROM_SUBDOMAIN', '').trim() || 'merlin';
 
 // Email Processing Rate Limit (optional override)
 // If not set, will automatically fetch from AWS SES account quota
@@ -96,17 +96,17 @@ export const STRIPE_PRICE_EMAIL_USAGE = validateEnv('STRIPE_PRICE_EMAIL_USAGE', 
 export const STRIPE_METER_EVENT_NAME = validateEnv('STRIPE_METER_EVENT_NAME', 'emails'); // Meter event name (API key in Stripe)
 
 // Email Tracking
-export const SES_CONFIGURATION_SET = validateEnv('SES_CONFIGURATION_SET', 'plunk-configuration-set');
+export const SES_CONFIGURATION_SET = validateEnv('SES_CONFIGURATION_SET', 'merlin-configuration-set');
 export const SES_CONFIGURATION_SET_NO_TRACKING = validateEnv(
   'SES_CONFIGURATION_SET_NO_TRACKING',
-  'plunk-configuration-set-no-tracking',
+  'merlin-configuration-set-no-tracking',
 );
 // Check if no-tracking configuration set was explicitly provided (not using default)
 export const TRACKING_TOGGLE_ENABLED = process.env.SES_CONFIGURATION_SET_NO_TRACKING !== undefined;
 
-export const PLUNK_API_KEY = validateEnv('PLUNK_API_KEY', '');
-export const PLUNK_FROM_ADDRESS = validateEnv('PLUNK_FROM_ADDRESS', '');
-export const PLUNK_ENABLED = PLUNK_API_KEY !== '' && PLUNK_FROM_ADDRESS !== '';
+export const MERLIN_API_KEY = validateEnv('MERLIN_API_KEY', '');
+export const MERLIN_FROM_ADDRESS = validateEnv('MERLIN_FROM_ADDRESS', '');
+export const MERLIN_ENABLED = MERLIN_API_KEY !== '' && MERLIN_FROM_ADDRESS !== '';
 
 // Security (optional)
 // Controls whether projects are automatically disabled when bounce/complaint rate thresholds are exceeded

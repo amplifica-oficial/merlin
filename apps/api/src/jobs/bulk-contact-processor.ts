@@ -3,8 +3,8 @@
  * Processes bulk subscribe, unsubscribe, and delete operations
  */
 
-import {Prisma} from '@plunk/db';
-import type {BulkContactActionJobData, BulkContactActionSelector} from '@plunk/types';
+import {Prisma} from '@merlin/db';
+import type {BulkContactActionJobData, BulkContactActionSelector} from '@merlin/types';
 import {type Job, Worker} from 'bullmq';
 import signale from 'signale';
 

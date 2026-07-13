@@ -1,4 +1,4 @@
-import type {ApiRequestCleanupJobData} from '@plunk/types';
+import type {ApiRequestCleanupJobData} from '@merlin/types';
 import type {Job} from 'bullmq';
 import {Worker} from 'bullmq';
 import type {RedisOptions} from 'ioredis';

@@ -5,7 +5,7 @@ import {
   WorkflowExecutionStatus,
   WorkflowStepType,
   WorkflowTriggerType,
-} from '@plunk/db';
+} from '@merlin/db';
 import {WorkflowExecutionService} from '../WorkflowExecutionService';
 import {factories, getPrismaClient} from '../../../../../test/helpers';
 

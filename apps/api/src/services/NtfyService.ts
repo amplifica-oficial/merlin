@@ -1,4 +1,4 @@
-import {type NtfyNotification, NtfyPriority, NtfyTag} from '@plunk/types';
+import {type NtfyNotification, NtfyPriority, NtfyTag} from '@merlin/types';
 import signale from 'signale';
 
 /**

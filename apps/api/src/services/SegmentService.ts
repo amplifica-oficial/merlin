@@ -1,6 +1,6 @@
-import {type Contact, Prisma, type Segment} from '@plunk/db';
-import type {FilterCondition, FilterGroup, PaginatedResponse, SegmentFilter, SegmentType} from '@plunk/types';
-import {fromPrismaJson, toPrismaJson} from '@plunk/types';
+import {type Contact, Prisma, type Segment} from '@merlin/db';
+import type {FilterCondition, FilterGroup, PaginatedResponse, SegmentFilter, SegmentType} from '@merlin/types';
+import {fromPrismaJson, toPrismaJson} from '@merlin/types';
 import signale from 'signale';
 
 import {prisma} from '../database/prisma.js';
@@ -10,7 +10,7 @@ import {ContactService} from './ContactService.js';
 import {EventService} from './EventService.js';
 import {NtfyService} from './NtfyService.js';
 
-export type {FilterCondition, FilterGroup, SegmentFilter} from '@plunk/types';
+export type {FilterCondition, FilterGroup, SegmentFilter} from '@merlin/types';
 
 /**
  * Convert segment name to a URL-safe slug for event names

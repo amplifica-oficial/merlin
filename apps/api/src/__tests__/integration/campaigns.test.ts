@@ -1,5 +1,5 @@
 import {beforeAll, beforeEach, describe, expect, it} from 'vitest';
-import {CampaignAudienceType, CampaignStatus} from '@plunk/db';
+import {CampaignAudienceType, CampaignStatus} from '@merlin/db';
 import {factories, getPrismaClient} from '../../../../../test/helpers';
 
 // Note: To run these integration tests, you need to:

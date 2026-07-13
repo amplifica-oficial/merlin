@@ -1,5 +1,5 @@
-import type {TemplateType} from '@plunk/db';
-import {EmailSourceType} from '@plunk/db';
+import type {TemplateType} from '@merlin/db';
+import {EmailSourceType} from '@merlin/db';
 
 import {DASHBOARD_URI} from '../app/constants.js';
 
@@ -16,7 +16,7 @@ import {DASHBOARD_URI} from '../app/constants.js';
  *                     resets, receipts). Carries no List-Unsubscribe pair. Still
  *                     gets the bulk suppression headers when sent as a campaign,
  *                     because a mass transactional broadcast is still bulk mail.
- * - `headless`      — raw HTML the sender fully controls; Plunk adds no footer or
+ * - `headless`      — raw HTML the sender fully controls; Merlin adds no footer or
  *                     badge to the body. Like transactional, it takes no
  *                     List-Unsubscribe pair but does get the bulk suppression
  *                     headers when sent as a campaign.
@@ -49,7 +49,7 @@ export function classifyEmail(params: {
 }
 
 /**
- * Detect whether a compiled email body carries a Plunk list-management link
+ * Detect whether a compiled email body carries a Merlin list-management link
  * (unsubscribe or manage preference center) for the given contact — either from
  * the marketing footer or from a `{{unsubscribeUrl}}` / `{{manageUrl}}` placeholder
  * the sender embedded. Such a link means the recipient can opt out, so the message
@@ -69,7 +69,7 @@ export interface BuildEmailHeadersParams {
    */
   isCampaign?: boolean;
   /**
-   * Whether the rendered body contains a Plunk unsubscribe/manage link for the
+   * Whether the rendered body contains a Merlin unsubscribe/manage link for the
    * recipient (see {@link bodyHasListManagementLink}). When true, the
    * List-Unsubscribe pair is emitted regardless of class — a sender who put an
    * opt-out link in the body clearly means the recipient to be able to unsubscribe.
@@ -81,7 +81,7 @@ export interface BuildEmailHeadersParams {
    */
   unsubscribeId?: string;
   /**
-   * Caller-supplied headers (internal `X-Plunk-*` routing keys already stripped).
+   * Caller-supplied headers (internal `X-Merlin-*` routing keys already stripped).
    * These override any default header with the same name — see {@link mergeHeaders}.
    */
   customHeaders?: Record<string, string> | null;
@@ -139,7 +139,7 @@ export function buildEmailHeaders({
 }
 
 /**
- * Merge caller-supplied headers over Plunk's defaults. Header names are
+ * Merge caller-supplied headers over Merlin's defaults. Header names are
  * case-insensitive per RFC 5322 §2.2, so a caller header replaces the matching
  * default (rather than producing a duplicate line), keeping the caller's casing
  * and value. Defaults keep their original order; any caller-only headers are

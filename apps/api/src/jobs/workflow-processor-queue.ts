@@ -3,7 +3,7 @@
  * Processes workflow steps from the queue (for delayed steps)
  */
 
-import type {WorkflowStepJobData} from '@plunk/types';
+import type {WorkflowStepJobData} from '@merlin/types';
 import {type Job, Worker} from 'bullmq';
 import signale from 'signale';
 

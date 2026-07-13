@@ -1,6 +1,6 @@
 import React from 'react';
 import signale from 'signale';
-import {DomainUnverifiedEmail, DomainVerifiedEmail, sendPlatformEmail} from '@plunk/email';
+import {DomainUnverifiedEmail, DomainVerifiedEmail, sendPlatformEmail} from '@merlin/email';
 import {DASHBOARD_URI} from '../app/constants.js';
 import {prisma} from '../database/prisma.js';
 import {redis, wrapRedis} from '../database/redis.js';
