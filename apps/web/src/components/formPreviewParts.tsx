@@ -1,6 +1,6 @@
 import {Button, Card, CardContent, IconSpinner, Input, Label, Textarea} from '@merlin/ui';
 import type {FormField, FormSettings} from '@merlin/types';
-import {useEffect, useState} from 'react';
+import {useState} from 'react';
 
 import {FORM_EMAIL_FIELD_KEY, getFormFieldInputType, selectClassName} from './formPreviewShared';
 
@@ -33,11 +33,8 @@ function FormPreviewHeaderEditable({
 }) {
   const fallbackTitle = name || 'Subscribe';
   const titleClass = formPreviewTitleClass(compact);
-  const [showDescription, setShowDescription] = useState(Boolean(settings.description));
-
-  useEffect(() => {
-    if (settings.description) setShowDescription(true);
-  }, [settings.description]);
+  const [editingDescription, setEditingDescription] = useState(false);
+  const showDescription = Boolean(settings.description) || editingDescription;
 
   return (
     <div className="text-center space-y-2">
@@ -55,7 +52,7 @@ function FormPreviewHeaderEditable({
           value={settings.description ?? ''}
           onChange={e => onSettingsChange?.({description: e.target.value || undefined})}
           onBlur={e => {
-            if (!e.target.value.trim()) setShowDescription(false);
+            if (!e.target.value.trim()) setEditingDescription(false);
           }}
           placeholder="Add a description (optional)"
           className="w-full text-center text-neutral-500 text-sm bg-transparent border border-transparent rounded-md px-2 py-1 hover:border-neutral-200 focus:border-neutral-400 focus:outline-none"
@@ -65,7 +62,7 @@ function FormPreviewHeaderEditable({
       ) : (
         <button
           type="button"
-          onClick={() => setShowDescription(true)}
+          onClick={() => setEditingDescription(true)}
           className="text-neutral-400 text-sm hover:text-neutral-500 transition-colors"
         >
           Add description
