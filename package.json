@@ -6,6 +6,7 @@
     "build": "turbo build",
     "start": "turbo start",
     "dev": "turbo dev",
+    "dev:config": "./config-dev.sh",
     "lint": "turbo lint",
     "clean": "turbo clean --concurrency 20 && rimraf node_modules .turbo",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
