@@ -1,6 +1,6 @@
 ---
 title: Sync unsubscribes to your database
-description: Mirror Plunk's subscription state into your own user table using a workflow + webhook
+description: Mirror Merlin's subscription state into your own user table using a workflow + webhook
 icon: RefreshCw
 ---
 
@@ -19,8 +19,8 @@ import {Step, Steps} from 'fumadocs-ui/components/steps';
 A public HTTPS endpoint that verifies a shared secret and updates the user row. Webhook requests time out after 10 seconds, so do the work async if it's slow.
 
 ```ts
-app.post('/plunk/unsubscribes', async (req, res) => {
-  if (req.header('authorization') !== `Bearer ${process.env.PLUNK_WEBHOOK_SECRET}`) {
+app.post('/merlin/unsubscribes', async (req, res) => {
+  if (req.header('authorization') !== `Bearer ${process.env.MERLIN_WEBHOOK_SECRET}`) {
     return res.status(401).end();
   }
 
@@ -49,7 +49,7 @@ app.post('/plunk/unsubscribes', async (req, res) => {
 
 - **Trigger**: `EVENT` on `contact.unsubscribed`
 - Add a `WEBHOOK` step:
-  - **URL**: `https://api.example.com/plunk/unsubscribes`
+  - **URL**: `https://api.example.com/merlin/unsubscribes`
   - **Headers**: `{ "Authorization": "Bearer your-shared-secret" }`
   - Leave the body blank to get the [default payload](/guides/webhooks#webhook-payload).
 
@@ -68,7 +68,7 @@ Build a second workflow with the same shape, triggered by `contact.subscribed`. 
 If your product is the source of truth (a user toggles their email preference in your settings UI), call `PATCH /contacts/:id` from your backend:
 
 ```bash
-curl -X PATCH https://next-api.useplunk.com/contacts/cnt_abc \
+curl -X PATCH https://next-api.merlin.example/contacts/cnt_abc \
   -H "Authorization: Bearer sk_your_secret_key" \
   -d '{"subscribed": false}'
 ```

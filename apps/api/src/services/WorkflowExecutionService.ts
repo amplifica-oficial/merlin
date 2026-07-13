@@ -6,10 +6,10 @@ import type {
   WorkflowExecution,
   WorkflowStep,
   WorkflowStepExecution,
-} from '@plunk/db';
-import {StepExecutionStatus, WorkflowExecutionStatus} from '@plunk/db';
-import {toPrismaJson} from '@plunk/types';
-import {renderTemplate, WorkflowStepConfigSchemas} from '@plunk/shared';
+} from '@merlin/db';
+import {StepExecutionStatus, WorkflowExecutionStatus} from '@merlin/db';
+import {toPrismaJson} from '@merlin/types';
+import {renderTemplate, WorkflowStepConfigSchemas} from '@merlin/shared';
 import dns from 'node:dns/promises';
 import net from 'node:net';
 import signale from 'signale';
@@ -1169,7 +1169,7 @@ export class WorkflowExecutionService {
 
   /**
    * Helper: Render template with variables
-   * Uses shared template rendering from @plunk/shared
+   * Uses shared template rendering from @merlin/shared
    */
   private static renderTemplate(template: string, variables: Record<string, unknown>): string {
     return renderTemplate(template, variables);

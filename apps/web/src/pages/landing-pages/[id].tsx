@@ -11,10 +11,10 @@ import {
   SelectValue,
   Switch,
   Textarea,
-} from '@plunk/ui';
-import type {LandingPage} from '@plunk/db';
-import type {LandingPageSettings} from '@plunk/types';
-import {LandingPageSchemas} from '@plunk/shared';
+} from '@merlin/ui';
+import type {LandingPage} from '@merlin/db';
+import type {LandingPageSettings} from '@merlin/types';
+import {LandingPageSchemas} from '@merlin/shared';
 import {ArrowLeft, ClipboardCopy, ExternalLink, Pencil} from 'lucide-react';
 import Link from 'next/link';
 import {useRouter} from 'next/router';

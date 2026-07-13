@@ -1,4 +1,4 @@
-import type {PuckData} from '@plunk/types';
+import type {PuckData} from '@merlin/types';
 
 import {createDefaultGnomieTemplate} from '../../../components/puck/pageui/gnomie/gnomie-template/defaults';
 

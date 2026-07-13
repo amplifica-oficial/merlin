@@ -1,8 +1,8 @@
 import {useEffect, useState} from 'react';
 import {useForm} from 'react-hook-form';
 import {zodResolver} from '@hookform/resolvers/zod';
-import {ProjectSchemas, SUPPORTED_LANGUAGES} from '@plunk/shared';
-import {TrackingMode} from '@plunk/db';
+import {ProjectSchemas, SUPPORTED_LANGUAGES} from '@merlin/shared';
+import {TrackingMode} from '@merlin/db';
 import {
   Alert,
   AlertDescription,
@@ -36,7 +36,7 @@ import {
   TabsContent,
   TabsList,
   TabsTrigger,
-} from '@plunk/ui';
+} from '@merlin/ui';
 import {AnimatePresence, motion} from 'framer-motion';
 import {NextSeo} from 'next-seo';
 import {AlertTriangle, CreditCard, Database, Globe, Settings as SettingsIcon, Shield, Users} from 'lucide-react';
@@ -521,7 +521,7 @@ export default function Settings() {
                   <div className="flex items-center justify-between">
                     <div>
                       <CardTitle>API Credentials</CardTitle>
-                      <CardDescription>Use these keys to integrate with the Plunk API</CardDescription>
+                      <CardDescription>Use these keys to integrate with the Merlin API</CardDescription>
                     </div>
                     <Button type="button" variant="outline" size="sm" onClick={promptRegenerateKeys}>
                       Regenerate Keys
@@ -681,7 +681,7 @@ export default function Settings() {
                               <span className="font-medium">No Active Subscription</span>
                             </div>
                             <p className="text-sm text-neutral-600">
-                              Start a subscription and support the development of Plunk. You will be charged a one-time
+                              Start a subscription and support the development of Merlin. You will be charged a one-time
                               onboarding fee which will be credited to your first invoice.
                             </p>
                           </div>

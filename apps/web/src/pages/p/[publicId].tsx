@@ -2,7 +2,7 @@ import '@puckeditor/core/puck.css';
 
 import type {Data} from '@puckeditor/core';
 import {Render} from '@puckeditor/core';
-import type {PublicLandingPageConfig} from '@plunk/types';
+import type {PublicLandingPageConfig} from '@merlin/types';
 import type {GetServerSideProps} from 'next';
 
 import {LandingPagePublicHead} from '../../components/LandingPagePublicHead';

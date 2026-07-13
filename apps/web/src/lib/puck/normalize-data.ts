@@ -1,5 +1,5 @@
 import {migrate, type Content, type Data, type Slot} from '@puckeditor/core';
-import {EMPTY_PUCK_DATA} from '@plunk/types';
+import {EMPTY_PUCK_DATA} from '@merlin/types';
 
 import {puckConfig} from './config';
 

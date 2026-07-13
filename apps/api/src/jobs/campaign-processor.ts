@@ -3,7 +3,7 @@
  * Processes campaign batches (queues emails for each contact in the batch)
  */
 
-import type {CampaignBatchJobData} from '@plunk/types';
+import type {CampaignBatchJobData} from '@merlin/types';
 import {type Job, Worker} from 'bullmq';
 import signale from 'signale';
 

@@ -1,6 +1,6 @@
-import {IconSpinner} from '@plunk/ui';
-import {createTranslator, FormSchemas, type Translator} from '@plunk/shared';
-import type {FormField, FormSettings, FormSubmitResult, PublicFormConfig} from '@plunk/types';
+import {IconSpinner} from '@merlin/ui';
+import {createTranslator, FormSchemas, type Translator} from '@merlin/shared';
+import type {FormField, FormSettings, FormSubmitResult, PublicFormConfig} from '@merlin/types';
 import React, {useEffect, useState} from 'react';
 
 import {FormPreview, type FormFieldValues} from '../FormPreview';

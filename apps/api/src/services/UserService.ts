@@ -10,7 +10,7 @@ import {Keys} from './keys.js';
  * Extract base domain from URL for cookie sharing across subdomains
  * e.g., "http://api.example.com" -> ".example.com"
  * e.g., "http://api.localhost" -> ".localhost"
- * e.g., "http://app.plunk.local" -> ".plunk.local"
+ * e.g., "http://app.merlin.local" -> ".merlin.local"
  */
 function getCookieDomain(): string | undefined {
   if (NODE_ENV === 'development') {

@@ -8,10 +8,10 @@ import {
   EmptyState,
   IconSpinner,
   Input,
-} from '@plunk/ui';
-import type {Template} from '@plunk/db';
-import {TemplateSchemas} from '@plunk/shared';
-import type {PaginatedResponse} from '@plunk/types';
+} from '@merlin/ui';
+import type {Template} from '@merlin/db';
+import {TemplateSchemas} from '@merlin/shared';
+import type {PaginatedResponse} from '@merlin/types';
 import {
   getCoreRowModel,
   useReactTable,
@@ -49,8 +49,8 @@ import dayjs from 'dayjs';
 
 type TypeFilter = 'ALL' | 'TRANSACTIONAL' | 'MARKETING' | 'HEADLESS';
 
-const VIEW_STORAGE_KEY = 'plunk:templates:view';
-const COLUMNS_STORAGE_KEY = 'plunk:templates:columns';
+const VIEW_STORAGE_KEY = 'merlin:templates:view';
+const COLUMNS_STORAGE_KEY = 'merlin:templates:columns';
 
 // Name + Actions are locked-visible (see lockedColumnIds below). `select` is
 // also locked. Everything starts visible.

@@ -1,6 +1,6 @@
 ---
 title: API Reference
-description: Complete Plunk API documentation
+description: Complete Merlin API documentation
 ---
 
 ## Base URL
@@ -166,7 +166,7 @@ A few endpoints (e.g. `GET /segments/:id/contacts`) use **page-based** paginatio
 
 ## Rate limits
 
-Plunk enforces reasonable rate limits to ensure service quality:
+Merlin enforces reasonable rate limits to ensure service quality:
 
 - **Email sending** — throttled per project to protect deliverability.
 - **API requests** — 1000 requests/minute per project.
@@ -196,7 +196,7 @@ For a complete list of error codes and troubleshooting guidance, see the [Error 
 
 ## API endpoints
 
-A complete, grouped reference of every endpoint exposed by the Plunk API.
+A complete, grouped reference of every endpoint exposed by the Merlin API.
 
 ### Public API
 
@@ -396,13 +396,13 @@ These endpoints receive events from the underlying email and billing infrastruct
 ### Node.js
 
 ```javascript
-const PLUNK_SECRET_KEY = process.env.PLUNK_SECRET_KEY;
+const MERLIN_SECRET_KEY = process.env.MERLIN_SECRET_KEY;
 
 async function sendEmail(to, subject, body) {
   const response = await fetch('{{API_URL}}/v1/send', {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${PLUNK_SECRET_KEY}`,
+      'Authorization': `Bearer ${MERLIN_SECRET_KEY}`,
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({ to, subject, body })
@@ -424,13 +424,13 @@ async function sendEmail(to, subject, body) {
 import os
 import requests
 
-PLUNK_SECRET_KEY = os.environ['PLUNK_SECRET_KEY']
+MERLIN_SECRET_KEY = os.environ['MERLIN_SECRET_KEY']
 
 def send_email(to, subject, body):
     response = requests.post(
         '{{API_URL}}/v1/send',
         headers={
-            'Authorization': f'Bearer {PLUNK_SECRET_KEY}',
+            'Authorization': f'Bearer {MERLIN_SECRET_KEY}',
             'Content-Type': 'application/json'
         },
         json={'to': to, 'subject': subject, 'body': body}
@@ -449,7 +449,7 @@ def send_email(to, subject, body):
 
 ```bash
 curl -X POST {{API_URL}}/v1/send \
-  -H "Authorization: Bearer $PLUNK_SECRET_KEY" \
+  -H "Authorization: Bearer $MERLIN_SECRET_KEY" \
   -H "Content-Type: application/json" \
   -d '{"to": "user@example.com", "subject": "Hello", "body": "Message"}'
 ```

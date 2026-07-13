@@ -1,5 +1,5 @@
 import {Controller, Middleware, Post} from '@overnightjs/core';
-import {ActionSchemas} from '@plunk/shared';
+import {ActionSchemas} from '@merlin/shared';
 import type {NextFunction, Request, Response} from 'express';
 import {requirePublicKey, requireSecretKey} from '../middleware/auth.js';
 import {idempotency} from '../middleware/idempotency.js';

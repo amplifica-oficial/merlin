@@ -30,7 +30,7 @@ export function Loader({message, showLogo = true}: LoaderProps) {
     <div className="h-screen flex items-center justify-center bg-white">
       <div className="flex flex-col items-center gap-6 animate-in fade-in duration-500">
         {showLogo && (
-          <Image src="/assets/logo.png" alt="Plunk" width={40} height={40} className="rounded-lg" priority />
+          <Image src="/assets/logo.png" alt="Merlin" width={40} height={40} className="rounded-lg" priority />
         )}
 
         <IconSpinner />

@@ -19,7 +19,7 @@ const alignClass = (align: 'left' | 'right' | 'center') =>
 
 /**
  * Sortable column header for the tanstack-driven `DataTable`, following the
- * shadcn data-table convention but adapted to Plunk's primitives. Clicking the
+ * shadcn data-table convention but adapted to Merlin's primitives. Clicking the
  * label cycles asc → desc → unsorted with chevron indicators; the surrounding
  * `<th>` is responsible for the `aria-sort` attribute (see `DataTable`).
  *

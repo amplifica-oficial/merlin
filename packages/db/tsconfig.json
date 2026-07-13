@@ -1,5 +1,5 @@
 {
-  "extends": "@plunk/typescript-config/base.json",
+  "extends": "@merlin/typescript-config/base.json",
   "compilerOptions": {
     "outDir": "dist"
   },

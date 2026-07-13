@@ -1,4 +1,4 @@
-import {CampaignStatus, EmailSourceType, EmailStatus} from '@plunk/db';
+import {CampaignStatus, EmailSourceType, EmailStatus} from '@merlin/db';
 import {type Job, Queue} from 'bullmq';
 import type {RedisOptions} from 'ioredis';
 import signale from 'signale';
@@ -16,7 +16,7 @@ import type {
   SegmentCountJobData,
   SendEmailJobData,
   WorkflowStepJobData,
-} from '@plunk/types';
+} from '@merlin/types';
 
 import {REDIS_URL} from '../app/constants.js';
 import {prisma} from '../database/prisma.js';

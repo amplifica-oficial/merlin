@@ -1,13 +1,13 @@
 import {Controller, Post} from '@overnightjs/core';
-import type {Prisma} from '@plunk/db';
-import {EmailSourceType, EmailStatus} from '@plunk/db';
+import type {Prisma} from '@merlin/db';
+import {EmailSourceType, EmailStatus} from '@merlin/db';
 import type {Request, Response} from 'express';
 import {simpleParser} from 'mailparser';
 import sanitizeHtml from 'sanitize-html';
 import signale from 'signale';
 import type Stripe from 'stripe';
 
-import {ProjectDisabledPaymentEmail, sendPlatformEmail} from '@plunk/email';
+import {ProjectDisabledPaymentEmail, sendPlatformEmail} from '@merlin/email';
 import React from 'react';
 
 import {DASHBOARD_URI, STRIPE_ENABLED, STRIPE_WEBHOOK_SECRET} from '../app/constants.js';

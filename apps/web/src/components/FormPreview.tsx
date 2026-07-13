@@ -11,7 +11,7 @@ import {
 } from './formPreviewParts';
 import type {FormFieldValues} from './formPreviewShared';
 import {resolveFieldOrder} from './formPreviewShared';
-import type {FormField, FormSettings} from '@plunk/types';
+import type {FormField, FormSettings} from '@merlin/types';
 
 export type {FormFieldValues};
 export {

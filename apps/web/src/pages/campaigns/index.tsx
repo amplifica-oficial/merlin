@@ -12,11 +12,11 @@ import {
   EmptyState,
   IconSpinner,
   Input,
-} from '@plunk/ui';
-import type {Campaign, Template} from '@plunk/db';
-import {CampaignStatus} from '@plunk/db';
-import {CampaignSchemas} from '@plunk/shared';
-import type {PaginatedResponse} from '@plunk/types';
+} from '@merlin/ui';
+import type {Campaign, Template} from '@merlin/db';
+import {CampaignStatus} from '@merlin/db';
+import {CampaignSchemas} from '@merlin/shared';
+import type {PaginatedResponse} from '@merlin/types';
 import {
   getCoreRowModel,
   useReactTable,
@@ -57,8 +57,8 @@ import {usePersistentState} from '../../lib/hooks/usePersistentState';
 
 type StatusFilter = 'ALL' | 'DRAFT' | 'SCHEDULED' | 'SENDING' | 'SENT' | 'CANCELLED';
 
-const VIEW_STORAGE_KEY = 'plunk:campaigns:view';
-const COLUMNS_STORAGE_KEY = 'plunk:campaigns:columns';
+const VIEW_STORAGE_KEY = 'merlin:campaigns:view';
+const COLUMNS_STORAGE_KEY = 'merlin:campaigns:columns';
 
 // Name + Actions are locked-visible (see lockedColumnIds below). `select` is
 // also locked. Everything starts visible.

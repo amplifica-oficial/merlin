@@ -4,14 +4,14 @@ import {sendEmail} from './send';
 
 /**
  * Check if platform email notifications are enabled
- * Requires PLUNK_API_KEY to be set in environment
+ * Requires MERLIN_API_KEY to be set in environment
  */
 export function isPlatformEmailEnabled(): boolean {
-  return !!process.env.PLUNK_API_KEY && !!process.env.PLUNK_FROM_ADDRESS;
+  return !!process.env.MERLIN_API_KEY && !!process.env.MERLIN_FROM_ADDRESS;
 }
 
 /**
- * Send a platform notification email (only if PLUNK_API_KEY is configured)
+ * Send a platform notification email (only if MERLIN_API_KEY is configured)
  * @param to - Recipient email address
  * @param subject - Email subject line
  * @param template - React email template component
@@ -29,7 +29,7 @@ export async function sendPlatformEmail(to: string, subject: string, template: R
     // Send email using the platform
     await sendEmail({
       to,
-      from: process.env.PLUNK_FROM_ADDRESS as string,
+      from: process.env.MERLIN_FROM_ADDRESS as string,
       subject,
       body: html,
     });

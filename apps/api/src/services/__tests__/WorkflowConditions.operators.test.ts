@@ -1,5 +1,5 @@
 import {beforeEach, describe, expect, it, vi} from 'vitest';
-import {WorkflowExecutionStatus, WorkflowStepType} from '@plunk/db';
+import {WorkflowExecutionStatus, WorkflowStepType} from '@merlin/db';
 import {WorkflowExecutionService} from '../WorkflowExecutionService';
 import {factories, getPrismaClient} from '../../../../../test/helpers';
 

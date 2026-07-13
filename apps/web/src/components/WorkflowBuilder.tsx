@@ -14,7 +14,7 @@ import {
   useNodesState,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import type {WorkflowStep} from '@plunk/db';
+import type {WorkflowStep} from '@merlin/db';
 import {
   Clock,
   ExternalLink,
@@ -37,8 +37,8 @@ import {useCallback, useEffect, useMemo, useState} from 'react';
 import dagre from 'dagre';
 import {network} from '../lib/network';
 import {toast} from 'sonner';
-import {Button, Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle} from '@plunk/ui';
-import {WorkflowSchemas} from '@plunk/shared';
+import {Button, Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle} from '@merlin/ui';
+import {WorkflowSchemas} from '@merlin/shared';
 
 interface WorkflowBuilderProps {
   workflowId: string;

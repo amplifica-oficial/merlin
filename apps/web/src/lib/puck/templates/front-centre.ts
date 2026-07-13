@@ -1,4 +1,4 @@
-import type {PuckData} from '@plunk/types';
+import type {PuckData} from '@merlin/types';
 
 import {createDefaultFrontCentreTemplate} from '../../../components/puck/pageui/front-centre/front-centre-template/defaults';
 import {GNOMIE_TEMPLATE} from './gnomie';

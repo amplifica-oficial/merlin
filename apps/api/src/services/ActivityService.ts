@@ -1,6 +1,6 @@
-import type {Prisma} from '@plunk/db';
-import type {Activity, ActivityStats, CursorPaginatedResponse} from '@plunk/types';
-import {ActivityType} from '@plunk/types';
+import type {Prisma} from '@merlin/db';
+import type {Activity, ActivityStats, CursorPaginatedResponse} from '@merlin/types';
+import {ActivityType} from '@merlin/types';
 import signale from 'signale';
 
 import {prisma} from '../database/prisma.js';

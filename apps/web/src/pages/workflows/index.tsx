@@ -17,10 +17,10 @@ import {
   IconSpinner,
   Input,
   Label,
-} from '@plunk/ui';
-import type {Workflow} from '@plunk/db';
-import type {PaginatedResponse} from '@plunk/types';
-import {EmptyState} from '@plunk/ui';
+} from '@merlin/ui';
+import type {Workflow} from '@merlin/db';
+import type {PaginatedResponse} from '@merlin/types';
+import {EmptyState} from '@merlin/ui';
 import {
   getCoreRowModel,
   useReactTable,
@@ -54,7 +54,7 @@ import Link from 'next/link';
 import {useEffect, useMemo, useState} from 'react';
 import {toast} from 'sonner';
 import useSWR from 'swr';
-import {WorkflowSchemas} from '@plunk/shared';
+import {WorkflowSchemas} from '@merlin/shared';
 import dayjs from 'dayjs';
 
 type WorkflowRow = Workflow & {_count?: {steps: number; executions: number}};
@@ -63,8 +63,8 @@ type WorkflowRow = Workflow & {_count?: {steps: number; executions: number}};
 // (which the backend resolves to the `enabled` boolean).
 type StatusFilter = 'ALL' | 'active' | 'disabled';
 
-const VIEW_STORAGE_KEY = 'plunk:workflows:view';
-const COLUMNS_STORAGE_KEY = 'plunk:workflows:columns';
+const VIEW_STORAGE_KEY = 'merlin:workflows:view';
+const COLUMNS_STORAGE_KEY = 'merlin:workflows:columns';
 
 // Fixed-value options for the Status column's faceted filter (table view) and
 // the card-view pill row. Single source of truth for both.

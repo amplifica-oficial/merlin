@@ -1,4 +1,4 @@
-import type {LandingPageSettings} from '@plunk/types';
+import type {LandingPageSettings} from '@merlin/types';
 import Head from 'next/head';
 import Script from 'next/script';
 

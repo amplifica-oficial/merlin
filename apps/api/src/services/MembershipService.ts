@@ -1,5 +1,5 @@
-import type {Membership} from '@plunk/db';
-import type {DisabledProjectInfo, MemberWithEmail, OwnerInfo} from '@plunk/types';
+import type {Membership} from '@merlin/db';
+import type {DisabledProjectInfo, MemberWithEmail, OwnerInfo} from '@merlin/types';
 
 import {prisma} from '../database/prisma.js';
 import {redis, REDIS_ONE_MINUTE, wrapRedis} from '../database/redis.js';

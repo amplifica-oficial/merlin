@@ -1,4 +1,4 @@
-import {Button} from '@plunk/ui';
+import {Button} from '@merlin/ui';
 import {DashboardLayout} from '../../components/DashboardLayout';
 import {FormEditor} from '../../components/FormEditor';
 import {ArrowLeft} from 'lucide-react';

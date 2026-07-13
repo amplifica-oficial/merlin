@@ -1,4 +1,4 @@
-import type {IdempotencyKeyCleanupJobData} from '@plunk/types';
+import type {IdempotencyKeyCleanupJobData} from '@merlin/types';
 import type {Job} from 'bullmq';
 import {Worker} from 'bullmq';
 import type {RedisOptions} from 'ioredis';

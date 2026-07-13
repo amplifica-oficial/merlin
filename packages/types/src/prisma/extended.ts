@@ -12,7 +12,7 @@ import type {
   Template,
   Contact,
   Prisma,
-} from '@plunk/db';
+} from '@merlin/db';
 
 /**
  * Workflow with all steps, transitions, and template details

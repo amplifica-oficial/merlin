@@ -1,4 +1,4 @@
-import {Label, Select, SelectContent, SelectItemWithDescription, SelectTrigger, SelectValue} from '@plunk/ui';
+import {Label, Select, SelectContent, SelectItemWithDescription, SelectTrigger, SelectValue} from '@merlin/ui';
 import {useState} from 'react';
 
 import {type EditStepDialogProps, getStepConfig, StepDialogShell, useStepUpdate} from './shared';

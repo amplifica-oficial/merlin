@@ -1,16 +1,16 @@
 #!/bin/sh
 set -e
 
-# Nginx-enabled Docker Entrypoint for Plunk
-# Starts all Plunk services with nginx reverse proxy
+# Nginx-enabled Docker Entrypoint for Merlin
+# Starts all Merlin services with nginx reverse proxy
 
-echo "🚀 Starting Plunk with Nginx reverse proxy..."
+echo "🚀 Starting Merlin with Nginx reverse proxy..."
 echo "📦 Service: ${SERVICE:-all}"
 
 # Only run with SERVICE=all for nginx setup
 if [ "$SERVICE" != "all" ]; then
     echo "⚠️  This nginx-enabled image only supports SERVICE=all"
-    echo "   For individual services, use the standard Plunk image"
+    echo "   For individual services, use the standard Merlin image"
     exit 1
 fi
 
@@ -165,7 +165,7 @@ PMEOF
 echo ""
 echo "✅ Configuration complete!"
 echo ""
-echo "🌐 Your Plunk instance will be available at:"
+echo "🌐 Your Merlin instance will be available at:"
 echo "   API: http://${API_DOMAIN}"
 echo "   Dashboard: http://${DASHBOARD_DOMAIN}"
 echo "   Docs: http://${WIKI_DOMAIN}"

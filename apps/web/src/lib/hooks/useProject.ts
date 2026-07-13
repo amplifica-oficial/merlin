@@ -1,4 +1,4 @@
-import type {Project} from '@plunk/db';
+import type {Project} from '@merlin/db';
 import useSWR from 'swr';
 
 /**

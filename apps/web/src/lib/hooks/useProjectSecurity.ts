@@ -1,5 +1,5 @@
 import useSWR from 'swr';
-import type {ProjectSecurityMetrics} from '@plunk/types';
+import type {ProjectSecurityMetrics} from '@merlin/types';
 
 export interface ProjectSecurityResponse {
   success: boolean;

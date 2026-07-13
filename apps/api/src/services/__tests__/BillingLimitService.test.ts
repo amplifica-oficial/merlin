@@ -1,5 +1,5 @@
 import {beforeEach, describe, expect, it, vi} from 'vitest';
-import {EmailSourceType} from '@plunk/db';
+import {EmailSourceType} from '@merlin/db';
 import {BillingLimitService} from '../BillingLimitService';
 import {EmailService} from '../EmailService';
 import {factories, getPrismaClient} from '../../../../../test/helpers';

@@ -1,5 +1,5 @@
 /**
- * Express.js type augmentation for Plunk platform
+ * Express.js type augmentation for Merlin platform
  * Extends Express Response.locals to include typed auth property
  */
 

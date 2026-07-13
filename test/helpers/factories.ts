@@ -11,7 +11,7 @@ import {
   WorkflowExecutionStatus,
   WorkflowStepType,
   WorkflowTriggerType
-} from '@plunk/db';
+} from '@merlin/db';
 import {getPrismaClient} from './database';
 import bcrypt from 'bcrypt';
 

@@ -1,4 +1,4 @@
-import {Input, Label, Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@plunk/ui';
+import {Input, Label, Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@merlin/ui';
 import {useState} from 'react';
 import {toast} from 'sonner';
 

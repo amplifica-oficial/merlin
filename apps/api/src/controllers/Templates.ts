@@ -1,6 +1,6 @@
 import {Controller, Delete, Get, Middleware, Patch, Post} from '@overnightjs/core';
-import {TemplateType} from '@plunk/db';
-import {TemplateSchemas} from '@plunk/shared';
+import {TemplateType} from '@merlin/db';
+import {TemplateSchemas} from '@merlin/shared';
 import type {NextFunction, Request, Response} from 'express';
 import {requireAuth, requireEmailVerified} from '../middleware/auth.js';
 import {DomainService} from '../services/DomainService.js';

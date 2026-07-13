@@ -3,8 +3,8 @@
  * Processes scheduled campaigns when their time arrives
  */
 
-import {CampaignStatus} from '@plunk/db';
-import type {ScheduledCampaignJobData} from '@plunk/types';
+import {CampaignStatus} from '@merlin/db';
+import type {ScheduledCampaignJobData} from '@merlin/types';
 import {type Job, Worker} from 'bullmq';
 import signale from 'signale';
 

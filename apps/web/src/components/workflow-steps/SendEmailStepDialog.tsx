@@ -1,4 +1,4 @@
-import {Label, Select, SelectContent, SelectItemWithDescription, SelectTrigger, SelectValue, Input} from '@plunk/ui';
+import {Label, Select, SelectContent, SelectItemWithDescription, SelectTrigger, SelectValue, Input} from '@merlin/ui';
 import {ExternalLink} from 'lucide-react';
 import {useState} from 'react';
 import {toast} from 'sonner';

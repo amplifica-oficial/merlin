@@ -1,7 +1,7 @@
-import type {Workflow, WorkflowExecution, WorkflowStep, WorkflowTransition} from '@plunk/db';
-import {Prisma, WorkflowExecutionStatus} from '@plunk/db';
-import type {PaginatedResponse, WorkflowExecutionWithDetails, WorkflowWithDetails} from '@plunk/types';
-import {toPrismaJson} from '@plunk/types';
+import type {Workflow, WorkflowExecution, WorkflowStep, WorkflowTransition} from '@merlin/db';
+import {Prisma, WorkflowExecutionStatus} from '@merlin/db';
+import type {PaginatedResponse, WorkflowExecutionWithDetails, WorkflowWithDetails} from '@merlin/types';
+import {toPrismaJson} from '@merlin/types';
 import signale from 'signale';
 
 import {prisma} from '../database/prisma.js';

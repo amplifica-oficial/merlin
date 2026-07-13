@@ -1,6 +1,6 @@
 import {Controller, Get, Middleware} from '@overnightjs/core';
 import type {NextFunction, Request, Response} from 'express';
-import {ActivityType} from '@plunk/types';
+import {ActivityType} from '@merlin/types';
 import {requireAuth, requireEmailVerified} from '../middleware/auth.js';
 import {ActivityService} from '../services/ActivityService.js';
 import {CatchAsync} from '../utils/asyncHandler.js';

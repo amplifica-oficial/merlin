@@ -5,8 +5,8 @@ export function Header() {
   return (
     <Section className="border-b border-gray-100 bg-white px-8 py-8">
       <Img
-        src="https://www.useplunk.com/assets/logo.png"
-        alt="Plunk"
+        src="https://www.merlin.example/assets/logo.png"
+        alt="Merlin"
         width="40"
         height="40"
         className="mx-auto"

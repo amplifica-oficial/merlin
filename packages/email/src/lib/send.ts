@@ -11,7 +11,7 @@ export async function sendEmail({to, from, subject, body}: SendEmailParams) {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${process.env.PLUNK_API_KEY}`,
+      'Authorization': `Bearer ${process.env.MERLIN_API_KEY}`,
     },
     body: JSON.stringify({
       to,

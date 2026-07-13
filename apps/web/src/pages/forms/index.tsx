@@ -7,8 +7,8 @@ import {
   EmptyState,
   IconSpinner,
   Input,
-} from '@plunk/ui';
-import type {Form} from '@plunk/db';
+} from '@merlin/ui';
+import type {Form} from '@merlin/db';
 import {DashboardLayout} from '../../components/DashboardLayout';
 import {network} from '../../lib/network';
 import {formatRelativeTime} from '../../lib/dateUtils';

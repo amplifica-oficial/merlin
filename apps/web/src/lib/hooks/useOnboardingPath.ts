@@ -2,8 +2,8 @@ import {useCallback, useSyncExternalStore} from 'react';
 
 export type OnboardingPath = 'developer' | 'marketing' | 'workflows';
 
-const storageKey = (projectId: string) => `plunk-onboarding-path-${projectId}`;
-const CHANGE_EVENT = 'plunk:onboarding-path-changed';
+const storageKey = (projectId: string) => `merlin-onboarding-path-${projectId}`;
+const CHANGE_EVENT = 'merlin:onboarding-path-changed';
 
 function subscribe(callback: () => void) {
   if (typeof window === 'undefined') return () => undefined;

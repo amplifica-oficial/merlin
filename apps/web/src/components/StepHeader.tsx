@@ -1,4 +1,4 @@
-import {CardDescription, CardTitle} from '@plunk/ui';
+import {CardDescription, CardTitle} from '@merlin/ui';
 
 interface StepHeaderProps {
   stepNumber: number;

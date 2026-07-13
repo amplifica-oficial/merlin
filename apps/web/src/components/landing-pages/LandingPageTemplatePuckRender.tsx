@@ -2,8 +2,8 @@ import '@puckeditor/core/puck.css';
 
 import type {Data} from '@puckeditor/core';
 import {Render} from '@puckeditor/core';
-import type {PuckData} from '@plunk/types';
-import {cn} from '@plunk/ui';
+import type {PuckData} from '@merlin/types';
+import {cn} from '@merlin/ui';
 import {useEffect, useRef, useState} from 'react';
 
 import {puckConfig} from '../../lib/puck/config';

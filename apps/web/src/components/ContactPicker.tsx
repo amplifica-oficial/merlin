@@ -1,10 +1,10 @@
-import type {Contact} from '@plunk/db';
-import type {CursorPaginatedResponse} from '@plunk/types';
-import {Button, Input, Label, Popover, PopoverContent, PopoverTrigger, Switch} from '@plunk/ui';
+import type {Contact} from '@merlin/db';
+import type {CursorPaginatedResponse} from '@merlin/types';
+import {Button, Input, Label, Popover, PopoverContent, PopoverTrigger, Switch} from '@merlin/ui';
 import {Check, ChevronsUpDown, ClipboardList, Loader2, MailCheck, MailX, Search, Sparkles, X} from 'lucide-react';
 import {useEffect, useRef, useState} from 'react';
 import useSWR from 'swr';
-import {ContactSchemas} from '@plunk/shared';
+import {ContactSchemas} from '@merlin/shared';
 import {network} from '../lib/network';
 
 type Mode = 'search' | 'paste';

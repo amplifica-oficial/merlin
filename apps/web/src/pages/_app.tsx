@@ -6,7 +6,7 @@ import {Toaster} from 'sonner';
 import {SWRConfig} from 'swr';
 import {DefaultSeo} from 'next-seo';
 import {NuqsAdapter} from 'nuqs/adapters/next/pages';
-import {Loader} from '@plunk/ui';
+import {Loader} from '@merlin/ui';
 import {ActiveProjectProvider} from '../lib/contexts/ActiveProjectProvider';
 import {CommandPalette} from '../components/CommandPalette';
 import {useProjects} from '../lib/hooks/useProject';
@@ -48,13 +48,13 @@ function DashboardSeoAndAnalytics() {
 
   return (
     <>
-      <DefaultSeo titleTemplate="%s | Plunk" defaultTitle="Plunk | Email Platform Dashboard" />
+      <DefaultSeo titleTemplate="%s | Merlin" defaultTitle="Merlin | Email Platform Dashboard" />
 
       <Script
         defer
         src="https://analytics.driaug.com/script.js"
         data-website-id="5880df93-9025-41ae-8e33-7c3da865f764"
-        data-domains="next-app.useplunk.com"
+        data-domains="next-app.merlin.example"
       />
     </>
   );
@@ -169,7 +169,7 @@ function Root(props: AppProps) {
       // (e.g. contact email set by NextSeo after the API response arrives).
       setTimeout(() => {
         const titleLabel = document.title.split(' | ')[0]?.trim();
-        if (titleLabel && titleLabel !== 'Plunk' && titleLabel !== fallback) {
+        if (titleLabel && titleLabel !== 'Merlin' && titleLabel !== fallback) {
           addRecentPage({label: titleLabel, href: pathname});
         }
       }, 800);

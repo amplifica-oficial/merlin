@@ -16,9 +16,9 @@ import {
   IconSpinner,
   Input,
   Label,
-} from '@plunk/ui';
-import type {Template} from '@plunk/db';
-import type {PaginatedResponse} from '@plunk/types';
+} from '@merlin/ui';
+import type {Template} from '@merlin/db';
+import type {PaginatedResponse} from '@merlin/types';
 import {ArrowLeft, FileText, Search} from 'lucide-react';
 import {useState} from 'react';
 import useSWR from 'swr';

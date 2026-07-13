@@ -13,7 +13,7 @@ Canonical reference implementation: `apps/web/src/components/puck/magicui/marque
 
 These come from real bugs. Violating them breaks the build or the editor.
 
-1. **Location**: `apps/web/src/components/puck/magicui/<name>/`. NEVER put Magic UI components in `@plunk/ui` — they are only used by Puck + landing pages, so co-locate them.
+1. **Location**: `apps/web/src/components/puck/magicui/<name>/`. NEVER put Magic UI components in `@merlin/ui` — they are only used by Puck + landing pages, so co-locate them.
 2. **CSS Modules only**: styles go in `<name>.module.css`. Next.js rejects global CSS (`@theme`, bare `@keyframes`, plain `.css` side-effect imports) outside `pages/_app.tsx`. Never import a global `.css` from a component.
 3. **No `contentEditable` on array fields**. It syncs every card together and duplicates in animated (repeated-DOM) components. Edit array items in the sidebar only.
 4. **Editor preview must equal published output**. Do NOT branch on `puck.isEditing` to render a different static layout — users complained the preview didn't match.

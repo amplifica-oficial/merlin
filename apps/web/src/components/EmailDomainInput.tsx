@@ -9,7 +9,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@plunk/ui';
+} from '@merlin/ui';
 import {AlertCircle} from 'lucide-react';
 import Link from 'next/link';
 import {useDomains} from '../lib/hooks/useDomains';

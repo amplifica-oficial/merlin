@@ -4,11 +4,11 @@ description: Ensure your emails reach the inbox by verifying your sending domain
 icon: Globe
 ---
 
-Verifying your domain is a requirement to send emails through Plunk. Domain verification helps improve email deliverability and ensures that your emails are less likely to be marked as spam.
+Verifying your domain is a requirement to send emails through Merlin. Domain verification helps improve email deliverability and ensures that your emails are less likely to be marked as spam.
 
 ## Verifying a domain
 
-You can verify a domain by adding it in the domain tab of the project settings. Once added, Plunk will provide you with the necessary DNS records to add to your domain's DNS settings.
+You can verify a domain by adding it in the domain tab of the project settings. Once added, Merlin will provide you with the necessary DNS records to add to your domain's DNS settings.
 
 Once you have added the DNS records, it may take some time for the changes to propagate. You can check the verification status in the domain tab of the project settings.
 
@@ -20,7 +20,7 @@ Domain verification requires adding several DNS records to your domain. Each rec
 
 **DomainKeys Identified Mail (DKIM)** adds a digital signature to your emails, proving they haven't been tampered with during transit.
 
-You'll need to add **3 CNAME records** provided by Plunk. These records contain cryptographic keys that email receivers use to verify your emails are authentic.
+You'll need to add **3 CNAME records** provided by Merlin. These records contain cryptographic keys that email receivers use to verify your emails are authentic.
 
 **Why it matters:**
 
@@ -41,12 +41,12 @@ You'll need to add **1 TXT record** that lists the authorized sending servers.
 - Works together with DKIM for complete authentication
 
 <Callout title="Already have an SPF record?" type="warn">
-A domain can only have **one** SPF TXT record. If you already use another email provider (Google Workspace, Microsoft 365, another sending platform), you must **merge** Plunk's SPF mechanism into your existing record — don't add a second SPF record. For example, if your existing record is `v=spf1 include:_spf.google.com ~all`, the merged version is `v=spf1 include:_spf.google.com include:&lt;Plunk's include from the dashboard&gt; ~all`. Two separate SPF records will cause both to fail.
+A domain can only have **one** SPF TXT record. If you already use another email provider (Google Workspace, Microsoft 365, another sending platform), you must **merge** Merlin's SPF mechanism into your existing record — don't add a second SPF record. For example, if your existing record is `v=spf1 include:_spf.google.com ~all`, the merged version is `v=spf1 include:_spf.google.com include:&lt;Merlin's include from the dashboard&gt; ~all`. Two separate SPF records will cause both to fail.
 </Callout>
 
 ### Bounce Handling (1 MX record)
 
-This **MX record** allows Plunk to receive bounce notifications and spam complaints from email providers.
+This **MX record** allows Merlin to receive bounce notifications and spam complaints from email providers.
 
 **Why it matters:**
 
@@ -56,14 +56,14 @@ This **MX record** allows Plunk to receive bounce notifications and spam complai
 - Required for deliverability monitoring
 
 <Callout title="Bounce MX vs inbound MX" type="info">
-This MX record handles delivery feedback (bounces, complaints) for emails Plunk sends out — it's separate from the [inbound MX record](/guides/receiving-emails) used to **receive** emails sent to your domain. They serve different purposes; you can have either one or both.
+This MX record handles delivery feedback (bounces, complaints) for emails Merlin sends out — it's separate from the [inbound MX record](/guides/receiving-emails) used to **receive** emails sent to your domain. They serve different purposes; you can have either one or both.
 </Callout>
 
 ### DMARC (optional, recommended)
 
 **Domain-based Message Authentication, Reporting and Conformance (DMARC)** tells receiving mail servers what to do when an email fails SPF or DKIM checks, and where to send authentication reports.
 
-Plunk doesn't require DMARC, but most major mailbox providers (Gmail, Yahoo, Microsoft) now expect it for bulk senders. Add a TXT record at `_dmarc.yourdomain.com`:
+Merlin doesn't require DMARC, but most major mailbox providers (Gmail, Yahoo, Microsoft) now expect it for bulk senders. Add a TXT record at `_dmarc.yourdomain.com`:
 
 ```
 v=DMARC1; p=none; rua=mailto:dmarc-reports@yourdomain.com
@@ -75,11 +75,11 @@ Start with `p=none` to monitor without affecting delivery. Once you've reviewed 
 
 You can configure a custom MAIL FROM domain (typically a subdomain like `mail.yourdomain.com`) so the bounce envelope address aligns with your sending domain. This improves DMARC alignment and is required by some inbox providers for full pass-through.
 
-If you set this up, you'll need an additional MX record and TXT record on the subdomain — Plunk's dashboard will show you the exact values to add when you enable it on a verified domain.
+If you set this up, you'll need an additional MX record and TXT record on the subdomain — Merlin's dashboard will show you the exact values to add when you enable it on a verified domain.
 
 ## Verification Status
 
-After adding all DNS records, Plunk automatically checks verification status in the background. Verification typically completes within a few minutes, but can take up to 72 hours depending on DNS propagation.
+After adding all DNS records, Merlin automatically checks verification status in the background. Verification typically completes within a few minutes, but can take up to 72 hours depending on DNS propagation.
 
 You can check the status in the Domains section of your project settings. Each record type will show as verified once detected. If you've just added a record and don't want to wait, you can trigger a re-check from the dashboard.
 

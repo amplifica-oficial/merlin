@@ -134,10 +134,10 @@ wait_for_postgres() {
 
 setup_database() {
   log "Generating Prisma client"
-  yarn workspace @plunk/db db:generate
+  yarn workspace @merlin/db db:generate
 
   log "Applying database migrations"
-  yarn workspace @plunk/db migrate:dev
+  yarn workspace @merlin/db migrate:dev
 }
 
 generate_wiki_docs() {

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Plunk is a Turborepo monorepo containing multiple applications and shared packages for a platform service. The project
+Merlin is a Turborepo monorepo containing multiple applications and shared packages for a platform service. The project
 uses Yarn workspaces with Node.js 20+ requirement.
 
 ## Scale & Performance Requirements
@@ -38,7 +38,7 @@ When implementing features that query or process contacts, segments, or campaign
 ### Environment Setup
 
 - **Start services**: `yarn services:up` - Starts PostgreSQL, Redis, Minio, and Browserless via Docker Compose
-- **Build shared packages**: `yarn build --filter="@plunk/shared"` - Required before running apps
+- **Build shared packages**: `yarn build --filter="@merlin/shared"` - Required before running apps
 
 ### Development
 
@@ -55,9 +55,9 @@ to run them separately (e.g., for debugging), use `dev:server` and `dev:worker` 
 
 ### Database (Prisma)
 
-- **Generate client**: `yarn workspace @plunk/db db:generate`
-- **Run migrations (dev)**: `yarn workspace @plunk/db migrate:dev`
-- **Deploy migrations (prod)**: `yarn workspace @plunk/db migrate:prod`
+- **Generate client**: `yarn workspace @merlin/db db:generate`
+- **Run migrations (dev)**: `yarn workspace @merlin/db migrate:dev`
+- **Deploy migrations (prod)**: `yarn workspace @merlin/db migrate:prod`
 
 ## Architecture
 
@@ -67,8 +67,8 @@ to run them separately (e.g., for debugging), use `dev:server` and `dev:worker` 
   - HTTP API endpoints for the platform
   - Background cron jobs (workflow processor, domain verification)
   - **Worker process** (separate): BullMQ worker for processing email, campaign, and workflow queues
-- **web**: Next.js app (Pages Router) - Main platform (next-app.useplunk.com)
-- **wiki**: Next.js app - Documentation site (docs.useplunk.com)
+- **web**: Next.js app (Pages Router) - Main platform (next-app.merlin.example)
+- **wiki**: Next.js app - Documentation site (docs.merlin.example)
 
 ### Background Job Architecture
 
@@ -81,12 +81,12 @@ The API uses BullMQ (backed by Redis) for asynchronous job processing:
 
 ### Shared Packages (`packages/`)
 
-- **@plunk/db**: Prisma schema and client
-- **@plunk/ui**: ShadCN-based UI library with Radix UI + Tailwind
-- **@plunk/shared**: Common utilities and business logic
-- **@plunk/types**: TypeScript type definitions
-- **@plunk/email**: React-email templates
-- **@plunk/notifications**: Notification system
+- **@merlin/db**: Prisma schema and client
+- **@merlin/ui**: ShadCN-based UI library with Radix UI + Tailwind
+- **@merlin/shared**: Common utilities and business logic
+- **@merlin/types**: TypeScript type definitions
+- **@merlin/email**: React-email templates
+- **@merlin/notifications**: Notification system
 
 ## Key Technologies
 
@@ -107,7 +107,7 @@ between groups.
 - Consistent type imports preferred: `import type { ... }`
 - Unused vars allowed with `_` prefix
 - Strict type checking enabled across all packages
-- Try to avoid inline types in favor of shared types in `@plunk/types`
+- Try to avoid inline types in favor of shared types in `@merlin/types`
 
 ### Component Structure
 
@@ -145,7 +145,7 @@ Required for builds and deployment (see turbo.json and .env.example):
 - Stripe (optional): `STRIPE_SK`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_ONBOARDING`, `STRIPE_PRICE_EMAIL_USAGE`,
   `STRIPE_METER_EVENT_NAME`
 - Notifications (optional): `NTFY_URL` (ntfy.sh topic URL or self-hosted server for system notifications)
-- Platform Email Notifications (optional): `PLUNK_API_KEY` (enables email notifications to users for critical events like
+- Platform Email Notifications (optional): `MERLIN_API_KEY` (enables email notifications to users for critical events like
   project disabled, billing limits, etc. If not set, only ntfy notifications are sent)
 - Self-hosting User Management (optional):
   - `DISABLE_SIGNUPS` (default: false) - When set to true, prevents new user signups via the API

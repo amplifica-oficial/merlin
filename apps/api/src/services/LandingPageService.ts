@@ -1,9 +1,9 @@
 import {randomUUID} from 'node:crypto';
 
-import type {LandingPage} from '@plunk/db';
-import {Prisma} from '@plunk/db';
-import type {LandingPageSettings, PublicLandingPageConfig, PuckData} from '@plunk/types';
-import {fromPrismaJson, toPrismaJson} from '@plunk/types';
+import type {LandingPage} from '@merlin/db';
+import {Prisma} from '@merlin/db';
+import type {LandingPageSettings, PublicLandingPageConfig, PuckData} from '@merlin/types';
+import {fromPrismaJson, toPrismaJson} from '@merlin/types';
 
 import {redis, TEN_MINUTES_IN_SECONDS, wrapRedis} from '../database/redis.js';
 import {prisma} from '../database/prisma.js';

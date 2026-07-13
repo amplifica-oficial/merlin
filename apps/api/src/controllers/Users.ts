@@ -1,7 +1,7 @@
 import {randomBytes} from 'node:crypto';
 
 import {Controller, Delete, Get, Middleware, Patch, Post, Put} from '@overnightjs/core';
-import {BillingLimitSchemas, ProjectSchemas, UtilitySchemas} from '@plunk/shared';
+import {BillingLimitSchemas, ProjectSchemas, UtilitySchemas} from '@merlin/shared';
 import type {NextFunction, Request, Response} from 'express';
 
 import {DASHBOARD_URI, STRIPE_ENABLED, STRIPE_PRICE_EMAIL_USAGE, STRIPE_PRICE_ONBOARDING} from '../app/constants.js';

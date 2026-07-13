@@ -2810,6 +2810,136 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@merlin/db@npm:*, @merlin/db@workspace:packages/db":
+  version: 0.0.0-use.local
+  resolution: "@merlin/db@workspace:packages/db"
+  dependencies:
+    "@prisma/client": "npm:^6.19.0"
+    "@types/node": "npm:^24.10.0"
+    prisma: "npm:^6.19.0"
+    ts-node: "npm:^10.9.2"
+    typescript: "npm:^5.7.2"
+  languageName: unknown
+  linkType: soft
+
+"@merlin/email@npm:*, @merlin/email@workspace:packages/email":
+  version: 0.0.0-use.local
+  resolution: "@merlin/email@workspace:packages/email"
+  dependencies:
+    "@merlin/db": "npm:*"
+    "@merlin/types": "npm:*"
+    "@merlin/typescript-config": "npm:*"
+    "@react-email/components": "npm:^1.0.0"
+    "@react-email/preview-server": "npm:5.0.1"
+    "@react-email/tailwind": "npm:^2.0.1"
+    "@types/react": "npm:^19.2.7"
+    react: "npm:^19.2.1"
+    react-dom: "npm:^19.2.1"
+    react-email: "npm:5.0.1"
+    typescript: "npm:^5.7.2"
+  languageName: unknown
+  linkType: soft
+
+"@merlin/eslint-config@npm:*, @merlin/eslint-config@workspace:packages/eslint-config":
+  version: 0.0.0-use.local
+  resolution: "@merlin/eslint-config@workspace:packages/eslint-config"
+  dependencies:
+    eslint: "npm:^9.27.0"
+    eslint-config-next: "npm:^16.0.1"
+    typescript: "npm:^5.7.2"
+  languageName: unknown
+  linkType: soft
+
+"@merlin/shared@npm:*, @merlin/shared@workspace:packages/shared":
+  version: 0.0.0-use.local
+  resolution: "@merlin/shared@workspace:packages/shared"
+  dependencies:
+    "@merlin/db": "npm:*"
+    "@merlin/types": "npm:*"
+    "@merlin/typescript-config": "npm:*"
+    "@types/node": "npm:^24.10.0"
+    typescript: "npm:^5.7.2"
+    zod: "npm:^3.23.8"
+  languageName: unknown
+  linkType: soft
+
+"@merlin/types@npm:*, @merlin/types@workspace:packages/types":
+  version: 0.0.0-use.local
+  resolution: "@merlin/types@workspace:packages/types"
+  dependencies:
+    "@merlin/db": "npm:*"
+    "@merlin/typescript-config": "npm:*"
+    "@types/node": "npm:^24.10.0"
+    "@types/react": "npm:^19.2.7"
+    typescript: "npm:^5.7.2"
+  languageName: unknown
+  linkType: soft
+
+"@merlin/typescript-config@npm:*, @merlin/typescript-config@workspace:packages/typescript-config":
+  version: 0.0.0-use.local
+  resolution: "@merlin/typescript-config@workspace:packages/typescript-config"
+  languageName: unknown
+  linkType: soft
+
+"@merlin/ui@npm:*, @merlin/ui@workspace:packages/ui":
+  version: 0.0.0-use.local
+  resolution: "@merlin/ui@workspace:packages/ui"
+  dependencies:
+    "@dnd-kit/core": "npm:^6.3.1"
+    "@dnd-kit/modifiers": "npm:^9.0.0"
+    "@dnd-kit/sortable": "npm:^10.0.0"
+    "@hookform/resolvers": "npm:^3.9.1"
+    "@merlin/db": "npm:*"
+    "@merlin/shared": "npm:*"
+    "@merlin/types": "npm:*"
+    "@merlin/typescript-config": "npm:*"
+    "@number-flow/react": "npm:^0.5.9"
+    "@radix-ui/react-accordion": "npm:^1.2.3"
+    "@radix-ui/react-alert-dialog": "npm:^1.1.2"
+    "@radix-ui/react-checkbox": "npm:^1.1.4"
+    "@radix-ui/react-collapsible": "npm:^1.1.3"
+    "@radix-ui/react-dialog": "npm:^1.1.2"
+    "@radix-ui/react-dropdown-menu": "npm:^2.1.6"
+    "@radix-ui/react-label": "npm:^2.1.8"
+    "@radix-ui/react-menubar": "npm:^1.1.6"
+    "@radix-ui/react-navigation-menu": "npm:^1.2.5"
+    "@radix-ui/react-popover": "npm:^1.1.5"
+    "@radix-ui/react-progress": "npm:^1.1.8"
+    "@radix-ui/react-radio-group": "npm:^1.3.8"
+    "@radix-ui/react-scroll-area": "npm:^1.2.10"
+    "@radix-ui/react-select": "npm:^2.1.2"
+    "@radix-ui/react-separator": "npm:^1.1.8"
+    "@radix-ui/react-slider": "npm:^1.2.4"
+    "@radix-ui/react-slot": "npm:^1.1.0"
+    "@radix-ui/react-switch": "npm:^1.0.3"
+    "@radix-ui/react-tabs": "npm:^1.1.13"
+    "@radix-ui/react-tooltip": "npm:^1.1.6"
+    "@tailwindcss/forms": "npm:^0.5.10"
+    "@types/node": "npm:^24.10.0"
+    "@types/react": "npm:^19.2.7"
+    class-variance-authority: "npm:^0.7.0"
+    clsx: "npm:^2.1.1"
+    cmdk: "npm:^1.0.4"
+    date-fns: "npm:^4.1.0"
+    embla-carousel-react: "npm:^8.5.1"
+    framer-motion: "npm:^12.23.24"
+    lucide-react: "npm:^0.553.0"
+    next-themes: "npm:^0.4.6"
+    postcss: "npm:^8.4.33"
+    react-day-picker: "npm:^8.10.0"
+    react-hook-form: "npm:^7.66.0"
+    recharts: "npm:^3.5.1"
+    sonner: "npm:^2.0.6"
+    tailwind-merge: "npm:^3.4.0"
+    tailwindcss: "npm:^4.1.17"
+    tw-animate-css: "npm:^1.4.0"
+    typescript: "npm:^5.7.2"
+  peerDependencies:
+    react: ^19.2.3
+    react-dom: ^19.2.3
+  languageName: unknown
+  linkType: soft
+
 "@msgpackr-extract/msgpackr-extract-darwin-arm64@npm:3.0.3":
   version: 3.0.3
   resolution: "@msgpackr-extract/msgpackr-extract-darwin-arm64@npm:3.0.3"
@@ -3137,136 +3267,6 @@ __metadata:
   checksum: 10c0/6576b73de49d826b0f33cbab88424dec1f6fa454a9e59a7b621f78c2cfdd2e59d7f48175826d698940a717f45eeb5e87a508583a7316e608f6a05a861a40c129
   languageName: node
   linkType: hard
-
-"@plunk/db@npm:*, @plunk/db@workspace:packages/db":
-  version: 0.0.0-use.local
-  resolution: "@plunk/db@workspace:packages/db"
-  dependencies:
-    "@prisma/client": "npm:^6.19.0"
-    "@types/node": "npm:^24.10.0"
-    prisma: "npm:^6.19.0"
-    ts-node: "npm:^10.9.2"
-    typescript: "npm:^5.7.2"
-  languageName: unknown
-  linkType: soft
-
-"@plunk/email@npm:*, @plunk/email@workspace:packages/email":
-  version: 0.0.0-use.local
-  resolution: "@plunk/email@workspace:packages/email"
-  dependencies:
-    "@plunk/db": "npm:*"
-    "@plunk/types": "npm:*"
-    "@plunk/typescript-config": "npm:*"
-    "@react-email/components": "npm:^1.0.0"
-    "@react-email/preview-server": "npm:5.0.1"
-    "@react-email/tailwind": "npm:^2.0.1"
-    "@types/react": "npm:^19.2.7"
-    react: "npm:^19.2.1"
-    react-dom: "npm:^19.2.1"
-    react-email: "npm:5.0.1"
-    typescript: "npm:^5.7.2"
-  languageName: unknown
-  linkType: soft
-
-"@plunk/eslint-config@npm:*, @plunk/eslint-config@workspace:packages/eslint-config":
-  version: 0.0.0-use.local
-  resolution: "@plunk/eslint-config@workspace:packages/eslint-config"
-  dependencies:
-    eslint: "npm:^9.27.0"
-    eslint-config-next: "npm:^16.0.1"
-    typescript: "npm:^5.7.2"
-  languageName: unknown
-  linkType: soft
-
-"@plunk/shared@npm:*, @plunk/shared@workspace:packages/shared":
-  version: 0.0.0-use.local
-  resolution: "@plunk/shared@workspace:packages/shared"
-  dependencies:
-    "@plunk/db": "npm:*"
-    "@plunk/types": "npm:*"
-    "@plunk/typescript-config": "npm:*"
-    "@types/node": "npm:^24.10.0"
-    typescript: "npm:^5.7.2"
-    zod: "npm:^3.23.8"
-  languageName: unknown
-  linkType: soft
-
-"@plunk/types@npm:*, @plunk/types@workspace:packages/types":
-  version: 0.0.0-use.local
-  resolution: "@plunk/types@workspace:packages/types"
-  dependencies:
-    "@plunk/db": "npm:*"
-    "@plunk/typescript-config": "npm:*"
-    "@types/node": "npm:^24.10.0"
-    "@types/react": "npm:^19.2.7"
-    typescript: "npm:^5.7.2"
-  languageName: unknown
-  linkType: soft
-
-"@plunk/typescript-config@npm:*, @plunk/typescript-config@workspace:packages/typescript-config":
-  version: 0.0.0-use.local
-  resolution: "@plunk/typescript-config@workspace:packages/typescript-config"
-  languageName: unknown
-  linkType: soft
-
-"@plunk/ui@npm:*, @plunk/ui@workspace:packages/ui":
-  version: 0.0.0-use.local
-  resolution: "@plunk/ui@workspace:packages/ui"
-  dependencies:
-    "@dnd-kit/core": "npm:^6.3.1"
-    "@dnd-kit/modifiers": "npm:^9.0.0"
-    "@dnd-kit/sortable": "npm:^10.0.0"
-    "@hookform/resolvers": "npm:^3.9.1"
-    "@number-flow/react": "npm:^0.5.9"
-    "@plunk/db": "npm:*"
-    "@plunk/shared": "npm:*"
-    "@plunk/types": "npm:*"
-    "@plunk/typescript-config": "npm:*"
-    "@radix-ui/react-accordion": "npm:^1.2.3"
-    "@radix-ui/react-alert-dialog": "npm:^1.1.2"
-    "@radix-ui/react-checkbox": "npm:^1.1.4"
-    "@radix-ui/react-collapsible": "npm:^1.1.3"
-    "@radix-ui/react-dialog": "npm:^1.1.2"
-    "@radix-ui/react-dropdown-menu": "npm:^2.1.6"
-    "@radix-ui/react-label": "npm:^2.1.8"
-    "@radix-ui/react-menubar": "npm:^1.1.6"
-    "@radix-ui/react-navigation-menu": "npm:^1.2.5"
-    "@radix-ui/react-popover": "npm:^1.1.5"
-    "@radix-ui/react-progress": "npm:^1.1.8"
-    "@radix-ui/react-radio-group": "npm:^1.3.8"
-    "@radix-ui/react-scroll-area": "npm:^1.2.10"
-    "@radix-ui/react-select": "npm:^2.1.2"
-    "@radix-ui/react-separator": "npm:^1.1.8"
-    "@radix-ui/react-slider": "npm:^1.2.4"
-    "@radix-ui/react-slot": "npm:^1.1.0"
-    "@radix-ui/react-switch": "npm:^1.0.3"
-    "@radix-ui/react-tabs": "npm:^1.1.13"
-    "@radix-ui/react-tooltip": "npm:^1.1.6"
-    "@tailwindcss/forms": "npm:^0.5.10"
-    "@types/node": "npm:^24.10.0"
-    "@types/react": "npm:^19.2.7"
-    class-variance-authority: "npm:^0.7.0"
-    clsx: "npm:^2.1.1"
-    cmdk: "npm:^1.0.4"
-    date-fns: "npm:^4.1.0"
-    embla-carousel-react: "npm:^8.5.1"
-    framer-motion: "npm:^12.23.24"
-    lucide-react: "npm:^0.553.0"
-    next-themes: "npm:^0.4.6"
-    postcss: "npm:^8.4.33"
-    react-day-picker: "npm:^8.10.0"
-    react-hook-form: "npm:^7.66.0"
-    recharts: "npm:^3.5.1"
-    sonner: "npm:^2.0.6"
-    tailwind-merge: "npm:^3.4.0"
-    tailwindcss: "npm:^4.1.17"
-    tw-animate-css: "npm:^1.4.0"
-    typescript: "npm:^5.7.2"
-  peerDependencies:
-    react: ^19.2.3
-    react-dom: ^19.2.3
-  languageName: unknown
-  linkType: soft
 
 "@polka/url@npm:^1.0.0-next.24":
   version: 1.0.0-next.29
@@ -8267,11 +8267,11 @@ __metadata:
   dependencies:
     "@aws-sdk/client-s3": "npm:^3.937.0"
     "@aws-sdk/client-ses": "npm:^3.937.0"
+    "@merlin/db": "npm:*"
+    "@merlin/email": "npm:*"
+    "@merlin/shared": "npm:*"
+    "@merlin/types": "npm:*"
     "@overnightjs/core": "npm:^1.7.6"
-    "@plunk/db": "npm:*"
-    "@plunk/email": "npm:*"
-    "@plunk/shared": "npm:*"
-    "@plunk/types": "npm:*"
     "@react-email/render": "npm:^2.0.0"
     "@types/bcrypt": "npm:^6.0.0"
     "@types/cookie-parser": "npm:^1.4.7"
@@ -14393,6 +14393,32 @@ __metadata:
   languageName: node
   linkType: hard
 
+"merlin@workspace:.":
+  version: 0.0.0-use.local
+  resolution: "merlin@workspace:."
+  dependencies:
+    "@eslint/js": "npm:^9.39.1"
+    "@formatjs/cli": "npm:^6.7.4"
+    "@types/supertest": "npm:^6.0.3"
+    "@vitest/coverage-v8": "npm:^4.0.14"
+    "@vitest/ui": "npm:^4.0.14"
+    dotenv: "npm:^17.0.1"
+    eslint: "npm:^9.27.0"
+    eslint-config-next: "npm:^16.0.1"
+    eslint-config-prettier: "npm:^10.1.5"
+    eslint-plugin-import: "npm:^2.31.0"
+    form-data: "npm:^4.0.6"
+    prettier: "npm:^3.5.3"
+    rimraf: "npm:^6.1.2"
+    supertest: "npm:^7.1.4"
+    turbo: "npm:^2.6.0"
+    typescript: "npm:^5.7.2"
+    typescript-eslint: "npm:^8.48.0"
+    vitest: "npm:^4.1.0"
+    vitest-mock-extended: "npm:^3.1.0"
+  languageName: unknown
+  linkType: soft
+
 "methods@npm:^1.1.2, methods@npm:~1.1.2":
   version: 1.1.2
   resolution: "methods@npm:1.1.2"
@@ -16109,32 +16135,6 @@ __metadata:
   checksum: 10c0/d2bbddc5b81bd4741e1529c08ef4c5f1542bbdcf63498b73b8e1d84cff71806d1b8b1577800549bb569cb7aa20056257677b979bff48c97967cba7e64f72ae12
   languageName: node
   linkType: hard
-
-"plunk@workspace:.":
-  version: 0.0.0-use.local
-  resolution: "plunk@workspace:."
-  dependencies:
-    "@eslint/js": "npm:^9.39.1"
-    "@formatjs/cli": "npm:^6.7.4"
-    "@types/supertest": "npm:^6.0.3"
-    "@vitest/coverage-v8": "npm:^4.0.14"
-    "@vitest/ui": "npm:^4.0.14"
-    dotenv: "npm:^17.0.1"
-    eslint: "npm:^9.27.0"
-    eslint-config-next: "npm:^16.0.1"
-    eslint-config-prettier: "npm:^10.1.5"
-    eslint-plugin-import: "npm:^2.31.0"
-    form-data: "npm:^4.0.6"
-    prettier: "npm:^3.5.3"
-    rimraf: "npm:^6.1.2"
-    supertest: "npm:^7.1.4"
-    turbo: "npm:^2.6.0"
-    typescript: "npm:^5.7.2"
-    typescript-eslint: "npm:^8.48.0"
-    vitest: "npm:^4.1.0"
-    vitest-mock-extended: "npm:^3.1.0"
-  languageName: unknown
-  linkType: soft
 
 "possible-typed-array-names@npm:^1.0.0":
   version: 1.1.0
@@ -19867,10 +19867,10 @@ __metadata:
     "@codemirror/lang-html": "npm:^6.4.11"
     "@codemirror/theme-one-dark": "npm:^6.1.3"
     "@codemirror/view": "npm:^6.39.0"
-    "@plunk/db": "npm:*"
-    "@plunk/eslint-config": "npm:*"
-    "@plunk/shared": "npm:*"
-    "@plunk/ui": "npm:*"
+    "@merlin/db": "npm:*"
+    "@merlin/eslint-config": "npm:*"
+    "@merlin/shared": "npm:*"
+    "@merlin/ui": "npm:*"
     "@puckeditor/core": "npm:^0.22.0"
     "@tailwindcss/forms": "npm:^0.5.10"
     "@tailwindcss/postcss": "npm:^4.1.17"

@@ -1,5 +1,5 @@
 /**
- * Generic pagination types for the Plunk platform
+ * Generic pagination types for the Merlin platform
  */
 
 /**

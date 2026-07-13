@@ -13,7 +13,7 @@ interface ProjectDisabledPaymentEmailProps {
 export function ProjectDisabledPaymentEmail({
   projectName = 'My Project',
   projectId = 'proj_example123',
-  dashboardUrl = 'https://next-app.useplunk.com',
+  dashboardUrl = 'https://next-app.merlin.example',
 }: ProjectDisabledPaymentEmailProps) {
   return (
     <EmailLayout>

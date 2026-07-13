@@ -1,6 +1,6 @@
 import {Controller, Delete, Get, Middleware, Patch, Post} from '@overnightjs/core';
-import {FormSchemas} from '@plunk/shared';
-import type {FormField, FormSettings} from '@plunk/types';
+import {FormSchemas} from '@merlin/shared';
+import type {FormField, FormSettings} from '@merlin/types';
 import type {NextFunction, Request, Response} from 'express';
 import {requireAuth, requireEmailVerified} from '../middleware/auth.js';
 import {FormService} from '../services/FormService.js';

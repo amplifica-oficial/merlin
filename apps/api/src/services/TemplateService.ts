@@ -1,6 +1,6 @@
-import type {Template} from '@plunk/db';
-import {Prisma} from '@plunk/db';
-import type {PaginatedResponse} from '@plunk/types';
+import type {Template} from '@merlin/db';
+import {Prisma} from '@merlin/db';
+import type {PaginatedResponse} from '@merlin/types';
 
 import {prisma} from '../database/prisma.js';
 import {HttpException} from '../exceptions/index.js';

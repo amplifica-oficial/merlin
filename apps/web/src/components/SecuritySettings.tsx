@@ -1,6 +1,6 @@
-import {Alert, AlertDescription, AlertTitle, Card, CardContent, CardDescription, CardHeader, CardTitle} from '@plunk/ui';
+import {Alert, AlertDescription, AlertTitle, Card, CardContent, CardDescription, CardHeader, CardTitle} from '@merlin/ui';
 import {AlertCircle, AlertTriangle, CheckCircle, Shield} from 'lucide-react';
-import type {ProjectSecurityMetrics, SecurityLevel} from '@plunk/types';
+import type {ProjectSecurityMetrics, SecurityLevel} from '@merlin/types';
 
 interface SecuritySettingsProps {
   metrics: ProjectSecurityMetrics;

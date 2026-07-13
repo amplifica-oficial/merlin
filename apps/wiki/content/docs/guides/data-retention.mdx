@@ -1,10 +1,10 @@
 ---
 title: Data Retention
-description: How long Plunk keeps email content, request logs, and idempotency keys
+description: How long Merlin keeps email content, request logs, and idempotency keys
 icon: Archive
 ---
 
-Plunk keeps the record of everything you send indefinitely. Some of the bulkier data attached to those records is aged out on a schedule to keep storage bounded.
+Merlin keeps the record of everything you send indefinitely. Some of the bulkier data attached to those records is aged out on a schedule to keep storage bounded.
 
 | Data                            | Kept for      | What happens after |
 | ------------------------------- | ------------- | ------------------ |
@@ -15,7 +15,7 @@ Plunk keeps the record of everything you send indefinitely. Some of the bulkier 
 
 ## Email content
 
-Every email Plunk sends is stored with its fully rendered HTML body, which is what the **Preview** button on a contact's activity feed displays. That body is by far the largest thing Plunk stores per email, so after 90 days it is cleared.
+Every email Merlin sends is stored with its fully rendered HTML body, which is what the **Preview** button on a contact's activity feed displays. That body is by far the largest thing Merlin stores per email, so after 90 days it is cleared.
 
 Clearing the body does not delete the email. Everything you analyse or segment on is kept permanently:
 
@@ -32,7 +32,7 @@ Clearing is irreversible. If you need a permanent archive of exact sent content,
 
 ## API request logs
 
-Plunk logs most API requests — public API calls, resource changes, authentication attempts, and any failed request — for debugging and audit purposes. These log entries are deleted after 30 days. This affects request-level troubleshooting only; the emails and events those requests created are unaffected.
+Merlin logs most API requests — public API calls, resource changes, authentication attempts, and any failed request — for debugging and audit purposes. These log entries are deleted after 30 days. This affects request-level troubleshooting only; the emails and events those requests created are unaffected.
 
 ## Idempotency keys
 

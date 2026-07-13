@@ -1,4 +1,4 @@
-import {Badge, Button, Popover, PopoverContent, PopoverTrigger} from '@plunk/ui';
+import {Badge, Button, Popover, PopoverContent, PopoverTrigger} from '@merlin/ui';
 import {ChevronDown, ListFilter} from 'lucide-react';
 import {FacetedFilterMenu, type FacetedFilterOption} from './FacetedFilterMenu';
 

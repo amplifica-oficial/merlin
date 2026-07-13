@@ -1,5 +1,5 @@
 {
-  "extends": "@plunk/typescript-config/nextjs.json",
+  "extends": "@merlin/typescript-config/nextjs.json",
   "include": ["next-env.d.ts", "next.config.js", "**/*.js", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
   "exclude": ["node_modules"]
 }

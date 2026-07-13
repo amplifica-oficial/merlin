@@ -14,7 +14,7 @@ import {
   useNodesState,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import type {WorkflowStep} from '@plunk/db';
+import type {WorkflowStep} from '@merlin/db';
 import {AlertTriangle, Clock, GitBranch, Hourglass, Link, LogOut, Mail, Maximize2, Minimize2, Timer, UserCog, Webhook} from 'lucide-react';
 import {useEffect, useMemo, useState} from 'react';
 import dagre from 'dagre';

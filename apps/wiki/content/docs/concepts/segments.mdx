@@ -56,7 +56,7 @@ Membership changes via these API calls are immediate but **do not** fire `entry`
 
 ## Tracking membership changes
 
-Dynamic segments can opt into **Track membership changes**. When enabled, Plunk fires events whenever a contact enters or leaves the segment:
+Dynamic segments can opt into **Track membership changes**. When enabled, Merlin fires events whenever a contact enters or leaves the segment:
 
 - `segment.<slug>.entry` — contact joined
 - `segment.<slug>.exit` — contact left
@@ -67,7 +67,7 @@ Use these events to drive workflows (welcome a contact when they enter a "Trial 
 
 ### How tracking works
 
-The member count updates immediately when you create or change a dynamic segment's filter. After that, Plunk recomputes membership in the background on a regular cadence — diffing current matches against the previous set, recording entries and exits, and emitting the corresponding events.
+The member count updates immediately when you create or change a dynamic segment's filter. After that, Merlin recomputes membership in the background on a regular cadence — diffing current matches against the previous set, recording entries and exits, and emitting the corresponding events.
 
 Because of this background cadence, the `memberCount` shown in the dashboard can lag the live state by a few minutes. If you need a fresh value or want to drive a workflow off `entry` / `exit` immediately:
 

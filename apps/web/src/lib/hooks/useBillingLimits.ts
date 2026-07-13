@@ -1,4 +1,4 @@
-import type {BillingLimitsResponse, CategoryUsage} from '@plunk/types';
+import type {BillingLimitsResponse, CategoryUsage} from '@merlin/types';
 import useSWR from 'swr';
 
 // Re-export for backward compatibility

@@ -10,7 +10,7 @@ Double opt-in adds a confirmation step between "user signs up" and "user starts 
   Enable **Double opt-in** on a [Form](/concepts/forms). Contacts submit via the hosted page as unsubscribed; wire a workflow on `form.submitted` to send the confirmation email with `{{subscribeUrl}}`.
 </Callout>
 
-The trick is `{{subscribeUrl}}`: a per-contact link Plunk auto-injects into every send. Clicking it flips `subscribed` to `true` and fires a `contact.subscribed` event.
+The trick is `{{subscribeUrl}}`: a per-contact link Merlin auto-injects into every send. Clicking it flips `subscribed` to `true` and fires a `contact.subscribed` event.
 
 ## Setup
 
@@ -44,11 +44,11 @@ import {Step, Steps} from 'fumadocs-ui/components/steps';
 Two calls with your secret key (`sk_*`): create the contact unsubscribed, then track the event that fires the confirmation workflow.
 
 ```bash
-curl https://next-api.useplunk.com/contacts \
+curl https://next-api.merlin.example/contacts \
   -H "Authorization: Bearer sk_your_secret_key" \
   -d '{ "email": "ada@example.com", "subscribed": false, "data": { "firstName": "Ada" } }'
 
-curl https://next-api.useplunk.com/v1/track \
+curl https://next-api.merlin.example/v1/track \
   -H "Authorization: Bearer sk_your_secret_key" \
   -d '{ "event": "signup.pending", "email": "ada@example.com", "subscribed": false }'
 ```

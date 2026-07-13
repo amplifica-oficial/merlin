@@ -12,7 +12,7 @@ Forms let you collect signups without building your own backend integration. Cre
 2. **Create a landing page** in **Landing Pages → Create Landing Page**.
 3. **Add a Form block** in the visual editor and select your form.
 4. **Publish** the landing page and share the link — your dashboard URL + `/p/{publicId}` (copy from the landing page detail page).
-5. **On submit**, Plunk:
+5. **On submit**, Merlin:
    - Upserts the contact by email
    - Writes `data["form:<slug>"] = true` plus any tags you configured (e.g. `source: newsletter`)
    - Tracks `form.submitted` (or a custom event name) for workflows

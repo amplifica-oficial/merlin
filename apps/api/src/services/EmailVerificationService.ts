@@ -1,6 +1,6 @@
 import {promises as dns} from 'dns';
 import {run} from '@zootools/email-spell-checker';
-import type {EmailVerificationResult} from '@plunk/types';
+import type {EmailVerificationResult} from '@merlin/types';
 import {redis} from '../database/redis.js';
 
 const DISPOSABLE_DOMAINS_URL =

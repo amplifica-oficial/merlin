@@ -1,4 +1,4 @@
-import {Command, CommandEmpty, CommandGroup, CommandItem, CommandList, CommandSeparator} from '@plunk/ui';
+import {Command, CommandEmpty, CommandGroup, CommandItem, CommandList, CommandSeparator} from '@merlin/ui';
 import {Check} from 'lucide-react';
 import type {ComponentType, ReactNode} from 'react';
 

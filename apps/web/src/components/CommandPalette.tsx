@@ -1,5 +1,5 @@
-import type {Campaign, Contact, Segment, Template, Workflow} from '@plunk/db';
-import type {CursorPaginatedResponse, PaginatedResponse} from '@plunk/types';
+import type {Campaign, Contact, Segment, Template, Workflow} from '@merlin/db';
+import type {CursorPaginatedResponse, PaginatedResponse} from '@merlin/types';
 import {
   CommandDialog,
   CommandEmpty,
@@ -9,7 +9,7 @@ import {
   CommandList,
   CommandSeparator,
   Kbd,
-} from '@plunk/ui';
+} from '@merlin/ui';
 import {
   Activity,
   BarChart3,

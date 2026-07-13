@@ -5,7 +5,7 @@
  * These helpers provide a safer interface while acknowledging the runtime limitations.
  */
 
-import {Prisma} from '@plunk/db';
+import {Prisma} from '@merlin/db';
 
 export function toPrismaJson<T>(value: T | null | undefined): Prisma.InputJsonValue {
 	// Prisma.InputJsonValue accepts: string | number | boolean | null | JsonObject | JsonArray

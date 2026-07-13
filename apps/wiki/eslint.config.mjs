@@ -1,4 +1,4 @@
-import config from '@plunk/eslint-config/next';
+import config from '@merlin/eslint-config/next';
 
 const wikiConfig = [
   ...config,

@@ -1,5 +1,5 @@
 {
-  "name": "@plunk/eslint-config",
+  "name": "@merlin/eslint-config",
   "version": "0.0.0",
   "private": true,
   "type": "module",

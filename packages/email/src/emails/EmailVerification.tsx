@@ -12,8 +12,8 @@ interface EmailVerificationEmailProps {
 
 export function EmailVerificationEmail({
   email = 'user@example.com',
-  verificationUrl = 'https://api.useplunk.com/auth/verify-email?token=abc123',
-  dashboardUrl = 'https://next-app.useplunk.com',
+  verificationUrl = 'https://api.merlin.example/auth/verify-email?token=abc123',
+  dashboardUrl = 'https://next-app.merlin.example',
 }: EmailVerificationEmailProps) {
   return (
     <EmailLayout>
@@ -25,7 +25,7 @@ export function EmailVerificationEmail({
         </Heading>
 
         <Text className="mb-8 mt-0 text-base leading-relaxed text-gray-600">
-          Thanks for signing up! Please verify your email address to get started with Plunk.
+          Thanks for signing up! Please verify your email address to get started with Merlin.
         </Text>
 
         <Section className="mb-8">
@@ -45,7 +45,7 @@ export function EmailVerificationEmail({
         </Section>
 
         <Text className="mb-0 mt-0 text-sm text-gray-500">
-          This link will expire in 1 hour. If you didn't sign up for Plunk, you can safely ignore this email.
+          This link will expire in 1 hour. If you didn't sign up for Merlin, you can safely ignore this email.
         </Text>
       </Section>
 

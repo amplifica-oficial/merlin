@@ -1,4 +1,4 @@
-import {Tabs, TabsContent, TabsList, TabsTrigger} from '@plunk/ui';
+import {Tabs, TabsContent, TabsList, TabsTrigger} from '@merlin/ui';
 import {AnimatePresence, motion} from 'framer-motion';
 import {Check, Copy} from 'lucide-react';
 import {useState} from 'react';

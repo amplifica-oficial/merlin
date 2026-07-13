@@ -1,6 +1,6 @@
 import {Controller, Delete, Get, Middleware, Patch, Post} from '@overnightjs/core';
-import {LandingPageSchemas} from '@plunk/shared';
-import type {LandingPageSettings, PuckData} from '@plunk/types';
+import {LandingPageSchemas} from '@merlin/shared';
+import type {LandingPageSettings, PuckData} from '@merlin/types';
 import type {NextFunction, Request, Response} from 'express';
 import {requireAuth, requireEmailVerified} from '../middleware/auth.js';
 import {LandingPageService} from '../services/LandingPageService.js';

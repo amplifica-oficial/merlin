@@ -2,7 +2,7 @@
  * Campaign service types
  */
 
-import type {CampaignAudienceType, TemplateType} from '@plunk/db';
+import type {CampaignAudienceType, TemplateType} from '@merlin/db';
 import type {FilterCondition} from '../segments/index.js';
 
 /**

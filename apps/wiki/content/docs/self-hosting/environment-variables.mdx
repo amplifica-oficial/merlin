@@ -9,8 +9,8 @@ description: Configuration reference
 | -------------- | -------- | ---------------------------------------------------------------------------- | ------------------------------------------------- |
 | `JWT_SECRET`          | Yes      | Secret key used to sign JWT tokens. Generate with `openssl rand -base64 32`. | `s3cr3t...`                                       |
 | `DB_PASSWORD`         | Yes      | PostgreSQL database password. Used by the Docker Compose setup.              | `changeme123`                                     |
-| `DATABASE_URL`        | Yes      | Full PostgreSQL connection string used by the application at runtime (typically through PgBouncer). Auto-configured in Docker. | `postgresql://plunk:password@postgres:5432/plunk` |
-| `DIRECT_DATABASE_URL` | Yes      | Direct PostgreSQL connection string used by Prisma migrations. Must bypass any connection pooler. Auto-configured in Docker.   | `postgresql://plunk:password@postgres:5432/plunk` |
+| `DATABASE_URL`        | Yes      | Full PostgreSQL connection string used by the application at runtime (typically through PgBouncer). Auto-configured in Docker. | `postgresql://merlin:password@postgres:5432/merlin` |
+| `DIRECT_DATABASE_URL` | Yes      | Direct PostgreSQL connection string used by Prisma migrations. Must bypass any connection pooler. Auto-configured in Docker.   | `postgresql://merlin:password@postgres:5432/merlin` |
 | `REDIS_URL`           | Yes      | Redis connection string.                                                     | `redis://redis:6379`                              |
 | `NODE_ENV`            | No       | Application environment. Set to `production` for production deployments.     | `production`                                      |
 | `PORT`                | No       | Port the API server listens on.                                              | `8080` (default)                                  |
@@ -33,9 +33,9 @@ Set your subdomains here. The application automatically derives all internal and
 | `AWS_SES_REGION`                    | Yes      | AWS region where SES is configured.                                                                                                              | `us-east-1`                                     |
 | `AWS_SES_ACCESS_KEY_ID`             | Yes      | AWS access key ID with SES send permissions.                                                                                                     | `AKIA...`                                       |
 | `AWS_SES_SECRET_ACCESS_KEY`         | Yes      | AWS secret access key for SES.                                                                                                                   | `wJalr...`                                      |
-| `SES_CONFIGURATION_SET`             | No       | SES configuration set name used for open/click tracking.                                                                                         | `plunk-configuration-set` (default)             |
-| `SES_CONFIGURATION_SET_NO_TRACKING` | No       | A second SES configuration set without tracking. When set, projects can toggle email tracking on/off. If omitted, the tracking toggle is hidden. | `plunk-no-tracking-configuration-set` (default) |
-| `MAIL_FROM_SUBDOMAIN`               | No       | Subdomain prefix used when constructing the MAIL FROM hostname for a verified domain (e.g. with default `plunk` and domain `yourdomain.com`, the MAIL FROM is `plunk.yourdomain.com`). Override when the default subdomain is already in use (e.g. by an R2/CDN custom domain), since the MAIL FROM hostname needs MX + TXT records that can't coexist with a CNAME. | `plunk`                                         |
+| `SES_CONFIGURATION_SET`             | No       | SES configuration set name used for open/click tracking.                                                                                         | `merlin-configuration-set` (default)             |
+| `SES_CONFIGURATION_SET_NO_TRACKING` | No       | A second SES configuration set without tracking. When set, projects can toggle email tracking on/off. If omitted, the tracking toggle is hidden. | `merlin-no-tracking-configuration-set` (default) |
+| `MAIL_FROM_SUBDOMAIN`               | No       | Subdomain prefix used when constructing the MAIL FROM hostname for a verified domain (e.g. with default `merlin` and domain `yourdomain.com`, the MAIL FROM is `merlin.yourdomain.com`). Override when the default subdomain is already in use (e.g. by an R2/CDN custom domain), since the MAIL FROM hostname needs MX + TXT records that can't coexist with a CNAME. | `merlin`                                         |
 
 ## Storage (Minio)
 
@@ -43,8 +43,8 @@ The bundled Docker setup includes Minio with defaults that work out of the box. 
 
 | Variable               | Required | Description                                                        | Default             |
 | ---------------------- | -------- | ------------------------------------------------------------------ | ------------------- |
-| `MINIO_ROOT_USER`      | No       | Minio root username (Docker Compose only).                         | `plunk`             |
-| `MINIO_ROOT_PASSWORD`  | No       | Minio root password (Docker Compose only).                         | `plunkminiopass`    |
+| `MINIO_ROOT_USER`      | No       | Minio root username (Docker Compose only).                         | `merlin`             |
+| `MINIO_ROOT_PASSWORD`  | No       | Minio root password (Docker Compose only).                         | `merlinminiopass`    |
 | `MINIO_API_PORT`       | No       | Port for the Minio API (Docker Compose only).                      | `9000`              |
 | `MINIO_CONSOLE_PORT`   | No       | Port for the Minio console UI (Docker Compose only).               | `9001`              |
 | `S3_ENDPOINT`          | No       | S3 or Minio endpoint URL.                                          | `http://minio:9000` |
@@ -56,7 +56,7 @@ The bundled Docker setup includes Minio with defaults that work out of the box. 
 
 ## Attachments
 
-Plunk supports attachments on transactional emails. AWS SES caps total message size at 40 MB; the defaults below leave headroom but can be tuned for your use case.
+Merlin supports attachments on transactional emails. AWS SES caps total message size at 40 MB; the defaults below leave headroom but can be tuned for your use case.
 
 | Variable                 | Required | Description                                                                                                              | Default |
 | ------------------------ | -------- | ------------------------------------------------------------------------------------------------------------------------ | ------- |
@@ -96,21 +96,21 @@ Required if you want to enable billing features. All Stripe variables must be se
 
 ## Platform Emails
 
-When configured, Plunk will send email notifications to users for critical events (e.g. project disabled, billing limits reached). Without these, only ntfy notifications are sent.
+When configured, Merlin will send email notifications to users for critical events (e.g. project disabled, billing limits reached). Without these, only ntfy notifications are sent.
 
 | Variable             | Required | Description                                                | Example                  |
 | -------------------- | -------- | ---------------------------------------------------------- | ------------------------ |
-| `PLUNK_API_KEY`      | No       | API key for a Plunk instance to send transactional emails. | `pk_...`                 |
-| `PLUNK_FROM_ADDRESS` | No       | From address used for platform notification emails.        | `noreply@yourdomain.com` |
+| `MERLIN_API_KEY`      | No       | API key for a Merlin instance to send transactional emails. | `pk_...`                 |
+| `MERLIN_FROM_ADDRESS` | No       | From address used for platform notification emails.        | `noreply@yourdomain.com` |
 
 ## Notifications (ntfy)
 
-Plunk bundles a self-hosted [ntfy](https://ntfy.sh) server for internal system notifications.
+Merlin bundles a self-hosted [ntfy](https://ntfy.sh) server for internal system notifications.
 
 | Variable    | Required | Description                                                                         | Default                           |
 | ----------- | -------- | ----------------------------------------------------------------------------------- | --------------------------------- |
 | `NTFY_PORT` | No       | Port for the ntfy web UI (Docker Compose only).                                     | `8080`                            |
-| `NTFY_URL`  | No       | ntfy topic URL. Change this to use an external ntfy.sh server or your own instance. | `http://ntfy/plunk-notifications` |
+| `NTFY_URL`  | No       | ntfy topic URL. Change this to use an external ntfy.sh server or your own instance. | `http://ntfy/merlin-notifications` |
 
 ## User Management
 
@@ -124,7 +124,7 @@ Plunk bundles a self-hosted [ntfy](https://ntfy.sh) server for internal system n
 | Variable                      | Required | Description                                                                                                                                                | Default |
 | ----------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
 | `AUTO_PROJECT_DISABLE`        | No       | When `true`, projects are automatically suspended when bounce or complaint rate thresholds are exceeded. Set to `false` to manage project status manually. | `true`  |
-| `EMAIL_RATE_LIMIT_PER_SECOND` | No       | Override the email sending rate limit. If not set, Plunk automatically fetches the quota from your AWS SES account.                                        | —       |
+| `EMAIL_RATE_LIMIT_PER_SECOND` | No       | Override the email sending rate limit. If not set, Merlin automatically fetches the quota from your AWS SES account.                                        | —       |
 | `EMAIL_WORKER_CONCURRENCY`    | No       | Number of emails the worker processes in parallel. When unset, derived from the effective rate limit so a higher SES quota scales throughput automatically. | —       |
 | `EMAIL_WORKER_MAX_CONCURRENCY`| No       | Upper bound applied to the auto-derived worker concurrency. Raise this only after sizing the Prisma connection pool accordingly.                            | `50`    |
 
@@ -138,7 +138,7 @@ Variables for unusual deployments. The defaults work for the standard Docker Com
 
 ## Phishing Detection
 
-Plunk can use AI to detect and block phishing emails before they're sent. Requires an [OpenRouter](https://openrouter.ai) API key.
+Merlin can use AI to detect and block phishing emails before they're sent. Requires an [OpenRouter](https://openrouter.ai) API key.
 
 | Variable                         | Required | Description                                                                                       | Default                    |
 | -------------------------------- | -------- | ------------------------------------------------------------------------------------------------- | -------------------------- |

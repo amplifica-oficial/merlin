@@ -1,4 +1,4 @@
-import {Input, Label} from '@plunk/ui';
+import {Input, Label} from '@merlin/ui';
 import {EmailDomainInput} from './EmailDomainInput';
 
 interface EmailSettingsProps {

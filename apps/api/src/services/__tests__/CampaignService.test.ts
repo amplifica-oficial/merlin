@@ -1,5 +1,5 @@
 import {beforeEach, describe, expect, it, vi} from 'vitest';
-import {CampaignAudienceType, CampaignStatus} from '@plunk/db';
+import {CampaignAudienceType, CampaignStatus} from '@merlin/db';
 import {CampaignService} from '../CampaignService';
 import {factories, getPrismaClient} from '../../../../../test/helpers';
 

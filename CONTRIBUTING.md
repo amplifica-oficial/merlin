@@ -1,25 +1,25 @@
-# Contributing to Plunk
+# Contributing to Merlin
 
-Thank you for your interest in contributing to Plunk! This guide will help you get started with development.
+Thank you for your interest in contributing to Merlin! This guide will help you get started with development.
 
 ## Architecture
 
-Plunk V2 is built as a modern Turborepo monorepo with the following structure:
+Merlin V2 is built as a modern Turborepo monorepo with the following structure:
 
 ### Applications (`apps/`)
 
 - **api**: Express.js API server with background worker process (BullMQ)
-- **web**: Next.js dashboard application (app.useplunk.com)
-- **landing**: Next.js marketing site (www.useplunk.com)
-- **wiki**: Next.js documentation site (docs.useplunk.com)
+- **web**: Next.js dashboard application (app.merlin.example)
+- **landing**: Next.js marketing site (www.merlin.example)
+- **wiki**: Next.js documentation site (docs.merlin.example)
 
 ### Shared Packages (`packages/`)
 
-- **@plunk/db**: Prisma database schema and client
-- **@plunk/ui**: Shared UI components (ShadCN + Radix UI)
-- **@plunk/shared**: Common utilities and business logic
-- **@plunk/types**: TypeScript type definitions
-- **@plunk/email**: React Email templates
+- **@merlin/db**: Prisma database schema and client
+- **@merlin/ui**: Shared UI components (ShadCN + Radix UI)
+- **@merlin/shared**: Common utilities and business logic
+- **@merlin/types**: TypeScript type definitions
+- **@merlin/email**: React Email templates
 
 ### Technology Stack
 
@@ -57,7 +57,7 @@ cp .env.example .env
 # Edit .env with your configuration
 
 # Run database migrations
-yarn workspace @plunk/db migrate:dev
+yarn workspace @merlin/db migrate:dev
 
 # Start all development servers
 yarn dev
@@ -96,8 +96,8 @@ yarn workspace web dev
 
 ### Database (Prisma)
 
-- **Generate client**: `yarn workspace @plunk/db db:generate`
-- **Run migrations (dev)**: `yarn workspace @plunk/db migrate:dev`
+- **Generate client**: `yarn workspace @merlin/db db:generate`
+- **Run migrations (dev)**: `yarn workspace @merlin/db migrate:dev`
 
 ## Code Standards
 
@@ -135,12 +135,12 @@ between groups.
 
 ## Need Help?
 
-- Check the [documentation](https://docs.useplunk.com)
+- Check the [documentation](https://docs.merlin.example)
 - Open an issue for bugs or feature requests
 - Join our community discussions
 
 ## License
 
-By contributing to Plunk, you agree that your contributions will be licensed under the AGPL-3.0 License.
+By contributing to Merlin, you agree that your contributions will be licensed under the AGPL-3.0 License.
 
 This repository is a modified version of [Plunk](https://github.com/useplunk/plunk) ([useplunk.com](https://www.useplunk.com/)). See [NOTICE](NOTICE) for copyright attribution details.

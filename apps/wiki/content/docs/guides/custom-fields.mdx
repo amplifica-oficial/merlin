@@ -4,7 +4,7 @@ description: Store arbitrary data on your contacts and use it for personalizatio
 icon: Tags
 ---
 
-Every contact in Plunk has a `data` object alongside the built-in fields (`email`, `subscribed`, `createdAt`, `updatedAt`). You decide what goes in `data` — first names, plan tiers, signup dates, internal user IDs, anything you want to use later in templates, segments, or workflow conditions.
+Every contact in Merlin has a `data` object alongside the built-in fields (`email`, `subscribed`, `createdAt`, `updatedAt`). You decide what goes in `data` — first names, plan tiers, signup dates, internal user IDs, anything you want to use later in templates, segments, or workflow conditions.
 
 This guide covers how custom fields work end to end: setting them, the rules around types, using them, and cleaning them up.
 
@@ -48,7 +48,7 @@ curl -X PATCH {{API_URL}}/contacts/cnt_abc123 \
 
 ## Type inference
 
-Plunk infers a type for each field the first time it sees a non-null value in your project:
+Merlin infers a type for each field the first time it sees a non-null value in your project:
 
 | Detected as | Examples                                                       |
 | ----------- | -------------------------------------------------------------- |
@@ -57,19 +57,19 @@ Plunk infers a type for each field the first time it sees a non-null value in yo
 | Date        | Strings matching `YYYY-MM-DD` or `YYYY-MM-DDTHH:MM:SS[.sss]Z`  |
 | String      | Anything else                                                  |
 
-The inferred type powers the segment filter UI (showing date pickers for date fields, number inputs for numeric ones, etc.) and is sticky once set per project. If you mix types for a key, the original inference wins for the UI but Plunk still stores whatever value you send.
+The inferred type powers the segment filter UI (showing date pickers for date fields, number inputs for numeric ones, etc.) and is sticky once set per project. If you mix types for a key, the original inference wins for the UI but Merlin still stores whatever value you send.
 
 To use date-aware operators (`within`, `olderThan`) on a custom field, store the value as a full ISO 8601 string — `"2026-05-06T12:00:00Z"` works, `"05/06/2026"` doesn't.
 
 ## Reserved keys
 
-Some keys are managed by Plunk and **silently filtered out** of any `data` payload — sending them won't store them and won't return an error:
+Some keys are managed by Merlin and **silently filtered out** of any `data` payload — sending them won't store them and won't return an error:
 
-`id`, `plunk_id`, `plunk_email`, `email`, `unsubscribeUrl`, `subscribeUrl`, `manageUrl`
+`id`, `merlin_id`, `merlin_email`, `email`, `unsubscribeUrl`, `subscribeUrl`, `manageUrl`
 
 Plus these core contact fields, which exist outside `data`: `email`, `subscribed`, `createdAt`, `updatedAt`. To change `email` or `subscribed`, use the dedicated request fields, not `data`.
 
-`locale` is a special soft-reserved key — it's stored under `data` like other fields, but Plunk reads it for [localization](/guides/localization).
+`locale` is a special soft-reserved key — it's stored under `data` like other fields, but Merlin reads it for [localization](/guides/localization).
 
 ## Using custom fields
 
@@ -82,7 +82,7 @@ Reference any field by name as a Handlebars variable:
 <p>You've been on the {{plan}} plan since {{signupDate}}.</p>
 ```
 
-The `?? fallback` syntax is Plunk-specific and lets you provide a default when the field is missing or null. Nested data (`data.profile.tier`) is accessible the same way: `{{profile.tier}}`.
+The `?? fallback` syntax is Merlin-specific and lets you provide a default when the field is missing or null. Nested data (`data.profile.tier`) is accessible the same way: `{{profile.tier}}`.
 
 ### In segments
 

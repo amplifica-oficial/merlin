@@ -1,6 +1,6 @@
 import {zodResolver} from '@hookform/resolvers/zod';
-import type {Project} from '@plunk/db';
-import {ProjectSchemas} from '@plunk/shared';
+import type {Project} from '@merlin/db';
+import {ProjectSchemas} from '@merlin/shared';
 import {
   Button,
   Card,
@@ -14,7 +14,7 @@ import {
   FormMessage,
   IconSpinner,
   Input,
-} from '@plunk/ui';
+} from '@merlin/ui';
 import {AnimatePresence, motion} from 'framer-motion';
 import {FolderPlus, UserPlus} from 'lucide-react';
 import {NextSeo} from 'next-seo';
@@ -70,7 +70,7 @@ export default function CreateProject() {
       >
         <div className={'flex flex-col gap-6 max-w-2xl w-full'}>
           <div className="text-center mb-2">
-            <h1 className="text-3xl font-bold mb-2">Welcome to Plunk</h1>
+            <h1 className="text-3xl font-bold mb-2">Welcome to Merlin</h1>
             <p className="text-neutral-600">Choose how you&#39;d like to get started</p>
           </div>
 

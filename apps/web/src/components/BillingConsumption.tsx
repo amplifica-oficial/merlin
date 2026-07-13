@@ -1,4 +1,4 @@
-import {Alert, Card, CardContent, CardDescription, CardHeader, CardTitle, IconSpinner} from '@plunk/ui';
+import {Alert, Card, CardContent, CardDescription, CardHeader, CardTitle, IconSpinner} from '@merlin/ui';
 import {AlertCircle, Coins, TrendingUp} from 'lucide-react';
 import {useBillingConsumption} from '../lib/hooks/useBillingConsumption';
 import {useConfig} from '../lib/hooks/useConfig';

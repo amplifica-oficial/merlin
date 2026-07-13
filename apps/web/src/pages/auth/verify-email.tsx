@@ -1,5 +1,5 @@
-import {AuthenticationSchemas} from '@plunk/shared';
-import {Button, Card, CardContent, IconSpinner} from '@plunk/ui';
+import {AuthenticationSchemas} from '@merlin/shared';
+import {Button, Card, CardContent, IconSpinner} from '@merlin/ui';
 import {AnimatePresence, motion} from 'framer-motion';
 import {NextSeo} from 'next-seo';
 import Image from 'next/image';
@@ -76,13 +76,13 @@ export default function VerifyEmail() {
   }, [router.isReady, token]);
 
   useEffect(() => {
-    const storedExpiry = localStorage.getItem('plunk:email-verification-cooldown');
+    const storedExpiry = localStorage.getItem('merlin:email-verification-cooldown');
     if (storedExpiry) {
       const expiryTime = parseInt(storedExpiry, 10);
       if (!isNaN(expiryTime) && expiryTime > Date.now() && expiryTime < Date.now() + 3600000) {
         setCooldownExpiry(expiryTime);
       } else {
-        localStorage.removeItem('plunk:email-verification-cooldown');
+        localStorage.removeItem('merlin:email-verification-cooldown');
       }
     }
   }, []);
@@ -99,7 +99,7 @@ export default function VerifyEmail() {
 
       if (remaining === 0) {
         setCooldownExpiry(null);
-        localStorage.removeItem('plunk:email-verification-cooldown');
+        localStorage.removeItem('merlin:email-verification-cooldown');
       }
     };
 
@@ -119,7 +119,7 @@ export default function VerifyEmail() {
         setResendMessage('Verification email sent! Please check your inbox.');
         const expiryTime = Date.now() + 60000;
         setCooldownExpiry(expiryTime);
-        localStorage.setItem('plunk:email-verification-cooldown', expiryTime.toString());
+        localStorage.setItem('merlin:email-verification-cooldown', expiryTime.toString());
       } else {
         setResendMessage('Failed to send verification email. Please try again.');
       }
@@ -127,7 +127,7 @@ export default function VerifyEmail() {
       setResendMessage(error instanceof Error ? error.message : 'Failed to send verification email. Please try again.');
       const expiryTime = Date.now() + 60000;
       setCooldownExpiry(expiryTime);
-      localStorage.setItem('plunk:email-verification-cooldown', expiryTime.toString());
+      localStorage.setItem('merlin:email-verification-cooldown', expiryTime.toString());
     } finally {
       setIsResending(false);
     }
@@ -142,7 +142,7 @@ export default function VerifyEmail() {
             <div className="h-8 w-8 rounded-lg bg-white shadow-sm border border-neutral-200 flex items-center justify-center p-1">
               <Image src="/assets/logo.svg" alt="" aria-hidden width={24} height={24} />
             </div>
-            <span className="text-lg font-bold tracking-tight text-neutral-900">Plunk</span>
+            <span className="text-lg font-bold tracking-tight text-neutral-900">Merlin</span>
           </div>
 
           <Card>

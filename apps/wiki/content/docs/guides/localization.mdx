@@ -4,7 +4,7 @@ description: Translate the unsubscribe footer and contact-facing pages into your
 icon: Globe
 ---
 
-Plunk localizes the strings it controls — the auto-injected unsubscribe footer on marketing emails, the hosted unsubscribe / subscribe / preferences pages — into the language of your audience. Your own template content (subject lines, body copy) is **not** translated automatically; you control that yourself.
+Merlin localizes the strings it controls — the auto-injected unsubscribe footer on marketing emails, the hosted unsubscribe / subscribe / preferences pages — into the language of your audience. Your own template content (subject lines, body copy) is **not** translated automatically; you control that yourself.
 
 ## Setting the project default
 
@@ -27,7 +27,7 @@ curl -X POST {{API_URL}}/v1/track \
 
 Use a [BCP 47](https://en.wikipedia.org/wiki/IETF_language_tag) / ISO 639 code that matches one of the supported languages below. You can also reference `{{locale}}` inside template variables to branch your own copy on the contact's language.
 
-If the contact's `locale` doesn't match a supported language, Plunk falls back to the project default. If neither is set, English is used.
+If the contact's `locale` doesn't match a supported language, Merlin falls back to the project default. If neither is set, English is used.
 
 ## Supported languages
 
@@ -58,7 +58,7 @@ If the contact's `locale` doesn't match a supported language, Plunk falls back t
 
 ## Translating your own templates
 
-Plunk doesn't translate the content of your templates. Two common patterns:
+Merlin doesn't translate the content of your templates. Two common patterns:
 
 - **One template per language**, picked in your code or workflow before sending. Name them with the locale suffix (`welcome-en`, `welcome-fr`).
 - **One template with branched copy**, using `{{locale}}` inside Handlebars conditionals to inline different language variants. Workable for short copy; gets unwieldy for long emails.

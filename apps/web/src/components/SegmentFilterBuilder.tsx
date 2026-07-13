@@ -11,8 +11,8 @@ import {
   SelectItemWithDescription,
   SelectTrigger,
   SelectValue,
-} from '@plunk/ui';
-import type {FilterCondition, FilterGroup, SegmentFilter, SegmentFilterOperator} from '@plunk/types';
+} from '@merlin/ui';
+import type {FilterCondition, FilterGroup, SegmentFilter, SegmentFilterOperator} from '@merlin/types';
 import {Check, ChevronsUpDown, GripVertical, Plus, Search, Trash2} from 'lucide-react';
 import {memo, useCallback, useEffect, useMemo, useState} from 'react';
 import {network} from '../lib/network';

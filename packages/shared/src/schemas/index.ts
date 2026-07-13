@@ -1,5 +1,5 @@
-import {CampaignAudienceType, TemplateType, TrackingMode, WorkflowStepType, WorkflowTriggerType} from '@plunk/db';
-import type {FilterCondition, FilterGroup} from '@plunk/types';
+import {CampaignAudienceType, TemplateType, TrackingMode, WorkflowStepType, WorkflowTriggerType} from '@merlin/db';
+import type {FilterCondition, FilterGroup} from '@merlin/types';
 import {z} from 'zod';
 
 const literalSchema = z.union([z.string(), z.number(), z.boolean(), z.null(), z.date()]);

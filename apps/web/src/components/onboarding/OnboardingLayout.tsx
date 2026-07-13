@@ -40,7 +40,7 @@ export function OnboardingLayout({step, totalSteps = 2, maxWidthClass = 'max-w-2
           <div className="h-8 w-8 rounded-lg bg-white shadow-sm border border-neutral-200 flex items-center justify-center p-1">
             <Image src="/assets/logo.svg" alt="" aria-hidden width={24} height={24} />
           </div>
-          <span className="text-lg font-bold tracking-tight text-neutral-900">Plunk</span>
+          <span className="text-lg font-bold tracking-tight text-neutral-900">Merlin</span>
         </Link>
 
         <div className="hidden sm:flex items-center gap-2 text-xs font-medium text-neutral-500">

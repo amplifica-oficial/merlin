@@ -4,11 +4,11 @@ description: Understand and maintain a healthy email list
 icon: ShieldCheck
 ---
 
-Plunk automatically monitors the bounce and complaint rates of your emails to help maintain a health sender reputation. High bounce or complaint rates can negatively impact your deliverability and may lead to your account being suspended.
+Merlin automatically monitors the bounce and complaint rates of your emails to help maintain a health sender reputation. High bounce or complaint rates can negatively impact your deliverability and may lead to your account being suspended.
 
 ## Bounce Management
 
-A bounce occurs when an email cannot be delivered to the recipient's inbox. Plunk records every bounce as an `email.bounce` event on the contact, and automatically unsubscribes the contact **only on permanent (hard) bounces**. Transient (soft) bounces don't change subscription state — they're typically retried by the upstream mail server.
+A bounce occurs when an email cannot be delivered to the recipient's inbox. Merlin records every bounce as an `email.bounce` event on the contact, and automatically unsubscribes the contact **only on permanent (hard) bounces**. Transient (soft) bounces don't change subscription state — they're typically retried by the upstream mail server.
 
 ### Types of Bounces
 
@@ -28,12 +28,12 @@ Both bounce types fire an `email.bounce` event you can branch on inside workflow
 
 ## Complaint Management
 
-A complaint occurs when a recipient marks your email as spam in their inbox provider. When Plunk receives that complaint, the contact is **always automatically unsubscribed** and Plunk fires an `email.complaint` event on the contact.
+A complaint occurs when a recipient marks your email as spam in their inbox provider. When Merlin receives that complaint, the contact is **always automatically unsubscribed** and Merlin fires an `email.complaint` event on the contact.
 
 Complaints are taken more seriously than bounces by mail providers — even a small complaint rate can hurt your sender reputation and deliverability.
 
 ### Preventing complaints
 - Ensure your emails are relevant and valuable to your audience.
-- Include a clear, working unsubscribe link in every marketing email — Plunk injects this automatically for `MARKETING` template/campaign types.
+- Include a clear, working unsubscribe link in every marketing email — Merlin injects this automatically for `MARKETING` template/campaign types.
 - Monitor your email frequency to avoid overwhelming your contacts.
 - Make sure recipients clearly opted in. Avoid scraped, purchased, or stale lists.

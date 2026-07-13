@@ -9,8 +9,8 @@ import {
   CardHeader,
   CardTitle,
   Skeleton,
-} from '@plunk/ui';
-import type {Activity, ActivityStats, CursorPaginatedResponse} from '@plunk/types';
+} from '@merlin/ui';
+import type {Activity, ActivityStats, CursorPaginatedResponse} from '@merlin/types';
 import {animate, AnimatePresence, motion, useMotionValue, useTransform} from 'framer-motion';
 import {
   AlertCircle,
@@ -313,12 +313,12 @@ export default function Index() {
   // Friendly console message for the developer audience. Once per session.
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const w = window as unknown as {__plunkHi?: boolean};
-    if (w.__plunkHi) return;
-    w.__plunkHi = true;
+    const w = window as unknown as {__merlinHi?: boolean};
+    if (w.__merlinHi) return;
+    w.__merlinHi = true;
     // eslint-disable-next-line no-console
     console.log(
-      '%cPlunk%c  Built for developers who care about email.\nFound a rough edge? support@useplunk.com',
+      '%cMerlin%c  Built for developers who care about email.\nFound a rough edge? support@merlin.example',
       'font: 600 14px ui-sans-serif, system-ui; color: #0a0a0a; background: #f5f5f5; padding: 2px 8px; border-radius: 4px;',
       'color: #525252; font: 12px ui-sans-serif, system-ui;',
     );
@@ -461,10 +461,10 @@ export default function Index() {
             config?.features.billing.enabled && (
               <Alert variant="warning">
                 <AlertCircle className="h-4 w-4" />
-                <AlertTitle>Upgrade to remove Plunk branding</AlertTitle>
+                <AlertTitle>Upgrade to remove Merlin branding</AlertTitle>
                 <AlertDescription className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                   <span className="text-sm">
-                    Your emails currently include Plunk branding. Upgrade to a subscription to remove it.
+                    Your emails currently include Merlin branding. Upgrade to a subscription to remove it.
                   </span>
                   <Button asChild size="sm" className="w-full sm:w-auto">
                     <Link href="/settings?tab=billing">Upgrade Now</Link>
@@ -648,7 +648,7 @@ export default function Index() {
           <Card>
             <CardHeader>
               <CardTitle>API Keys</CardTitle>
-              <CardDescription>Use these keys to integrate with Plunk</CardDescription>
+              <CardDescription>Use these keys to integrate with Merlin</CardDescription>
             </CardHeader>
             <CardContent>
               {activeProject ? (

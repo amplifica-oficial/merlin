@@ -1,7 +1,7 @@
 import {AnimatePresence, motion} from 'framer-motion';
 import {Check, Copy, Eye, EyeOff, RefreshCw} from 'lucide-react';
 import {useState} from 'react';
-import {Button} from '@plunk/ui';
+import {Button} from '@merlin/ui';
 
 interface ApiKeyDisplayProps {
   label: string;

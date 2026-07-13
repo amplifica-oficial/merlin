@@ -38,8 +38,8 @@ import {
   TableHeader,
   TableRow,
   IconSpinner,
-} from '@plunk/ui';
-import {MembershipSchemas} from '@plunk/shared';
+} from '@merlin/ui';
+import {MembershipSchemas} from '@merlin/shared';
 import {MoreVertical, Trash2, UserPlus} from 'lucide-react';
 import {AnimatePresence, motion} from 'framer-motion';
 import {useForm} from 'react-hook-form';

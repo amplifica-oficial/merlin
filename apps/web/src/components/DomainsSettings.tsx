@@ -1,7 +1,7 @@
 import {useEffect, useState} from 'react';
 import {useForm} from 'react-hook-form';
 import {zodResolver} from '@hookform/resolvers/zod';
-import {DomainSchemas} from '@plunk/shared';
+import {DomainSchemas} from '@merlin/shared';
 import {
   Badge,
   Button,
@@ -20,7 +20,7 @@ import {
   FormMessage,
   IconSpinner,
   Input,
-} from '@plunk/ui';
+} from '@merlin/ui';
 import {AnimatePresence, motion} from 'framer-motion';
 import {Check, CheckCircle2, ChevronDown, Copy, Globe, RefreshCw, Trash2, XCircle} from 'lucide-react';
 import {useConfig} from '../lib/hooks/useConfig';
@@ -335,7 +335,7 @@ export function DomainsSettings({projectId}: DomainsSettingsProps) {
             <div className="space-y-4">
               {domains.map(domain => {
                 const status = getDomainStatus(domain);
-                const mailFromSubdomain = config?.aws?.mailFromSubdomain ?? 'plunk';
+                const mailFromSubdomain = config?.aws?.mailFromSubdomain ?? 'merlin';
                 const mailFromHost = `${mailFromSubdomain}.${domain.domain}`;
                 return (
                   <div key={domain.id} className="border border-neutral-200 rounded-lg p-4">

@@ -3,7 +3,7 @@
  * Processes CSV contact imports with validation and batch processing
  */
 
-import type {ContactImportJobData} from '@plunk/types';
+import type {ContactImportJobData} from '@merlin/types';
 import {type Job, Worker} from 'bullmq';
 import {parse} from 'csv-parse/sync';
 import signale from 'signale';

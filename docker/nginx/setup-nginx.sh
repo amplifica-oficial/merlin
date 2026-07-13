@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 
-# Nginx Setup Script for Plunk
+# Nginx Setup Script for Merlin
 # Configures nginx reverse proxy with subdomain-based routing
 
 echo "🔧 Configuring nginx reverse proxy..."
@@ -46,7 +46,7 @@ echo "📝 Generating nginx configuration..."
 
 envsubst '${NGINX_PORT} ${API_DOMAIN} ${DASHBOARD_DOMAIN} ${WIKI_DOMAIN}' \
     < /app/docker/nginx/nginx.conf.template \
-    > "${NGINX_CONF_D}/plunk.conf"
+    > "${NGINX_CONF_D}/merlin.conf"
 
 # Always create nginx.conf (overwrite default from package)
 cat > "${NGINX_CONFIG_DIR}/nginx.conf" << 'EOF'
@@ -87,7 +87,7 @@ http {
 EOF
 
 echo "✅ Nginx configuration complete!"
-echo "   Config file: ${NGINX_CONF_D}/plunk.conf"
+echo "   Config file: ${NGINX_CONF_D}/merlin.conf"
 echo "   API Domain: ${API_DOMAIN}"
 echo "   Dashboard Domain: ${DASHBOARD_DOMAIN}"
 echo "   Wiki Domain: ${WIKI_DOMAIN}"

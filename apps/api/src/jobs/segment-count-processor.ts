@@ -3,7 +3,7 @@
  * Processes segment count update jobs from the BullMQ queue
  */
 
-import type {SegmentCountJobData} from '@plunk/types';
+import type {SegmentCountJobData} from '@merlin/types';
 import {type Job, Worker} from 'bullmq';
 import signale from 'signale';
 

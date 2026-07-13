@@ -1,5 +1,5 @@
 {
-  "name": "@plunk/email",
+  "name": "@merlin/email",
   "version": "0.0.0",
   "private": true,
   "scripts": {
@@ -8,15 +8,15 @@
     "build": "tsc"
   },
   "devDependencies": {
-    "@plunk/typescript-config": "*",
+    "@merlin/typescript-config": "*",
     "@react-email/preview-server": "5.0.1",
     "@types/react": "^19.2.7",
     "react-email": "5.0.1",
     "typescript": "^5.7.2"
   },
   "dependencies": {
-    "@plunk/db": "*",
-    "@plunk/types": "*",
+    "@merlin/db": "*",
+    "@merlin/types": "*",
     "@react-email/components": "^1.0.0",
     "@react-email/tailwind": "^2.0.1",
     "react": "^19.2.1",

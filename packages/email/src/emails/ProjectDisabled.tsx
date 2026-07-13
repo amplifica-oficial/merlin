@@ -15,7 +15,7 @@ export function ProjectDisabledEmail({
   projectName = 'My Project',
   projectId = 'proj_example123',
   violations: _violations = [],
-  dashboardUrl = 'https://next-app.useplunk.com',
+  dashboardUrl = 'https://next-app.merlin.example',
 }: ProjectDisabledEmailProps) {
   return (
     <EmailLayout>

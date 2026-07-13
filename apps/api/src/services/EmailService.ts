@@ -1,12 +1,12 @@
-import type {Contact, Email, Prisma, Project} from '@plunk/db';
-import {EmailSourceType, EmailStatus, TrackingMode} from '@plunk/db';
-import {toPrismaJson} from '@plunk/types';
+import type {Contact, Email, Prisma, Project} from '@merlin/db';
+import {EmailSourceType, EmailStatus, TrackingMode} from '@merlin/db';
+import {toPrismaJson} from '@merlin/types';
 import signale from 'signale';
 
 import {DASHBOARD_URI, STRIPE_ENABLED} from '../app/constants.js';
 import {prisma} from '../database/prisma.js';
 import {HttpException} from '../exceptions/index.js';
-import {createTranslatorSync, renderTemplate} from '@plunk/shared';
+import {createTranslatorSync, renderTemplate} from '@merlin/shared';
 
 import {BillingLimitService} from './BillingLimitService.js';
 import {DomainService} from './DomainService.js';
@@ -253,7 +253,7 @@ export class EmailService {
     // If custom recipient email is provided, store it in headers for later use
     const emailHeaders = params.headers ? {...params.headers} : {};
     if (params.recipientEmail) {
-      emailHeaders['X-Plunk-Recipient-Override'] = params.recipientEmail;
+      emailHeaders['X-Merlin-Recipient-Override'] = params.recipientEmail;
     }
 
     const email = await prisma.email.create({
@@ -365,7 +365,7 @@ export class EmailService {
       });
 
       // Compile HTML with unsubscribe footer and badge.
-      // Only marketing emails get the Plunk unsubscribe footer.
+      // Only marketing emails get the Merlin unsubscribe footer.
       const compiledHtml = this.compile({
         content: formattedEmail.body,
         contact: email.contact,
@@ -384,12 +384,12 @@ export class EmailService {
           : undefined;
 
       // Check for custom recipient override in headers
-      const recipientEmail = customHeaders?.['X-Plunk-Recipient-Override'] || email.contact.email;
+      const recipientEmail = customHeaders?.['X-Merlin-Recipient-Override'] || email.contact.email;
 
       // Remove internal headers before sending
       const publicHeaders = customHeaders ? {...customHeaders} : undefined;
-      if (publicHeaders && 'X-Plunk-Recipient-Override' in publicHeaders) {
-        delete publicHeaders['X-Plunk-Recipient-Override'];
+      if (publicHeaders && 'X-Merlin-Recipient-Override' in publicHeaders) {
+        delete publicHeaders['X-Merlin-Recipient-Override'];
       }
 
       // Build the outbound headers: standards-based defaults for the email class
@@ -643,7 +643,7 @@ export class EmailService {
 
   /**
    * Format email template by replacing variables in subject and body
-   * Uses shared template rendering from @plunk/shared
+   * Uses shared template rendering from @merlin/shared
    */
   public static format({subject, body, data}: {subject: string; body: string; data: Record<string, unknown>}): {
     subject: string;
@@ -1050,7 +1050,7 @@ export class EmailService {
 
   /**
    * Compile HTML email with optional unsubscribe footer and badge
-   * Adds unsubscribe link and Plunk badge for free tier users (only when billing is enabled)
+   * Adds unsubscribe link and Merlin badge for free tier users (only when billing is enabled)
    */
   public static compile({
     content,
@@ -1102,7 +1102,7 @@ export class EmailService {
         })()
       : '';
 
-    // Add Plunk badge if billing is enabled and project has no subscription (free tier)
+    // Add Merlin badge if billing is enabled and project has no subscription (free tier)
     const badgeHtml =
       STRIPE_ENABLED && project.subscription === null
         ? `<table align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="width:100%;">
@@ -1119,7 +1119,7 @@ export class EmailService {
                               <tr>
                                 <td style="width:180px;">
                                   <a href="${DASHBOARD_URI}?ref=badge" target="_blank">
-                                    <img alt="Powered by Plunk" height="auto" src="https://cdn.useplunk.com/badge.png" style="border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;font-size:13px;" width="180" />
+                                    <img alt="Powered by Merlin" height="auto" src="https://cdn.merlin.example/badge.png" style="border:0;display:block;outline:none;text-decoration:none;height:auto;width:100%;font-size:13px;" width="180" />
                                   </a>
                                 </td>
                               </tr>

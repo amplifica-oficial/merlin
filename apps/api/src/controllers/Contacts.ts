@@ -1,8 +1,8 @@
 import {Controller, Delete, Get, Middleware, Patch, Post} from '@overnightjs/core';
 import type {NextFunction, Request, Response} from 'express';
 import multer from 'multer';
-import {ContactSchemas} from '@plunk/shared';
-import type {BulkContactActionSelector} from '@plunk/types';
+import {ContactSchemas} from '@merlin/shared';
+import type {BulkContactActionSelector} from '@merlin/types';
 import signale from 'signale';
 import {requireAuth, requireEmailVerified} from '../middleware/auth.js';
 import {ContactService} from '../services/ContactService.js';

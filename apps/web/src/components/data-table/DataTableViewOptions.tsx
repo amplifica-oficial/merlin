@@ -6,7 +6,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@plunk/ui';
+} from '@merlin/ui';
 import type {Table} from '@tanstack/react-table';
 import {ChevronDown, Columns3} from 'lucide-react';
 
@@ -21,7 +21,7 @@ interface DataTableViewOptionsProps<TData> {
 
 /**
  * "Columns" selector (shadcn `DataTableViewOptions` convention) built on
- * Plunk's `@plunk/ui` DropdownMenu. Lists every leaf column with a checkbox,
+ * Merlin's `@merlin/ui` DropdownMenu. Lists every leaf column with a checkbox,
  * honouring each column's `enableHiding` flag and the optional `lockedColumnIds`
  * (Name + Actions stay locked-visible on the templates table). Reads each
  * column's display label from `columnDef.meta.label`, falling back to its id.

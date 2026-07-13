@@ -1,6 +1,6 @@
-import {type Contact, Prisma} from '@plunk/db';
-import type {CursorPaginatedResponse, FilterCondition, FilterGroup} from '@plunk/types';
-import {toPrismaJson} from '@plunk/types';
+import {type Contact, Prisma} from '@merlin/db';
+import type {CursorPaginatedResponse, FilterCondition, FilterGroup} from '@merlin/types';
+import {toPrismaJson} from '@merlin/types';
 
 import {prisma} from '../database/prisma.js';
 import {HttpException} from '../exceptions/index.js';
@@ -180,7 +180,7 @@ export class ContactService {
     const merged: Record<string, unknown> =
       existing && typeof existing === 'object' && !Array.isArray(existing) ? {...(existing as Record<string, unknown>)} : {};
 
-    const reservedFields = ['plunk_id', 'plunk_email', 'id', 'email', 'unsubscribeUrl', 'subscribeUrl', 'manageUrl'];
+    const reservedFields = ['merlin_id', 'merlin_email', 'id', 'email', 'unsubscribeUrl', 'subscribeUrl', 'manageUrl'];
 
     for (const [key, value] of Object.entries(incoming)) {
       if (reservedFields.includes(key)) continue;
@@ -287,7 +287,7 @@ export class ContactService {
   /**
    * Upsert a contact (create or update) with metadata merging
    * Supports persistent and non-persistent data fields
-   * Reserved fields: plunk_id, plunk_email
+   * Reserved fields: merlin_id, merlin_email
    */
   public static async upsert(
     projectId: string,
@@ -365,8 +365,8 @@ export class ContactService {
    */
   public static getMergedData(contact: Contact, temporaryData?: Record<string, unknown>): Record<string, unknown> {
     const mergedData: Record<string, unknown> = {
-      plunk_id: contact.id,
-      plunk_email: contact.email,
+      merlin_id: contact.id,
+      merlin_email: contact.email,
     };
 
     // Add contact's persistent data
@@ -384,7 +384,7 @@ export class ContactService {
     if (temporaryData) {
       for (const [key, value] of Object.entries(temporaryData)) {
         // Skip reserved system-generated fields
-        const reservedFields = ['plunk_id', 'plunk_email', 'email', 'unsubscribeUrl', 'subscribeUrl', 'manageUrl'];
+        const reservedFields = ['merlin_id', 'merlin_email', 'email', 'unsubscribeUrl', 'subscribeUrl', 'manageUrl'];
         if (reservedFields.includes(key)) {
           continue;
         }

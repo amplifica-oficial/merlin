@@ -1,6 +1,6 @@
-import {EmailSourceType} from '@plunk/db';
-import type {BillingLimitsResponse, CategoryUsage, LimitCheckResult} from '@plunk/types';
-import {BillingLimitExceededEmail, BillingLimitWarningEmail, sendPlatformEmail} from '@plunk/email';
+import {EmailSourceType} from '@merlin/db';
+import type {BillingLimitsResponse, CategoryUsage, LimitCheckResult} from '@merlin/types';
+import {BillingLimitExceededEmail, BillingLimitWarningEmail, sendPlatformEmail} from '@merlin/email';
 import React from 'react';
 import signale from 'signale';
 

@@ -1,4 +1,4 @@
-import {Button, EmptyState} from '@plunk/ui';
+import {Button, EmptyState} from '@merlin/ui';
 import {FilterX} from 'lucide-react';
 import type {LucideIcon} from 'lucide-react';
 

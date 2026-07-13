@@ -1,5 +1,5 @@
 {
-  "extends": "@plunk/typescript-config/react-library.json",
+  "extends": "@merlin/typescript-config/react-library.json",
   "compilerOptions": {
     "rootDir": "src",
     "outDir": "dist"

@@ -1,4 +1,4 @@
-import {Alert, Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, IconSpinner} from '@plunk/ui';
+import {Alert, Badge, Button, Card, CardContent, CardDescription, CardHeader, CardTitle, IconSpinner} from '@merlin/ui';
 import {AlertCircle, Download, ExternalLink, FileText} from 'lucide-react';
 import {useBillingInvoices} from '../lib/hooks/useBillingInvoices';
 

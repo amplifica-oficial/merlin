@@ -1,4 +1,4 @@
-import {Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Input, Label} from '@plunk/ui';
+import {Button, Card, CardContent, CardDescription, CardHeader, CardTitle, Input, Label} from '@merlin/ui';
 import {NextSeo} from 'next-seo';
 import {DashboardLayout} from '../../components/DashboardLayout';
 import {SegmentFilterBuilder} from '../../components/SegmentFilterBuilder';
@@ -9,9 +9,9 @@ import Link from 'next/link';
 import {useRouter} from 'next/router';
 import {useState} from 'react';
 import {toast} from 'sonner';
-import type {FilterCondition} from '@plunk/types';
-import type {Segment} from '@plunk/db';
-import {SegmentSchemas} from '@plunk/shared';
+import type {FilterCondition} from '@merlin/types';
+import type {Segment} from '@merlin/db';
+import {SegmentSchemas} from '@merlin/shared';
 
 type SegmentType = 'DYNAMIC' | 'STATIC';
 

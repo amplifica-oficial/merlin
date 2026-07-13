@@ -1,5 +1,5 @@
 import {afterEach, beforeEach, describe, expect, it} from 'vitest';
-import {CampaignStatus} from '@plunk/db';
+import {CampaignStatus} from '@merlin/db';
 import {createTimeControl, factories, getPrismaClient} from '../../../../../test/helpers';
 
 describe('Scheduled Campaign Processor', () => {

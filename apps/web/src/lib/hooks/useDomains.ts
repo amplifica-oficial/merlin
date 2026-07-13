@@ -1,5 +1,5 @@
-import type {Domain} from '@plunk/db';
-import {DomainSchemas} from '@plunk/shared';
+import type {Domain} from '@merlin/db';
+import {DomainSchemas} from '@merlin/shared';
 import useSWR from 'swr';
 
 import {network} from '../network';

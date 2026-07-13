@@ -25,8 +25,8 @@ import {
   CommandList,
   IconSpinner,
   Switch,
-} from '@plunk/ui';
-import type {Workflow, WorkflowExecution, WorkflowStep, WorkflowTransition} from '@plunk/db';
+} from '@merlin/ui';
+import type {Workflow, WorkflowExecution, WorkflowStep, WorkflowTransition} from '@merlin/db';
 import {DashboardLayout} from '../../components/DashboardLayout';
 import {network} from '../../lib/network';
 import {
@@ -48,7 +48,7 @@ import {NextSeo} from 'next-seo';
 import {WorkflowBuilder} from '../../components/WorkflowBuilder';
 import {EditStepDialog} from '../../components/workflow-steps';
 import {ReactFlowProvider} from '@xyflow/react';
-import {WorkflowSchemas} from '@plunk/shared';
+import {WorkflowSchemas} from '@merlin/shared';
 import dayjs from 'dayjs';
 
 interface WorkflowWithDetails extends Workflow {

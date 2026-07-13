@@ -14,7 +14,7 @@ import {HtmlEditor} from './HtmlEditor';
 import {useContactFields, useContacts} from '../../lib/hooks/useContacts';
 import {useConfig} from '../../lib/hooks/useConfig';
 import {useEffect, useRef, useState} from 'react';
-import {renderTemplate} from '@plunk/shared';
+import {renderTemplate} from '@merlin/shared';
 import {
   Button,
   Dialog,
@@ -28,7 +28,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@plunk/ui';
+} from '@merlin/ui';
 import {Code2, Eye, Monitor, Smartphone, Tablet, Upload, X} from 'lucide-react';
 import {network} from '../../lib/network';
 import {detectCustomHtmlPatterns, wrapEmailWithStyles} from '../../lib/emailStyles';

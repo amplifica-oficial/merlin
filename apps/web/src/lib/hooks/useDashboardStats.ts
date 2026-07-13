@@ -1,4 +1,4 @@
-import type {ActivityStats, CursorPaginatedResponse, PaginatedResponse} from '@plunk/types';
+import type {ActivityStats, CursorPaginatedResponse, PaginatedResponse} from '@merlin/types';
 import useSWR from 'swr';
 
 // Specific response types for dashboard (using unknown[] since we only need counts)

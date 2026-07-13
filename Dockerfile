@@ -1,4 +1,4 @@
-# Multi-stage Dockerfile for Plunk
+# Multi-stage Dockerfile for Merlin
 # Creates a single image containing all applications (API, Worker, Web, Wiki)
 # Use SERVICE environment variable to specify which service to run
 
@@ -92,9 +92,9 @@ ARG TARGETPLATFORM
 # Build-time arguments for URL configuration
 # These are only used during the build process (for wiki OpenAPI generation and static assets)
 # Runtime URLs are configured via *_DOMAIN and USE_HTTPS environment variables at container startup
-ARG API_URI=https://next-api.useplunk.com
-ARG DASHBOARD_URI=https://next-app.useplunk.com
-ARG WIKI_URI=https://docs.useplunk.com
+ARG API_URI=https://next-api.merlin.example
+ARG DASHBOARD_URI=https://next-app.merlin.example
+ARG WIKI_URI=https://docs.merlin.example
 
 WORKDIR /app
 
@@ -126,7 +126,7 @@ RUN chmod +x /usr/local/bin/generate-url-manifest.sh
 # Step 1: Copy and build shared packages (these change less frequently)
 # Shared packages are dependencies for apps, so build them first
 COPY packages ./packages
-RUN yarn workspace @plunk/db db:generate
+RUN yarn workspace @merlin/db db:generate
 RUN --mount=type=cache,target=/app/.turbo,sharing=locked \
     API_URI=${API_URI} \
     DASHBOARD_URI=${DASHBOARD_URI} \
@@ -134,7 +134,7 @@ RUN --mount=type=cache,target=/app/.turbo,sharing=locked \
     NEXT_PUBLIC_API_URI=${API_URI} \
     NEXT_PUBLIC_DASHBOARD_URI=${DASHBOARD_URI} \
     NEXT_PUBLIC_WIKI_URI=${WIKI_URI} \
-    yarn turbo build --filter="@plunk/*"
+    yarn turbo build --filter="@merlin/*"
 
 # Step 2: Copy and build API (backend services)
 COPY apps/api ./apps/api
@@ -212,48 +212,48 @@ RUN --mount=type=cache,target=/root/.npm \
 
 # Create non-root user for security
 RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 plunk
+RUN adduser --system --uid 1001 merlin
 
 # Create nginx directories and set permissions
 RUN mkdir -p /var/log/nginx /var/lib/nginx /run/nginx && \
-    chown -R plunk:nodejs /var/log/nginx /var/lib/nginx /run/nginx /etc/nginx
+    chown -R merlin:nodejs /var/log/nginx /var/lib/nginx /run/nginx /etc/nginx
 
 # ============================================
 # Copy API service with minimal dependencies
 # ============================================
 
 # Copy built API service
-COPY --from=builder --chown=plunk:nodejs /app/apps/api/dist ./apps/api/dist
+COPY --from=builder --chown=merlin:nodejs /app/apps/api/dist ./apps/api/dist
 
 # Copy ONLY production dependencies for API (excludes dev deps and frontend packages)
-COPY --from=prod-deps --chown=plunk:nodejs /app/node_modules ./node_modules
+COPY --from=prod-deps --chown=merlin:nodejs /app/node_modules ./node_modules
 
 # Copy Prisma client from builder (includes generated client with correct platform binaries)
-COPY --from=builder --chown=plunk:nodejs /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder --chown=plunk:nodejs /app/node_modules/@prisma ./node_modules/@prisma
+COPY --from=builder --chown=merlin:nodejs /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder --chown=merlin:nodejs /app/node_modules/@prisma ./node_modules/@prisma
 
 # Copy only the shared packages that are built (not source files)
 # These are needed by API at runtime
-COPY --from=builder --chown=plunk:nodejs /app/packages/db/dist ./packages/db/dist
-COPY --from=builder --chown=plunk:nodejs /app/packages/db/package.json ./packages/db/package.json
-COPY --from=builder --chown=plunk:nodejs /app/packages/shared/dist ./packages/shared/dist
-COPY --from=builder --chown=plunk:nodejs /app/packages/shared/package.json ./packages/shared/package.json
-COPY --from=builder --chown=plunk:nodejs /app/packages/email/dist ./packages/email/dist
-COPY --from=builder --chown=plunk:nodejs /app/packages/email/package.json ./packages/email/package.json
-COPY --from=builder --chown=plunk:nodejs /app/packages/types/dist ./packages/types/dist
-COPY --from=builder --chown=plunk:nodejs /app/packages/types/package.json ./packages/types/package.json
+COPY --from=builder --chown=merlin:nodejs /app/packages/db/dist ./packages/db/dist
+COPY --from=builder --chown=merlin:nodejs /app/packages/db/package.json ./packages/db/package.json
+COPY --from=builder --chown=merlin:nodejs /app/packages/shared/dist ./packages/shared/dist
+COPY --from=builder --chown=merlin:nodejs /app/packages/shared/package.json ./packages/shared/package.json
+COPY --from=builder --chown=merlin:nodejs /app/packages/email/dist ./packages/email/dist
+COPY --from=builder --chown=merlin:nodejs /app/packages/email/package.json ./packages/email/package.json
+COPY --from=builder --chown=merlin:nodejs /app/packages/types/dist ./packages/types/dist
+COPY --from=builder --chown=merlin:nodejs /app/packages/types/package.json ./packages/types/package.json
 
 # Copy Prisma schema (needed for migrations at runtime)
-COPY --from=builder --chown=plunk:nodejs /app/packages/db/prisma ./packages/db/prisma
+COPY --from=builder --chown=merlin:nodejs /app/packages/db/prisma ./packages/db/prisma
 
 # Copy root package.json and workspace config (needed for yarn workspace commands in entrypoint)
-COPY --from=builder --chown=plunk:nodejs /app/package.json ./
-COPY --from=prod-deps --chown=plunk:nodejs /app/.yarnrc.yml ./
-COPY --from=prod-deps --chown=plunk:nodejs /app/.yarn ./.yarn
-COPY --from=prod-deps --chown=plunk:nodejs /app/yarn.lock ./
+COPY --from=builder --chown=merlin:nodejs /app/package.json ./
+COPY --from=prod-deps --chown=merlin:nodejs /app/.yarnrc.yml ./
+COPY --from=prod-deps --chown=merlin:nodejs /app/.yarn ./.yarn
+COPY --from=prod-deps --chown=merlin:nodejs /app/yarn.lock ./
 
 # Copy API package.json file
-COPY --from=builder --chown=plunk:nodejs /app/apps/api/package.json ./apps/api/
+COPY --from=builder --chown=merlin:nodejs /app/apps/api/package.json ./apps/api/
 
 # ============================================
 # Copy Next.js apps with their standalone builds
@@ -262,45 +262,45 @@ COPY --from=builder --chown=plunk:nodejs /app/apps/api/package.json ./apps/api/
 # to copy node_modules for these apps - they're completely self-contained
 
 # Web app - standalone build with static assets
-COPY --from=builder --chown=plunk:nodejs /app/apps/web/.next/standalone ./apps/web/.next/standalone
-COPY --from=builder --chown=plunk:nodejs /app/apps/web/public ./apps/web/.next/standalone/apps/web/public
-COPY --from=builder --chown=plunk:nodejs /app/apps/web/.next/static ./apps/web/.next/standalone/apps/web/.next/static
+COPY --from=builder --chown=merlin:nodejs /app/apps/web/.next/standalone ./apps/web/.next/standalone
+COPY --from=builder --chown=merlin:nodejs /app/apps/web/public ./apps/web/.next/standalone/apps/web/public
+COPY --from=builder --chown=merlin:nodejs /app/apps/web/.next/static ./apps/web/.next/standalone/apps/web/.next/static
 # Copy URL replacement manifests to standalone directory
-COPY --from=builder --chown=plunk:nodejs /app/apps/web/.next/url-manifest.txt ./apps/web/.next/standalone/apps/web/.next/url-manifest.txt
-COPY --from=builder --chown=plunk:nodejs /app/apps/web/.next/sitemap-manifest.txt ./apps/web/.next/standalone/apps/web/.next/sitemap-manifest.txt
+COPY --from=builder --chown=merlin:nodejs /app/apps/web/.next/url-manifest.txt ./apps/web/.next/standalone/apps/web/.next/url-manifest.txt
+COPY --from=builder --chown=merlin:nodejs /app/apps/web/.next/sitemap-manifest.txt ./apps/web/.next/standalone/apps/web/.next/sitemap-manifest.txt
 
 # Wiki app - standalone build with static assets and OpenAPI spec
-COPY --from=builder --chown=plunk:nodejs /app/apps/wiki/.next/standalone ./apps/wiki/.next/standalone
-COPY --from=builder --chown=plunk:nodejs /app/apps/wiki/public ./apps/wiki/.next/standalone/apps/wiki/public
-COPY --from=builder --chown=plunk:nodejs /app/apps/wiki/.next/static ./apps/wiki/.next/standalone/apps/wiki/.next/static
-COPY --from=builder --chown=plunk:nodejs /app/apps/wiki/openapi.local.json ./apps/wiki/.next/standalone/apps/wiki/openapi.local.json
+COPY --from=builder --chown=merlin:nodejs /app/apps/wiki/.next/standalone ./apps/wiki/.next/standalone
+COPY --from=builder --chown=merlin:nodejs /app/apps/wiki/public ./apps/wiki/.next/standalone/apps/wiki/public
+COPY --from=builder --chown=merlin:nodejs /app/apps/wiki/.next/static ./apps/wiki/.next/standalone/apps/wiki/.next/static
+COPY --from=builder --chown=merlin:nodejs /app/apps/wiki/openapi.local.json ./apps/wiki/.next/standalone/apps/wiki/openapi.local.json
 # Copy URL replacement manifests to standalone directory
-COPY --from=builder --chown=plunk:nodejs /app/apps/wiki/.next/url-manifest.txt ./apps/wiki/.next/standalone/apps/wiki/.next/url-manifest.txt
-COPY --from=builder --chown=plunk:nodejs /app/apps/wiki/.next/sitemap-manifest.txt ./apps/wiki/.next/standalone/apps/wiki/.next/sitemap-manifest.txt
+COPY --from=builder --chown=merlin:nodejs /app/apps/wiki/.next/url-manifest.txt ./apps/wiki/.next/standalone/apps/wiki/.next/url-manifest.txt
+COPY --from=builder --chown=merlin:nodejs /app/apps/wiki/.next/sitemap-manifest.txt ./apps/wiki/.next/standalone/apps/wiki/.next/sitemap-manifest.txt
 
 # Copy full .next directories for the entrypoint script (URL replacement via find command)
 # These are much smaller than node_modules and needed for runtime URL replacement
-COPY --from=builder --chown=plunk:nodejs /app/apps/web/.next ./apps/web/.next
-COPY --from=builder --chown=plunk:nodejs /app/apps/wiki/.next ./apps/wiki/.next
-COPY --from=builder --chown=plunk:nodejs /app/apps/wiki/openapi.local.json ./apps/wiki/openapi.local.json
+COPY --from=builder --chown=merlin:nodejs /app/apps/web/.next ./apps/web/.next
+COPY --from=builder --chown=merlin:nodejs /app/apps/wiki/.next ./apps/wiki/.next
+COPY --from=builder --chown=merlin:nodejs /app/apps/wiki/openapi.local.json ./apps/wiki/openapi.local.json
 
 # ============================================
 # Copy runtime configuration
 # ============================================
 
 # Copy nginx configuration templates and setup script
-COPY --chown=plunk:nodejs docker/nginx/ /app/docker/nginx/
+COPY --chown=merlin:nodejs docker/nginx/ /app/docker/nginx/
 RUN chmod +x /app/docker/nginx/setup-nginx.sh
 
 # Copy optimized URL replacement script
-COPY --chown=plunk:nodejs docker/replace-urls-optimized.sh /app/docker/
+COPY --chown=merlin:nodejs docker/replace-urls-optimized.sh /app/docker/
 RUN chmod +x /app/docker/replace-urls-optimized.sh
 
 # Copy entrypoint script
-COPY --chown=plunk:nodejs docker-entrypoint-nginx.sh /usr/local/bin/
+COPY --chown=merlin:nodejs docker-entrypoint-nginx.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/docker-entrypoint-nginx.sh
 
-USER plunk
+USER merlin
 
 # Expose nginx port (default 80)
 EXPOSE 80

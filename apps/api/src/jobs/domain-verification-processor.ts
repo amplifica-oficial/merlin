@@ -3,7 +3,7 @@
  * Processes domain verification jobs from the BullMQ queue
  */
 
-import type {DomainVerificationJobData} from '@plunk/types';
+import type {DomainVerificationJobData} from '@merlin/types';
 import {type Job, Worker} from 'bullmq';
 import signale from 'signale';
 

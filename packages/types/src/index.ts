@@ -1,6 +1,6 @@
 /**
- * @plunk/types
- * Centralized type definitions for the Plunk platform
+ * @merlin/types
+ * Centralized type definitions for the Merlin platform
  */
 
 // Common utility types

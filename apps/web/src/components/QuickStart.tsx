@@ -1,4 +1,4 @@
-import {Button, Card, CardContent, CardDescription, CardHeader, CardTitle} from '@plunk/ui';
+import {Button, Card, CardContent, CardDescription, CardHeader, CardTitle} from '@merlin/ui';
 import {AnimatePresence, motion} from 'framer-motion';
 import {BookOpen, Check, CheckCircle2, Mail, Shield, Users, Zap} from 'lucide-react';
 import Link from 'next/link';
@@ -27,7 +27,7 @@ function HelpResources() {
   const [copied, setCopied] = useState(false);
 
   const copyEmail = () => {
-    void navigator.clipboard.writeText('support@useplunk.com');
+    void navigator.clipboard.writeText('support@merlin.example');
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -98,7 +98,7 @@ export function QuickStart({setupState, isLoading}: QuickStartProps) {
       <Card className="flex flex-col h-full">
         <CardHeader>
           <CardTitle>Quick Start</CardTitle>
-          <CardDescription>Get started with Plunk in minutes</CardDescription>
+          <CardDescription>Get started with Merlin in minutes</CardDescription>
         </CardHeader>
         <CardContent className="flex-1 min-h-0 overflow-y-auto">
           <div className="space-y-3">
@@ -188,7 +188,7 @@ export function QuickStart({setupState, isLoading}: QuickStartProps) {
       id: 'subscription',
       icon: Shield,
       title: 'Upgrade Your Plan',
-      description: 'Remove Plunk branding and unlock more features',
+      description: 'Remove Merlin branding and unlock more features',
       link: '/settings?tab=billing',
       linkText: 'Upgrade',
       isCompleted: false,
@@ -242,7 +242,7 @@ export function QuickStart({setupState, isLoading}: QuickStartProps) {
       <CardHeader>
         <CardTitle>Quick Start</CardTitle>
         <CardDescription>
-          {visibleSteps.length === 0 ? 'Your project is set up' : 'Get started with Plunk in minutes'}
+          {visibleSteps.length === 0 ? 'Your project is set up' : 'Get started with Merlin in minutes'}
         </CardDescription>
       </CardHeader>
       <CardContent className="flex-1 min-h-0 overflow-y-auto">

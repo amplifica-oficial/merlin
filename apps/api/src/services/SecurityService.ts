@@ -1,6 +1,6 @@
 import crypto from 'crypto';
 
-import {ProjectDisabledEmail, sendPlatformEmail} from '@plunk/email';
+import {ProjectDisabledEmail, sendPlatformEmail} from '@merlin/email';
 import React from 'react';
 import signale from 'signale';
 
@@ -800,8 +800,8 @@ export class SecurityService {
         headers: {
           'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
           'Content-Type': 'application/json',
-          'HTTP-Referer': 'https://useplunk.com',
-          'X-Title': 'Plunk Email Platform',
+          'HTTP-Referer': 'https://merlin.example',
+          'X-Title': 'Merlin Email Platform',
         },
         body: JSON.stringify({
           model: OPENROUTER_MODEL,

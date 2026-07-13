@@ -1,5 +1,5 @@
 import {zodResolver} from '@hookform/resolvers/zod';
-import {AuthenticationSchemas} from '@plunk/shared';
+import {AuthenticationSchemas} from '@merlin/shared';
 import {
   Button,
   Card,
@@ -18,7 +18,7 @@ import {
   FormMessage,
   IconSpinner,
   Input,
-} from '@plunk/ui';
+} from '@merlin/ui';
 import {AnimatePresence, motion} from 'framer-motion';
 import {NextSeo} from 'next-seo';
 import Image from 'next/image';
@@ -50,7 +50,7 @@ export default function Login() {
 
   const [lastUsed] = useState<'email' | 'google' | 'github' | null>(() => {
     if (typeof window === 'undefined') return null;
-    const stored = localStorage.getItem('plunk_last_auth_method');
+    const stored = localStorage.getItem('merlin_last_auth_method');
     return stored === 'email' || stored === 'google' || stored === 'github' ? stored : null;
   });
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -79,7 +79,7 @@ export default function Login() {
         setErrorMessage('Email or password is incorrect');
       } else {
         setErrorMessage(null);
-        localStorage.setItem('plunk_last_auth_method', 'email');
+        localStorage.setItem('merlin_last_auth_method', 'email');
 
         await userMutate();
         await projectsMutate();
@@ -132,7 +132,7 @@ export default function Login() {
             <div className="h-8 w-8 rounded-lg bg-white shadow-sm border border-neutral-200 flex items-center justify-center p-1">
               <Image src="/assets/logo.svg" alt="" aria-hidden width={24} height={24} />
             </div>
-            <span className="text-lg font-bold tracking-tight text-neutral-900">Plunk</span>
+            <span className="text-lg font-bold tracking-tight text-neutral-900">Merlin</span>
           </div>
 
           <Card>
@@ -161,7 +161,7 @@ export default function Login() {
                                 variant="outline"
                                 className="w-full"
                                 onClick={() => {
-                                  localStorage.setItem('plunk_last_auth_method', 'google');
+                                  localStorage.setItem('merlin_last_auth_method', 'google');
                                   window.location.href = `${API_URI}/oauth/google/outbound`;
                                 }}
                               >
@@ -199,7 +199,7 @@ export default function Login() {
                                 variant="outline"
                                 className="w-full"
                                 onClick={() => {
-                                  localStorage.setItem('plunk_last_auth_method', 'github');
+                                  localStorage.setItem('merlin_last_auth_method', 'github');
                                   window.location.href = `${API_URI}/oauth/github/outbound`;
                                 }}
                               >

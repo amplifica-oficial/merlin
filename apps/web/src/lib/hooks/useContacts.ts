@@ -1,5 +1,5 @@
-import type {Contact} from '@plunk/db';
-import type {CursorPaginatedResponse} from '@plunk/types';
+import type {Contact} from '@merlin/db';
+import type {CursorPaginatedResponse} from '@merlin/types';
 import useSWR from 'swr';
 
 interface UseContactsOptions {
