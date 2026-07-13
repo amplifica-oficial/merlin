@@ -130,25 +130,6 @@ module.exports = {
       }
     },
     {
-      name: 'smtp',
-      script: '/app/apps/smtp/dist/server.js',
-      cwd: '/app',
-      instances: 1,
-      exec_mode: 'fork',
-      autorestart: true,
-      watch: false,
-      env: {
-        NODE_ENV: 'production',
-        API_URI: '${API_URI}',
-        SMTP_DOMAIN: '${SMTP_DOMAIN:-}',
-        PORT_SECURE: '465',
-        PORT_SUBMISSION: '587',
-        MAX_RECIPIENTS: '${MAX_RECIPIENTS:-5}',
-        CERT_PATH: '/certs',
-        ACME_JSON_PATH: '/certs/acme.json'
-      }
-    },
-    {
       name: 'web',
       script: 'apps/web/server.js',
       cwd: '/app/apps/web/.next/standalone',

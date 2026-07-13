@@ -39,7 +39,7 @@ import {
 } from '@plunk/ui';
 import {AnimatePresence, motion} from 'framer-motion';
 import {NextSeo} from 'next-seo';
-import {AlertTriangle, CreditCard, Database, Globe, Mail, Settings as SettingsIcon, Shield, Users} from 'lucide-react';
+import {AlertTriangle, CreditCard, Database, Globe, Settings as SettingsIcon, Shield, Users} from 'lucide-react';
 import type {z} from 'zod';
 import {useRouter} from 'next/router';
 import {DashboardLayout} from '../../components/DashboardLayout';
@@ -49,7 +49,6 @@ import {BillingConsumption} from '../../components/BillingConsumption';
 import {BillingInvoices} from '../../components/BillingInvoices';
 import {UnpaidInvoiceBanner} from '../../components/UnpaidInvoiceBanner';
 import {ApiKeyDisplay} from '../../components/ApiKeyDisplay';
-import {SmtpSettings} from '../../components/SmtpSettings';
 import {DataManagementSettings} from '../../components/DataManagementSettings';
 import {TeamSettings} from '../../components/TeamSettings';
 import {SecuritySettings} from '../../components/SecuritySettings';
@@ -61,7 +60,7 @@ import {useUser} from '../../lib/hooks/useUser';
 import {useProjectSecurity} from '../../lib/hooks/useProjectSecurity';
 import useSWR from 'swr';
 
-type TabId = 'general' | 'billing' | 'domains' | 'smtp' | 'data' | 'team' | 'security';
+type TabId = 'general' | 'billing' | 'domains' | 'data' | 'team' | 'security';
 
 interface Tab {
   id: TabId;
@@ -70,15 +69,14 @@ interface Tab {
   condition?: boolean;
 }
 
-const buildTabs = (options: {billingEnabled: boolean; smtpEnabled: boolean}): Tab[] => {
-  const {billingEnabled, smtpEnabled} = options;
+const buildTabs = (options: {billingEnabled: boolean}): Tab[] => {
+  const {billingEnabled} = options;
   const allTabs: Tab[] = [
     {id: 'general', label: 'General', icon: SettingsIcon},
     {id: 'team', label: 'Team', icon: Users},
     {id: 'security', label: 'Security', icon: Shield},
     {id: 'billing', label: 'Billing', icon: CreditCard, condition: billingEnabled},
     {id: 'domains', label: 'Domains', icon: Globe},
-    {id: 'smtp', label: 'SMTP', icon: Mail, condition: smtpEnabled},
     {id: 'data', label: 'Data', icon: Database},
   ];
   return allTabs.filter(tab => tab.condition !== false);
@@ -113,16 +111,7 @@ export default function Settings() {
   const {securityMetrics, isLoading: isLoadingSecurityMetrics} = useProjectSecurity(activeProject?.id);
 
   const billingEnabled = config?.features.billing.enabled ?? false;
-  const smtpEnabled = config?.features.smtp.enabled ?? false;
   const trackingToggleEnabled = config?.features.email.trackingToggleEnabled ?? false;
-  const smtpConfig = smtpEnabled
-    ? {
-        enabled: true as const,
-        domain: config?.features.smtp.domain ?? undefined,
-        portSecure: config?.features.smtp.ports?.secure,
-        portSubmission: config?.features.smtp.ports?.submission,
-      }
-    : {enabled: false as const};
 
   // Get current tab from URL or default to 'general'
   const currentTab = (router.query.tab as TabId) || 'general';
@@ -382,7 +371,7 @@ export default function Settings() {
           {/* Tabs */}
           <Tabs value={currentTab} onValueChange={handleTabChange} className="max-w-4xl">
             <TabsList>
-              {buildTabs({billingEnabled, smtpEnabled}).map(tab => {
+              {buildTabs({billingEnabled}).map(tab => {
                 const Icon = tab.icon;
                 return (
                   <TabsTrigger key={tab.id} value={tab.id} className="flex items-center gap-2" title={tab.label}>
@@ -799,11 +788,6 @@ export default function Settings() {
             {/* Domains Tab */}
             <TabsContent value="domains">
               <DomainsSettings projectId={activeProject.id} />
-            </TabsContent>
-
-            {/* SMTP Tab */}
-            <TabsContent value="smtp">
-              <SmtpSettings smtpConfig={smtpConfig} />
             </TabsContent>
 
             {/* Data Management Tab */}

@@ -32,7 +32,6 @@ An open-source, self-hosted alternative to tools [SendGrid](https://sendgrid.com
 ## Features
 
 - **Transactional Emails**: Send emails straight from your API with template support and variable substitution
-- **SMTP**: Use Plunk as an SMTP relay to send emails from any existing tool or framework
 - **Campaigns**: Send newsletters and product updates to large audiences
 - **Workflows**: Create advanced automations with triggers, delays, and conditional logic
 - **Segments**: Organize contacts with dynamic filtering and target the right audience

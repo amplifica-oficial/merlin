@@ -12,10 +12,6 @@ import {
   MAIL_FROM_SUBDOMAIN,
   NODE_ENV,
   S3_ENABLED,
-  SMTP_DOMAIN,
-  SMTP_ENABLED,
-  SMTP_PORT_SECURE,
-  SMTP_PORT_SUBMISSION,
   STRIPE_ENABLED,
   TRACKING_TOGGLE_ENABLED,
   WIKI_URI,
@@ -53,16 +49,6 @@ export class Config {
         },
         email: {
           trackingToggleEnabled: TRACKING_TOGGLE_ENABLED,
-        },
-        smtp: {
-          enabled: SMTP_ENABLED,
-          domain: SMTP_ENABLED ? SMTP_DOMAIN : null,
-          ports: SMTP_ENABLED
-            ? {
-                secure: SMTP_PORT_SECURE,
-                submission: SMTP_PORT_SUBMISSION,
-              }
-            : null,
         },
       },
       aws: {

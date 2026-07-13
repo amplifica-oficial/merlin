@@ -8,19 +8,12 @@ version: '3.8'
 #   - app.example.com -> Web Dashboard
 #   - www.example.com -> Landing Page
 #   - docs.example.com -> Documentation
-#   - smtp.example.com -> SMTP Relay Server (ports 465, 587)
 #
 # Usage:
 #   1. Copy .env.self-host.example to .env and configure
-#   2. Set your domain names (API_DOMAIN, DASHBOARD_DOMAIN, SMTP_DOMAIN, etc.)
+#   2. Set your domain names (API_DOMAIN, DASHBOARD_DOMAIN, etc.)
 #   3. Run: docker compose up -d
 #   4. Access your instance at the configured domains
-#
-# SMTP Server:
-#   - Supports TLS certificates via:
-#     1. Traefik acme.json (mount to /certs/acme.json, requires SMTP_DOMAIN)
-#     2. PEM files (mount privkey.pem and fullchain.pem to /certs/)
-#   - Runs without TLS if no certificates are mounted
 
 services:
   # ============================================
@@ -182,11 +175,6 @@ services:
       # Notifications (ntfy.sh)
       NTFY_URL: ${NTFY_URL:-http://ntfy/plunk-notifications}
 
-      # SMTP Server (for sending emails via SMTP)
-      # SMTP_DOMAIN is required to select the correct certificate from Traefik acme.json
-      # If using PEM files, SMTP_DOMAIN is optional
-      SMTP_DOMAIN: ${SMTP_DOMAIN:-}
-
       # Platform emails
       PLUNK_API_KEY: ${PLUNK_API_KEY:-}
       PLUNK_FROM_ADDRESS: ${PLUNK_FROM_ADDRESS:-}
@@ -205,22 +193,6 @@ services:
     volumes:
       # Persistent storage for application data
       - plunk_data:/app/data
-      # Optional: Mount certificates for SMTP TLS
-      # For Traefik acme.json:
-      # - /path/to/acme.json:/certs/acme.json:ro
-      # For PEM files:
-      # - /path/to/privkey.pem:/certs/privkey.pem:ro
-      # - /path/to/fullchain.pem:/certs/fullchain.pem:ro
-
-    ports:
-      # SMTP ports (for email relay)
-      - "${PORT_SECURE:-465}:465"    # SMTPS (implicit TLS)
-      - "${PORT_SUBMISSION:-587}:587"    # SMTP Submission (STARTTLS)
-      # Optional: Expose individual service ports for debugging
-      # - "8080:8080"  # API
-      # - "3000:3000"  # Web
-      # - "4000:4000"  # Landing
-      # - "1000:1000"  # Wiki
 
     depends_on:
       postgres:

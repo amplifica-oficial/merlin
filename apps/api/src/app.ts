@@ -17,7 +17,6 @@ import {
   PLUNK_ENABLED,
   PORT,
   S3_ENABLED,
-  SMTP_ENABLED,
   STRIPE_ENABLED,
   TRACKING_TOGGLE_ENABLED,
   WIKI_URI,
@@ -426,7 +425,6 @@ void prisma.$connect().then(async () => {
       enabled: S3_ENABLED,
       details: S3_ENABLED ? 'S3 storage enabled' : 'S3 credentials missing',
     },
-    {name: 'SMTP relay', enabled: SMTP_ENABLED, details: SMTP_ENABLED ? 'SMTP server enabled' : 'SMTP disabled'},
     {
       name: 'OAuth - GitHub',
       enabled: GITHUB_OAUTH_ENABLED,

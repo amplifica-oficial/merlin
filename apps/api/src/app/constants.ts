@@ -105,16 +105,6 @@ export const SES_CONFIGURATION_SET_NO_TRACKING = validateEnv(
 // Check if no-tracking configuration set was explicitly provided (not using default)
 export const TRACKING_TOGGLE_ENABLED = process.env.SES_CONFIGURATION_SET_NO_TRACKING !== undefined;
 
-// SMTP Server Configuration (optional)
-// SMTP server can run with or without a domain (runs without TLS in dev mode)
-// Check if we should enable SMTP features in the UI
-export const SMTP_DOMAIN = validateEnv('SMTP_DOMAIN', 'localhost');
-export const SMTP_PORT_SECURE = Number(validateEnv('PORT_SECURE', '465'));
-export const SMTP_PORT_SUBMISSION = Number(validateEnv('PORT_SUBMISSION', '587'));
-// Enable SMTP features only when explicitly enabled via env or when a non-default domain is configured
-export const SMTP_ENABLED =
-  process.env.SMTP_ENABLED === 'true' || (SMTP_DOMAIN !== 'localhost' && NODE_ENV !== 'development');
-
 export const PLUNK_API_KEY = validateEnv('PLUNK_API_KEY', '');
 export const PLUNK_FROM_ADDRESS = validateEnv('PLUNK_FROM_ADDRESS', '');
 export const PLUNK_ENABLED = PLUNK_API_KEY !== '' && PLUNK_FROM_ADDRESS !== '';
