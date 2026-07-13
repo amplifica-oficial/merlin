@@ -9,10 +9,10 @@ import {
   CardTitle,
   Input,
   Label,
-} from '@plunk/ui';
-import type {FormField, FormFieldType, FormSettings} from '@plunk/types';
-import type {Segment} from '@plunk/db';
-import {FormSchemas} from '@plunk/shared';
+} from '@merlin/ui';
+import type {FormField, FormFieldType, FormSettings} from '@merlin/types';
+import type {Segment} from '@merlin/db';
+import {FormSchemas} from '@merlin/shared';
 import {network} from '../lib/network';
 import {FORM_EMAIL_FIELD_KEY, FORM_FIELD_TYPE_OPTIONS, FormPreview, reorderFieldsFromOrder, resolveFieldOrder} from './FormPreview';
 import {FormPreviewEditor} from './FormPreviewEditor';

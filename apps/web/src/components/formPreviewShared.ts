@@ -1,4 +1,4 @@
-import type {FormField, FormFieldType} from '@plunk/types';
+import type {FormField, FormFieldType} from '@merlin/types';
 
 export type FormFieldValues = Record<string, string | number | boolean>;
 

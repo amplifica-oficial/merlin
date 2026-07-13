@@ -1,1 +1,1 @@
-export {cn} from '@plunk/ui';
+export {cn} from '@merlin/ui';

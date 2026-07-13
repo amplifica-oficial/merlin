@@ -1,4 +1,4 @@
-import {cn} from '@plunk/ui';
+import {cn} from '@merlin/ui';
 
 import type {MarqueeDisplayOptions, MarqueeReviewCard} from './types';
 

@@ -2,8 +2,8 @@
 import '@puckeditor/core/puck.css';
 
 import {Puck, type Data} from '@puckeditor/core';
-import {Button, IconSpinner} from '@plunk/ui';
-import {LandingPageSchemas} from '@plunk/shared';
+import {Button, IconSpinner} from '@merlin/ui';
+import {LandingPageSchemas} from '@merlin/shared';
 import {ArrowLeft, Save} from 'lucide-react';
 import Link from 'next/link';
 import {useRouter} from 'next/router';

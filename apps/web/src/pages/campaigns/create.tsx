@@ -14,9 +14,9 @@ import {
   SelectItemWithDescription,
   SelectTrigger,
   SelectValue,
-} from '@plunk/ui';
-import type {Segment, Template} from '@plunk/db';
-import {CampaignAudienceType, TemplateType} from '@plunk/db';
+} from '@merlin/ui';
+import type {Segment, Template} from '@merlin/db';
+import {CampaignAudienceType, TemplateType} from '@merlin/db';
 import {NextSeo} from 'next-seo';
 import {DashboardLayout} from '../../components/DashboardLayout';
 import {EmailSettings} from '../../components/EmailSettings';
@@ -29,7 +29,7 @@ import {useRouter} from 'next/router';
 import {useEffect, useState} from 'react';
 import {toast} from 'sonner';
 import useSWR from 'swr';
-import {detectUnsubscribeSignal} from '@plunk/shared';
+import {detectUnsubscribeSignal} from '@merlin/shared';
 import {useActiveProject} from '../../lib/contexts/ActiveProjectProvider';
 
 export default function CreateCampaignPage() {
@@ -235,7 +235,7 @@ export default function CreateCampaignPage() {
                       {([
                         {value: TemplateType.MARKETING, label: 'Marketing', description: 'Subscribed contacts, includes unsubscribe link'},
                         {value: TemplateType.TRANSACTIONAL, label: 'Transactional', description: 'All contacts, no subscription check or footer'},
-                        {value: TemplateType.HEADLESS, label: 'Headless', description: 'Subscribed contacts, no Plunk footer'},
+                        {value: TemplateType.HEADLESS, label: 'Headless', description: 'Subscribed contacts, no Merlin footer'},
                       ] as const).map(({value, label, description}) => (
                         <button
                           key={value}
@@ -260,7 +260,7 @@ export default function CreateCampaignPage() {
                         </div>
                         <div className="px-3 py-2.5 space-y-2">
                           <p className="text-xs text-amber-800 leading-relaxed">
-                            You are responsible for providing recipients a way to opt out. Use the Plunk variables below to build your own footer.
+                            You are responsible for providing recipients a way to opt out. Use the Merlin variables below to build your own footer.
                           </p>
                           <div className="flex flex-wrap gap-1.5">
                             <code className="inline-flex items-center rounded bg-amber-100 border border-amber-200 px-1.5 py-0.5 font-mono text-[11px] text-amber-900">

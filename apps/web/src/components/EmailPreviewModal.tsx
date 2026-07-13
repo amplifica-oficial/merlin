@@ -1,4 +1,4 @@
-import {Button, Dialog, DialogContent, DialogHeader, DialogTitle} from '@plunk/ui';
+import {Button, Dialog, DialogContent, DialogHeader, DialogTitle} from '@merlin/ui';
 import {Monitor, Smartphone, Tablet} from 'lucide-react';
 import {useState} from 'react';
 import {wrapEmailWithStyles} from '../lib/emailStyles';

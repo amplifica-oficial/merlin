@@ -32,7 +32,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@plunk/ui';
+} from '@merlin/ui';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -130,8 +130,8 @@ export function DashboardLayout({children}: DashboardLayoutProps) {
       {/* Logo */}
       <div className="h-16 flex items-center justify-between px-6 border-b border-neutral-200">
         <div className="flex items-center gap-2">
-          <Image src="/assets/logo.png" alt="Plunk" width={28} height={28} className="rounded" />
-          <h1 className="text-xl font-bold text-neutral-900">Plunk</h1>
+          <Image src="/assets/logo.png" alt="Merlin" width={28} height={28} className="rounded" />
+          <h1 className="text-xl font-bold text-neutral-900">Merlin</h1>
         </div>
         <button
           onClick={() => document.dispatchEvent(new KeyboardEvent('keydown', {key: 'k', metaKey: true, bubbles: true}))}
@@ -308,8 +308,8 @@ export function DashboardLayout({children}: DashboardLayoutProps) {
             <Menu className="h-6 w-6 text-neutral-900" />
           </button>
           <div className="flex items-center gap-2 ml-4">
-            <Image src="/assets/logo.png" alt="Plunk" width={24} height={24} className="rounded" />
-            <h1 className="text-lg font-bold text-neutral-900">Plunk</h1>
+            <Image src="/assets/logo.png" alt="Merlin" width={24} height={24} className="rounded" />
+            <h1 className="text-lg font-bold text-neutral-900">Merlin</h1>
           </div>
         </div>
 

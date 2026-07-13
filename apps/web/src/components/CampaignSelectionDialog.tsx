@@ -20,10 +20,10 @@ import {
   SelectTrigger,
   IconSpinner,
   SelectValue,
-} from '@plunk/ui';
-import type {Campaign} from '@plunk/db';
-import {CampaignStatus} from '@plunk/db';
-import type {PaginatedResponse} from '@plunk/types';
+} from '@merlin/ui';
+import type {Campaign} from '@merlin/db';
+import {CampaignStatus} from '@merlin/db';
+import type {PaginatedResponse} from '@merlin/types';
 import {ArrowLeft, Calendar, Mail, Users} from 'lucide-react';
 import {useState} from 'react';
 import useSWR from 'swr';

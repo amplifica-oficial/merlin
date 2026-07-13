@@ -1,4 +1,4 @@
-import {cn} from '@plunk/ui';
+import {cn} from '@merlin/ui';
 
 import styles from './animated-list.module.css';
 import type {AnimatedListDisplayOptions, AnimatedListItem} from './types';

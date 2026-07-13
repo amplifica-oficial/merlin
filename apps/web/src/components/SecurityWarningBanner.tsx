@@ -1,7 +1,7 @@
-import {Alert, AlertDescription, AlertTitle, Button} from '@plunk/ui';
+import {Alert, AlertDescription, AlertTitle, Button} from '@merlin/ui';
 import {AlertTriangle} from 'lucide-react';
 import Link from 'next/link';
-import type {SecurityStatus} from '@plunk/types';
+import type {SecurityStatus} from '@merlin/types';
 
 interface SecurityWarningBannerProps {
   status: SecurityStatus;

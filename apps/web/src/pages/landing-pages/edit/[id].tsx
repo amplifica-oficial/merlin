@@ -1,5 +1,5 @@
 import dynamic from 'next/dynamic';
-import {IconSpinner} from '@plunk/ui';
+import {IconSpinner} from '@merlin/ui';
 import {NextSeo} from 'next-seo';
 import {useRouter} from 'next/router';
 

@@ -1,5 +1,5 @@
-import {cn} from '@plunk/ui';
-import type {PuckData} from '@plunk/types';
+import {cn} from '@merlin/ui';
+import type {PuckData} from '@merlin/types';
 import {Layout} from 'lucide-react';
 import dynamic from 'next/dynamic';
 

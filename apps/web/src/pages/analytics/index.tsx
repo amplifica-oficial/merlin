@@ -16,8 +16,8 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@plunk/ui';
-import {EmptyState} from '@plunk/ui';
+} from '@merlin/ui';
+import {EmptyState} from '@merlin/ui';
 import {DashboardLayout} from '../../components/DashboardLayout';
 import {useAnalytics} from '../../lib/hooks/useAnalytics';
 import useSWR from 'swr';

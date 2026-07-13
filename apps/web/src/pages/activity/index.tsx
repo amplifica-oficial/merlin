@@ -9,7 +9,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@plunk/ui';
+} from '@merlin/ui';
 import {DashboardLayout} from '../../components/DashboardLayout';
 import {ActivityFeed} from '../../components/ActivityFeed';
 import {Eye, MousePointerClick, Send, Zap} from 'lucide-react';

@@ -8,10 +8,10 @@ import {
   ConfirmDialog,
   IconSpinner,
   Input,
-} from '@plunk/ui';
-import type {Segment} from '@plunk/db';
-import type {FilterCondition} from '@plunk/types';
-import {EmptyState} from '@plunk/ui';
+} from '@merlin/ui';
+import type {Segment} from '@merlin/db';
+import type {FilterCondition} from '@merlin/types';
+import {EmptyState} from '@merlin/ui';
 import {DashboardLayout} from '../../components/DashboardLayout';
 import {network} from '../../lib/network';
 import {formatRelativeTime} from '../../lib/dateUtils';

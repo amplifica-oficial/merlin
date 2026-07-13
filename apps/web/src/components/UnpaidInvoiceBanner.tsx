@@ -1,4 +1,4 @@
-import {Alert, Button} from '@plunk/ui';
+import {Alert, Button} from '@merlin/ui';
 import {AlertTriangle, ExternalLink} from 'lucide-react';
 import {useBillingInvoices} from '../lib/hooks/useBillingInvoices';
 

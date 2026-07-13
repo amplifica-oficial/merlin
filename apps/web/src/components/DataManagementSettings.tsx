@@ -22,7 +22,7 @@ import {
   TableHeader,
   TableRow,
   IconSpinner,
-} from '@plunk/ui';
+} from '@merlin/ui';
 import {AlertCircle, Database, Trash2, Zap} from 'lucide-react';
 import {toast} from 'sonner';
 import useSWR from 'swr';

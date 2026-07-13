@@ -1,4 +1,4 @@
-import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from '@plunk/ui';
+import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from '@merlin/ui';
 import {flexRender, type Table as TanstackTable} from '@tanstack/react-table';
 
 /**
@@ -32,8 +32,8 @@ interface DataTableProps<TData> {
 }
 
 /**
- * Generic, presentation-only table built on tanstack-react-table + Plunk's
- * `@plunk/ui` Table primitives, following the shadcn `DataTable` convention.
+ * Generic, presentation-only table built on tanstack-react-table + Merlin's
+ * `@merlin/ui` Table primitives, following the shadcn `DataTable` convention.
  *
  * The table instance (and therefore all sorting / selection / visibility state)
  * is owned by the caller and passed in, so this component stays reusable for

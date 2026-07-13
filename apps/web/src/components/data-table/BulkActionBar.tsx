@@ -1,4 +1,4 @@
-import {Button} from '@plunk/ui';
+import {Button} from '@merlin/ui';
 import {X} from 'lucide-react';
 import type {ReactNode} from 'react';
 

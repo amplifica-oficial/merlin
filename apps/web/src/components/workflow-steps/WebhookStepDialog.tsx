@@ -1,4 +1,4 @@
-import {Button, Collapsible, CollapsibleContent, CollapsibleTrigger, Input, Label, Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@plunk/ui';
+import {Button, Collapsible, CollapsibleContent, CollapsibleTrigger, Input, Label, Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@merlin/ui';
 import {ChevronDown, Plus, Trash2} from 'lucide-react';
 import Link from 'next/link';
 import {useState} from 'react';

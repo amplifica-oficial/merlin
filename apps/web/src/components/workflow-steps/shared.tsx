@@ -1,6 +1,6 @@
-import {Button, Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, Input, Label} from '@plunk/ui';
-import type {WorkflowStep} from '@plunk/db';
-import {WorkflowSchemas} from '@plunk/shared';
+import {Button, Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, Input, Label} from '@merlin/ui';
+import type {WorkflowStep} from '@merlin/db';
+import {WorkflowSchemas} from '@merlin/shared';
 import {useState} from 'react';
 import {toast} from 'sonner';
 

@@ -1,7 +1,7 @@
 import {memo, useEffect, useMemo, useState} from 'react';
 import {useForm} from 'react-hook-form';
 import {zodResolver} from '@hookform/resolvers/zod';
-import {BillingLimitSchemas} from '@plunk/shared';
+import {BillingLimitSchemas} from '@merlin/shared';
 import {
   Alert,
   Button,
@@ -20,7 +20,7 @@ import {
   FormMessage,
   Input,
   Progress,
-} from '@plunk/ui';
+} from '@merlin/ui';
 import {AlertCircle, AlertTriangle, Check} from 'lucide-react';
 import {AnimatePresence, motion} from 'framer-motion';
 import type {z} from 'zod';

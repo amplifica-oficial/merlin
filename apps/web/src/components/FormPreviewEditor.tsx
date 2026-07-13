@@ -1,5 +1,5 @@
-import {Button} from '@plunk/ui';
-import type {FormField, FormSettings} from '@plunk/types';
+import {Button} from '@merlin/ui';
+import type {FormField, FormSettings} from '@merlin/types';
 import {GripVertical, Plus, Trash2} from 'lucide-react';
 import {useState, type DragEvent, type ReactNode} from 'react';
 

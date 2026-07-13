@@ -1,7 +1,7 @@
 import type {Config, Slot} from '@puckeditor/core';
 import React from 'react';
 
-import {Button} from '@plunk/ui';
+import {Button} from '@merlin/ui';
 
 import {network} from '../network';
 import {PuckFormBlock} from '../../components/puck/PuckFormBlock';

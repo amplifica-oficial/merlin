@@ -8,7 +8,7 @@ import React, {
 } from 'react';
 import {AnimatePresence, motion, type MotionProps} from 'framer-motion';
 
-import {cn} from '@plunk/ui';
+import {cn} from '@merlin/ui';
 
 export function AnimatedListItem({children}: {children: React.ReactNode}) {
   const animations: MotionProps = {

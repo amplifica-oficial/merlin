@@ -1,5 +1,5 @@
-import {Button, Card, CardContent, IconSpinner, Input, Label, Textarea} from '@plunk/ui';
-import type {FormField, FormSettings} from '@plunk/types';
+import {Button, Card, CardContent, IconSpinner, Input, Label, Textarea} from '@merlin/ui';
+import type {FormField, FormSettings} from '@merlin/types';
 import {useEffect, useState} from 'react';
 
 import {FORM_EMAIL_FIELD_KEY, getFormFieldInputType, selectClassName} from './formPreviewShared';

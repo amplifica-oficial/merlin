@@ -1,4 +1,4 @@
-import {Button, Skeleton} from '@plunk/ui';
+import {Button, Skeleton} from '@merlin/ui';
 import {motion} from 'framer-motion';
 import {ArrowLeft, ArrowRight, FileText, ShieldCheck, Workflow, Zap} from 'lucide-react';
 import {NextSeo} from 'next-seo';

@@ -1,4 +1,4 @@
-import {Button, Skeleton} from '@plunk/ui';
+import {Button, Skeleton} from '@merlin/ui';
 import {motion} from 'framer-motion';
 import {ArrowLeft, ArrowRight, KeyRound, Mail, ShieldCheck} from 'lucide-react';
 import {NextSeo} from 'next-seo';
@@ -51,7 +51,7 @@ const steps: SetupStep[] = [
 function buildSnippets(apiUrl: string, secret: string): CodeSnippet[] {
   const body = {
     to: 'you@example.com',
-    subject: 'Hello from Plunk',
+    subject: 'Hello from Merlin',
     body: '<p>Your first email is live.</p>',
     from: 'sender@yourdomain.com',
   };

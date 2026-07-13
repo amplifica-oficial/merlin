@@ -9,8 +9,8 @@ import {
   Input,
   Label,
   Switch,
-} from '@plunk/ui';
-import type {Contact} from '@plunk/db';
+} from '@merlin/ui';
+import type {Contact} from '@merlin/db';
 import {AnimatePresence, motion} from 'framer-motion';
 import {ArrowLeft, Check, Copy, Database, ExternalLink, Save, Settings, Trash2} from 'lucide-react';
 import Link from 'next/link';
@@ -23,7 +23,7 @@ import {ActivityFeed} from '../../components/ActivityFeed';
 import {network} from '../../lib/network';
 import {toast} from 'sonner';
 import useSWR from 'swr';
-import {ContactSchemas} from '@plunk/shared';
+import {ContactSchemas} from '@merlin/shared';
 import dayjs from 'dayjs';
 
 export default function ContactDetailPage() {

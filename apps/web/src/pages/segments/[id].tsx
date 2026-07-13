@@ -11,9 +11,9 @@ import {
   IconSpinner,
   Input,
   Label,
-} from '@plunk/ui';
-import type {Contact, Segment} from '@plunk/db';
-import type {PaginatedResponse} from '@plunk/types';
+} from '@merlin/ui';
+import type {Contact, Segment} from '@merlin/db';
+import type {PaginatedResponse} from '@merlin/types';
 import {DashboardLayout} from '../../components/DashboardLayout';
 import {network} from '../../lib/network';
 import {ArrowLeft, Database, Filter, Layers, MailCheck, MailX, RefreshCw, Save, Trash2, UserMinus, Users} from 'lucide-react';
@@ -23,8 +23,8 @@ import {useEffect, useState} from 'react';
 import {toast} from 'sonner';
 import useSWR from 'swr';
 import {NextSeo} from 'next-seo';
-import type {FilterCondition} from '@plunk/types';
-import {SegmentSchemas} from '@plunk/shared';
+import type {FilterCondition} from '@merlin/types';
+import {SegmentSchemas} from '@merlin/shared';
 import {SegmentFilterBuilder} from '../../components/SegmentFilterBuilder';
 import {ContactPicker} from '../../components/ContactPicker';
 import dayjs from 'dayjs';

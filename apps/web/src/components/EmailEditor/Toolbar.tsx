@@ -21,7 +21,7 @@ import {
   Undo,
   Variable,
 } from 'lucide-react';
-import {Button, Input} from '@plunk/ui';
+import {Button, Input} from '@merlin/ui';
 import {useCallback, useEffect, useState} from 'react';
 
 interface ToolbarProps {

@@ -1,5 +1,5 @@
-import {Badge, Button, Collapsible, CollapsibleContent, CollapsibleTrigger} from '@plunk/ui';
-import type {Activity} from '@plunk/types';
+import {Badge, Button, Collapsible, CollapsibleContent, CollapsibleTrigger} from '@merlin/ui';
+import type {Activity} from '@merlin/types';
 import {memo, useState} from 'react';
 import {EmailPreviewModal} from './EmailPreviewModal';
 import {

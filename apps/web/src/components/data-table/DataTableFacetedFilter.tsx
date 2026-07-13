@@ -1,4 +1,4 @@
-import {Badge, Popover, PopoverContent, PopoverTrigger} from '@plunk/ui';
+import {Badge, Popover, PopoverContent, PopoverTrigger} from '@merlin/ui';
 import {ListFilter} from 'lucide-react';
 import {FacetedFilterMenu, type FacetedFilterOption} from './FacetedFilterMenu';
 
@@ -22,7 +22,7 @@ interface DataTableFacetedFilterProps {
 
 /**
  * Excel-style faceted filter rendered inside a column header (shadcn data-table
- * convention), adapted to Plunk's `@plunk/ui` Popover + Command primitives.
+ * convention), adapted to Merlin's `@merlin/ui` Popover + Command primitives.
  *
  * Table-view only: the trigger is a compact icon that sits next to a sortable
  * column label. The dropdown body is the shared `FacetedFilterMenu`, identical

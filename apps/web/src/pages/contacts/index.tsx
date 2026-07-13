@@ -15,10 +15,10 @@ import {
   Input,
   Label,
   Switch,
-} from '@plunk/ui';
-import type {Contact} from '@plunk/db';
-import {ContactSchemas} from '@plunk/shared';
-import type {CursorPaginatedResponse} from '@plunk/types';
+} from '@merlin/ui';
+import type {Contact} from '@merlin/db';
+import {ContactSchemas} from '@merlin/shared';
+import type {CursorPaginatedResponse} from '@merlin/types';
 import {
   getCoreRowModel,
   useReactTable,
@@ -76,8 +76,8 @@ import dayjs from 'dayjs';
 
 type StatusFilter = 'ALL' | 'subscribed' | 'unsubscribed';
 
-const VIEW_STORAGE_KEY = 'plunk:contacts:view';
-const COLUMNS_STORAGE_KEY = 'plunk:contacts:columns';
+const VIEW_STORAGE_KEY = 'merlin:contacts:view';
+const COLUMNS_STORAGE_KEY = 'merlin:contacts:columns';
 
 // Fixed-value options for the Status faceted filter (table header) and the
 // card-view toolbar dropdown. Single source of truth for both.

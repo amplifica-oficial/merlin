@@ -13,10 +13,10 @@ import {
   IconSpinner,
   Input,
   Label,
-} from '@plunk/ui';
-import type {LandingPage} from '@plunk/db';
-import {LandingPageSchemas} from '@plunk/shared';
-import {EMPTY_PUCK_DATA} from '@plunk/types';
+} from '@merlin/ui';
+import type {LandingPage} from '@merlin/db';
+import {LandingPageSchemas} from '@merlin/shared';
+import {EMPTY_PUCK_DATA} from '@merlin/types';
 import {ClipboardCopy, Edit, ExternalLink, Layout, Plus, Search, Settings, Trash2} from 'lucide-react';
 import {NextSeo} from 'next-seo';
 import Link from 'next/link';

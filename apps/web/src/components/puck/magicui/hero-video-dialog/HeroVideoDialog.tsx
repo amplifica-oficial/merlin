@@ -4,7 +4,7 @@ import {AnimatePresence, motion} from 'framer-motion';
 import {Play, XIcon} from 'lucide-react';
 import {useState} from 'react';
 
-import {cn} from '@plunk/ui';
+import {cn} from '@merlin/ui';
 
 import type {HeroVideoAnimationStyle} from './types';
 

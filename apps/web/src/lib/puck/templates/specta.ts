@@ -1,4 +1,4 @@
-import type {PuckData} from '@plunk/types';
+import type {PuckData} from '@merlin/types';
 
 import {createDefaultSpectaTemplate} from '../../../components/puck/pageui/specta/specta-template/defaults';
 

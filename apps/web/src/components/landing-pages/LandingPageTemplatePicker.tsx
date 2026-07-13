@@ -1,4 +1,4 @@
-import {cn} from '@plunk/ui';
+import {cn} from '@merlin/ui';
 
 import {
   LANDING_PAGE_TEMPLATES,

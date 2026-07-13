@@ -1,6 +1,6 @@
 import type {HTMLAttributes} from 'react';
 
-import {cn} from '@plunk/ui';
+import {cn} from '@merlin/ui';
 import {enrichTweet, type EnrichedTweet} from 'react-tweet';
 import type {Tweet} from 'react-tweet/api';
 

@@ -1,7 +1,7 @@
-import {Input} from '@plunk/ui';
-import type {Template} from '@plunk/db';
-import type {PaginatedResponse} from '@plunk/types';
-import {Command, CommandGroup, CommandItem, CommandList} from '@plunk/ui';
+import {Input} from '@merlin/ui';
+import type {Template} from '@merlin/db';
+import type {PaginatedResponse} from '@merlin/types';
+import {Command, CommandGroup, CommandItem, CommandList} from '@merlin/ui';
 import {ChevronDown} from 'lucide-react';
 import {useCallback, useRef, useState} from 'react';
 import useSWR from 'swr';

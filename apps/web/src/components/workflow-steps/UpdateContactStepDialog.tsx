@@ -1,4 +1,4 @@
-import {Label, RadioGroup, RadioGroupItem} from '@plunk/ui';
+import {Label, RadioGroup, RadioGroupItem} from '@merlin/ui';
 import {useState} from 'react';
 import {toast} from 'sonner';
 

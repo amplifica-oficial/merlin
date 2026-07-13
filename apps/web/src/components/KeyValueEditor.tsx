@@ -1,4 +1,4 @@
-import {Button, Input, Label} from '@plunk/ui';
+import {Button, Input, Label} from '@merlin/ui';
 import {Plus, Trash2} from 'lucide-react';
 import {useState} from 'react';
 

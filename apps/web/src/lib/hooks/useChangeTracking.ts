@@ -1,4 +1,4 @@
-import {useBeforeUnload} from '@plunk/ui';
+import {useBeforeUnload} from '@merlin/ui';
 import {useRouter} from 'next/router';
 import {useEffect} from 'react';
 

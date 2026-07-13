@@ -4,7 +4,7 @@ import {useCallback, useEffect, useState} from 'react';
  * A tiny `useState` wrapper that persists a small, validated value in
  * localStorage under `storageKey`.
  *
- * Used by the card/table view switcher (`plunk:templates:view`) but kept
+ * Used by the card/table view switcher (`merlin:templates:view`) but kept
  * generic so other list pages (workflows, campaigns) can reuse the same
  * switcher with their own key. SSR-safe: the initial render always returns
  * `defaultValue` and hydration happens inside an effect, so server and first

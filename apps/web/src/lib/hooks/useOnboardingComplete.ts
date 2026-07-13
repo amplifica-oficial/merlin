@@ -1,14 +1,14 @@
 import {useCallback, useSyncExternalStore} from 'react';
 
-const storageKey = (projectId: string) => `plunk-onboarded-${projectId}`;
+const storageKey = (projectId: string) => `merlin-onboarded-${projectId}`;
 
 function subscribe(callback: () => void) {
   if (typeof window === 'undefined') return () => undefined;
   window.addEventListener('storage', callback);
-  window.addEventListener('plunk:onboarding-changed', callback);
+  window.addEventListener('merlin:onboarding-changed', callback);
   return () => {
     window.removeEventListener('storage', callback);
-    window.removeEventListener('plunk:onboarding-changed', callback);
+    window.removeEventListener('merlin:onboarding-changed', callback);
   };
 }
 
@@ -28,7 +28,7 @@ export function useOnboardingComplete(projectId: string | undefined) {
   const markComplete = useCallback(() => {
     if (!projectId || typeof window === 'undefined') return;
     localStorage.setItem(storageKey(projectId), 'true');
-    window.dispatchEvent(new Event('plunk:onboarding-changed'));
+    window.dispatchEvent(new Event('merlin:onboarding-changed'));
   }, [projectId]);
 
   return {isComplete, markComplete};
