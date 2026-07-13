@@ -19,7 +19,6 @@ DB_PASSWORD="your-secure-password"
 # Domains (point these to your server)
 API_DOMAIN="api.yourdomain.com"
 DASHBOARD_DOMAIN="app.yourdomain.com"
-LANDING_DOMAIN="www.yourdomain.com"
 WIKI_DOMAIN="docs.yourdomain.com"
 USE_HTTPS="true"
 
@@ -36,7 +35,7 @@ See [Environment Variables](/self-hosting/environment-variables) for all options
 
 | Service | Purpose |
 |---------|---------|
-| `plunk` | All apps + nginx (API, Web, Landing, Wiki) |
+| `plunk` | All apps + nginx (API, Web, Wiki) |
 | `postgres` | PostgreSQL 16 database |
 | `redis` | Redis 7 queue |
 | `minio` | S3-compatible storage |
@@ -46,7 +45,7 @@ See [Environment Variables](/self-hosting/environment-variables) for all options
 
 | Port  | Service                                  |
 | ----- | ---------------------------------------- |
-| 80    | Nginx (HTTP) — fronts API, dashboard, landing, wiki |
+| 80    | Nginx (HTTP) — fronts API, dashboard, wiki |
 | 8080  | API server (proxied through nginx; not usually exposed externally) |
 | 9000  | Minio API                                |
 | 9001  | Minio web console                        |

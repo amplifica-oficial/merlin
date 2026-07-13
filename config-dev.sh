@@ -89,7 +89,6 @@ copy_env_if_missing() {
     "apps/api/.env"
     "packages/db/.env"
     "apps/web/.env"
-    "apps/landing/.env"
     "apps/wiki/.env"
   )
 

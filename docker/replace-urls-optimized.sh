@@ -13,7 +13,6 @@ replace_urls_in_app() {
   # Define placeholder URLs (built into the app at compile time)
   local PLACEHOLDER_API="https://next-api.useplunk.com"
   local PLACEHOLDER_DASHBOARD="https://next-app.useplunk.com"
-  local PLACEHOLDER_LANDING="https://www.useplunk.com"
   local PLACEHOLDER_WIKI="https://docs.useplunk.com"
 
   # Use pre-generated manifest instead of scanning all files
@@ -27,7 +26,7 @@ replace_urls_in_app() {
     # Fallback to old method if manifest doesn't exist
     local temp_file_list="/tmp/replace_urls_${app}.txt"
     find "$app_dir/.next" -type f \( -name "*.js" -o -name "*.json" -o -name "*.html" -o -name "*.rsc" \) \
-      -exec grep -l -E "$PLACEHOLDER_API|$PLACEHOLDER_DASHBOARD|$PLACEHOLDER_LANDING|$PLACEHOLDER_WIKI" {} \; \
+      -exec grep -l -E "$PLACEHOLDER_API|$PLACEHOLDER_DASHBOARD|$PLACEHOLDER_WIKI" {} \; \
       2>/dev/null > "$temp_file_list" || true
     manifest_file="$temp_file_list"
   fi
@@ -48,7 +47,6 @@ replace_urls_in_app() {
       if [ -f "$runtime_path" ]; then
         sed -e "s|$PLACEHOLDER_API|$API_URI|g" \
             -e "s|$PLACEHOLDER_DASHBOARD|$DASHBOARD_URI|g" \
-            -e "s|$PLACEHOLDER_LANDING|$LANDING_URI|g" \
             -e "s|$PLACEHOLDER_WIKI|$WIKI_URI|g" \
             "$runtime_path" > "${runtime_path}.tmp" && mv "${runtime_path}.tmp" "$runtime_path"
       fi
@@ -71,7 +69,6 @@ replace_urls_in_app() {
       if [ -f "$runtime_sitemap_path" ]; then
         sed -e "s|$PLACEHOLDER_API|$API_URI|g" \
             -e "s|$PLACEHOLDER_DASHBOARD|$DASHBOARD_URI|g" \
-            -e "s|$PLACEHOLDER_LANDING|$LANDING_URI|g" \
             -e "s|$PLACEHOLDER_WIKI|$WIKI_URI|g" \
             "$runtime_sitemap_path" > "${runtime_sitemap_path}.tmp" && mv "${runtime_sitemap_path}.tmp" "$runtime_sitemap_path"
       fi
@@ -82,7 +79,6 @@ replace_urls_in_app() {
       if [ -f "$sitemap_file" ]; then
         sed -e "s|$PLACEHOLDER_API|$API_URI|g" \
             -e "s|$PLACEHOLDER_DASHBOARD|$DASHBOARD_URI|g" \
-            -e "s|$PLACEHOLDER_LANDING|$LANDING_URI|g" \
             -e "s|$PLACEHOLDER_WIKI|$WIKI_URI|g" \
             "$sitemap_file" > "${sitemap_file}.tmp" && mv "${sitemap_file}.tmp" "$sitemap_file"
       fi
@@ -96,7 +92,6 @@ replace_urls_in_app() {
       echo "   🔄 Replacing URLs in openapi.local.json"
       sed -e "s|$PLACEHOLDER_API|$API_URI|g" \
           -e "s|$PLACEHOLDER_DASHBOARD|$DASHBOARD_URI|g" \
-          -e "s|$PLACEHOLDER_LANDING|$LANDING_URI|g" \
           -e "s|$PLACEHOLDER_WIKI|$WIKI_URI|g" \
           "$openapi_file" > "${openapi_file}.tmp" && mv "${openapi_file}.tmp" "$openapi_file"
       echo "   ✅ Updated OpenAPI spec with runtime URLs"
@@ -109,7 +104,6 @@ replace_urls_in_app() {
 # Generated at container startup from environment variables
 API_URI=${API_URI}
 DASHBOARD_URI=${DASHBOARD_URI}
-LANDING_URI=${LANDING_URI}
 WIKI_URI=${WIKI_URI}
 EOF
 

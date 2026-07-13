@@ -10,7 +10,6 @@ declare global {
     __ENV__?: {
       API_URI?: string;
       DASHBOARD_URI?: string;
-      LANDING_URI?: string;
       WIKI_URI?: string;
     };
   }
