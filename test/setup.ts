@@ -13,7 +13,7 @@ const workerId = process.env.VITEST_POOL_ID || '1';
 
 if (process.env.DATABASE_URL) {
   const url = new URL(process.env.DATABASE_URL);
-  const baseDb = url.pathname.replace(/^\//, '') || 'plunk_test';
+  const baseDb = url.pathname.replace(/^\//, '') || 'merlin_test';
   url.pathname = `/${baseDb}_w${workerId}`;
   process.env.DATABASE_URL = url.toString();
   // Mirror onto DIRECT_DATABASE_URL so prisma migrate uses the same worker DB.

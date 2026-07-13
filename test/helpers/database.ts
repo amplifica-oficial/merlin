@@ -1,4 +1,4 @@
-import {PrismaClient} from '@plunk/db';
+import {PrismaClient} from '@merlin/db';
 import {execSync} from 'child_process';
 
 // Snake-cased table names from prisma schema (see @@map directives).
@@ -55,7 +55,7 @@ class TestDatabase {
 
   async initialize() {
     // setup.ts has already rewritten DATABASE_URL to include the per-worker DB name
-    // (e.g. plunk_test_w1, plunk_test_w2). We create that DB if missing, migrate it,
+    // (e.g. merlin_test_w1, merlin_test_w2). We create that DB if missing, migrate it,
     // then open the long-lived client we use for tests.
     const databaseUrl = process.env.TEST_DATABASE_URL || process.env.DATABASE_URL;
     if (!databaseUrl) {
@@ -82,7 +82,7 @@ class TestDatabase {
     // Run pending migrations against this worker's DB. `migrate deploy` is a no-op
     // when up-to-date and avoids the drift prompts that `migrate dev` does.
     try {
-      execSync('yarn workspace @plunk/db migrate:prod', {
+      execSync('yarn workspace @merlin/db migrate:prod', {
         env: {
           ...process.env,
           DATABASE_URL: url.toString(),

@@ -1,13 +1,13 @@
 /**
  * Example Test File
  *
- * This file demonstrates common testing patterns used in the Plunk V2 codebase.
+ * This file demonstrates common testing patterns used in the Merlin V2 codebase.
  * Use this as a reference when writing new tests.
  */
 
 import {describe, it, expect, beforeEach, afterEach} from 'vitest';
 import {factories, getPrismaClient, createTimeControl, createMockQueues, createServiceMocks} from '../helpers';
-import {CampaignStatus, WorkflowStepType, EmailStatus, StepExecutionStatus} from '@plunk/db';
+import {CampaignStatus, WorkflowStepType, EmailStatus, StepExecutionStatus} from '@merlin/db';
 
 describe('Example Tests - Common Patterns', () => {
   let projectId: string;
@@ -30,7 +30,7 @@ describe('Example Tests - Common Patterns', () => {
       // Arrange: Set up test data
       const campaignData = {
         name: 'Welcome Campaign',
-        subject: 'Welcome to Plunk!',
+        subject: 'Welcome to Merlin!',
         body: '<p>Thanks for signing up</p>',
         from: 'hello@example.com',
       };
