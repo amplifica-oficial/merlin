@@ -78,7 +78,36 @@ export default function Layout({children}: {children: ReactNode}) {
             enabled: false,
           }}
         >
-          <DocsLayout tree={source.pageTree} {...baseOptions}>
+          <DocsLayout
+            tree={source.pageTree}
+            {...baseOptions}
+            sidebar={{
+              banner: (
+                <p className="rounded-lg border border-fd-border bg-fd-muted/40 px-3 py-2 text-[11px] leading-snug text-fd-muted-foreground">
+                  Modified version of{' '}
+                  <a
+                    href="https://github.com/useplunk/plunk"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-medium text-fd-foreground underline decoration-dotted underline-offset-2 hover:text-fd-primary"
+                  >
+                    Plunk
+                  </a>{' '}
+                  · AGPL-3.0
+                  <br />
+                  Mods ©{' '}
+                  <a
+                    href="https://github.com/amplifica-oficial/merlin/blob/next/NOTICE"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-medium text-fd-foreground underline decoration-dotted underline-offset-2 hover:text-fd-primary"
+                  >
+                    Amplifica Soluções Digitais LTDA
+                  </a>
+                </p>
+              ),
+            }}
+          >
             {children}
           </DocsLayout>
         </RootProvider>
