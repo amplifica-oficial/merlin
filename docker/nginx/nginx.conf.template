@@ -1,19 +1,19 @@
-# Nginx Configuration for Plunk - Subdomain-based Routing
+# Nginx Configuration for Merlin - Subdomain-based Routing
 # This configuration routes traffic based on subdomains:
 #   - api.example.com -> API server (port 8080)
 #   - app.example.com -> Web dashboard (port 3000)
 #   - docs.example.com -> Documentation (port 1000)
 
 # Upstream definitions
-upstream plunk_api {
+upstream merlin_api {
     server 127.0.0.1:8080;
 }
 
-upstream plunk_web {
+upstream merlin_web {
     server 127.0.0.1:3000;
 }
 
-upstream plunk_wiki {
+upstream merlin_wiki {
     server 127.0.0.1:1000;
 }
 
@@ -25,7 +25,7 @@ server {
     client_max_body_size 10M;
 
     location / {
-        proxy_pass http://plunk_api;
+        proxy_pass http://merlin_api;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection 'upgrade';
@@ -45,7 +45,7 @@ server {
     client_max_body_size 10M;
 
     location / {
-        proxy_pass http://plunk_web;
+        proxy_pass http://merlin_web;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection 'upgrade';
@@ -65,7 +65,7 @@ server {
     client_max_body_size 10M;
 
     location / {
-        proxy_pass http://plunk_wiki;
+        proxy_pass http://merlin_wiki;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection 'upgrade';
