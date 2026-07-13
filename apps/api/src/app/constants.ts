@@ -28,7 +28,6 @@ export const PORT = Number(validateEnv('PORT', '8080'));
 // URLs
 export const API_URI = validateEnv('API_URI');
 export const DASHBOARD_URI = validateEnv('DASHBOARD_URI');
-export const LANDING_URI = validateEnv('LANDING_URI');
 export const WIKI_URI = validateEnv('WIKI_URI');
 
 // S3-compatible storage (Minio)

@@ -12,7 +12,6 @@ import {
   DASHBOARD_URI,
   GITHUB_OAUTH_ENABLED,
   GOOGLE_OAUTH_ENABLED,
-  LANDING_URI,
   NODE_ENV,
   PLUNK_ENABLED,
   PORT,
@@ -86,8 +85,8 @@ const server = new (class extends Server {
     // Build allowed origins from environment variables
     const allowedOrigins =
       NODE_ENV === 'development'
-        ? [/.*\.localhost:1000/, 'http://localhost:3000', 'http://localhost:4000']
-        : [DASHBOARD_URI, LANDING_URI, WIKI_URI];
+        ? [/.*\.localhost:1000/, 'http://localhost:3000']
+        : [DASHBOARD_URI, WIKI_URI];
 
     // Public API endpoints that should allow all origins
     const publicApiPaths = ['/v1', '/v1/track', '/v1/send', '/forms/public', '/landing-pages/public'];
@@ -185,7 +184,7 @@ const server = new (class extends Server {
       });
     });
 
-    this.app.get('/', (_, res) => res.redirect(LANDING_URI));
+    this.app.get('/', (_, res) => res.redirect(DASHBOARD_URI));
 
     this.app.use('*', () => {
       throw new HttpException(404, 'Unknown route');

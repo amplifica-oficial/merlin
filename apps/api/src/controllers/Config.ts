@@ -8,7 +8,6 @@ import {
   DISABLE_SIGNUPS,
   GITHUB_OAUTH_ENABLED,
   GOOGLE_OAUTH_ENABLED,
-  LANDING_URI,
   MAIL_FROM_SUBDOMAIN,
   NODE_ENV,
   S3_ENABLED,
@@ -30,7 +29,6 @@ export class Config {
       urls: {
         api: API_URI,
         dashboard: DASHBOARD_URI,
-        landing: LANDING_URI,
         wiki: WIKI_URI || null,
       },
       features: {

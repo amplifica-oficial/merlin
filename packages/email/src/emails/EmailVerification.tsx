@@ -7,13 +7,13 @@ import {Header} from '../common/Header';
 interface EmailVerificationEmailProps {
   email: string;
   verificationUrl: string;
-  landingUrl?: string;
+  dashboardUrl?: string;
 }
 
 export function EmailVerificationEmail({
   email = 'user@example.com',
   verificationUrl = 'https://api.useplunk.com/auth/verify-email?token=abc123',
-  landingUrl = 'https://www.useplunk.com',
+  dashboardUrl = 'https://next-app.useplunk.com',
 }: EmailVerificationEmailProps) {
   return (
     <EmailLayout>
@@ -49,7 +49,7 @@ export function EmailVerificationEmail({
         </Text>
       </Section>
 
-      <Footer landingUrl={landingUrl} />
+      <Footer dashboardUrl={dashboardUrl} />
     </EmailLayout>
   );
 }
