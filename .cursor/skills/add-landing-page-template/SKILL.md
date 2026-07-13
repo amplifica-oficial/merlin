@@ -1,11 +1,11 @@
 ---
 name: add-landing-page-template
-description: Port a Page UI (shipixen/page-ui) landing page template into the Plunk web Puck editor as nested, click-to-edit blocks. Use when adding a new landing page template, porting Page UI sections/components into Puck, or when the user mentions page-ui, front-centre, landing page templates, or Puck landing blocks.
+description: Port a Page UI (shipixen/page-ui) landing page template into the Merlin web Puck editor as nested, click-to-edit blocks. Use when adding a new landing page template, porting Page UI sections/components into Puck, or when the user mentions page-ui, front-centre, landing page templates, or Puck landing blocks.
 ---
 
 # Add a Page UI Landing Page Template to Puck
 
-Port a Page UI template (e.g. `front-centre`) from the `page-ui` repo into Plunk's web app as Puck blocks that are **click-to-edit** (click any element on the canvas selects it and opens its props) with **inline text editing** on hover.
+Port a Page UI template (e.g. `front-centre`) from the `page-ui` repo into Merlin's web app as Puck blocks that are **click-to-edit** (click any element on the canvas selects it and opens its props) with **inline text editing** on hover.
 
 ## Architecture (two layers)
 
@@ -137,7 +137,7 @@ Four edits:
 ```bash
 cd apps/web && yarn tsc --noEmit
 # then lint the whole app (no per-file eslint script):
-cd /Users/diegoazevedo/projects/plunk && yarn lint --filter=web
+cd /Users/diegoazevedo/projects/merlin-fork && yarn lint --filter=web
 ```
 
 Manual smoke test: create a page with the template → click title/paragraph/button/image/video/card/faq item/keypoint/icon/avatar (each selects + opens its props); hover text → inline edit; drag/reorder/add inside slots; publish and compare `/p/<publicId>` vs preview.
@@ -145,7 +145,7 @@ Manual smoke test: create a page with the template → click title/paragraph/but
 ## Gotchas
 
 - **No array fields for repeatable content.** Use slots of leaves so items are individually clickable.
-- **FAQ = one self-contained `Collapsible` per item** (Radix `Collapsible` from `@plunk/ui`), not a single accordion — required for isolated selection.
+- **FAQ = one self-contained `Collapsible` per item** (Radix `Collapsible` from `@merlin/ui`), not a single accordion — required for isolated selection.
 - **Render prop types**: a slot prop is `Slot` in the authoring type but a `SlotComponent` (JSX component) at render. Keep separate `...Props` / `...RenderProps` types.
 - **Stable ids** in the tree — reuse across `createDefault*` so migrate/normalize stays deterministic.
 - **Field with conditional shape** (e.g. FeatureCard image|video): use `resolveFields` and type the builder as `Fields<Partial<Props>>`, casting back to `Fields<Props>`.

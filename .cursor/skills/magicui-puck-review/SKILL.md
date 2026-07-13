@@ -25,7 +25,7 @@ Read every file in the component folder plus its registration in `apps/web/src/l
 
 - [ ] **CSS is a Module**: styles live in `<name>.module.css` and are imported as `styles`. No global `.css` side-effect import, no `@theme inline` / bare `@keyframes` in a component file. (Global import = Next.js build error.)
 - [ ] **No `contentEditable` on array fields** in `puck-config.tsx`.
-- [ ] **Not placed in `@plunk/ui`** — must be under `apps/web/.../magicui/<name>/`.
+- [ ] **Not placed in `@merlin/ui`** — must be under `apps/web/.../magicui/<name>/`.
 - [ ] **Registered correctly** in `config.tsx`: type entry in `LandingPageComponents`, listed in `categories.magicui.components`, and mapped in `components`.
 - [ ] **`yarn tsc --noEmit` passes** from `apps/web`.
 

@@ -22,8 +22,8 @@ corepack prepare yarn@4.9.1 --activate
 ## 1. Clone and install
 
 ```bash
-git clone https://github.com/useplunk/plunk.git
-cd plunk
+git clone https://github.com/amplifica-oficial/merlin.git
+cd merlin
 yarn install
 ```
 
@@ -49,7 +49,7 @@ yarn services:down
 |---------|-----------|---------------------|
 | PostgreSQL | `55432` | user `postgres`, password `postgres`, db `postgres` |
 | Redis | `56379` | no auth |
-| MinIO API | `9000` | user `plunk`, password `plunkminiopass` |
+| MinIO API | `9000` | user `merlin`, password `merlinminiopass` |
 | MinIO Console | `9001` | same as above |
 
 ## 3. Environment setup
@@ -90,17 +90,17 @@ Leave them blank for local UI and API work.
 Generate the Prisma client and apply migrations:
 
 ```bash
-yarn workspace @plunk/db db:generate
-yarn workspace @plunk/db migrate:dev
+yarn workspace @merlin/db db:generate
+yarn workspace @merlin/db migrate:dev
 ```
 
 If you see `Environment variable not found: DIRECT_DATABASE_URL`, you are missing `packages/db/.env` — go back to step 3.
 
-**Important:** `migrate:dev` (and `db:generate`) only run Prisma — they generate the client in `node_modules/@prisma/client`. They do **not** compile `@plunk/db` TypeScript into `packages/db/dist/`. That compilation happens in step 5.
+**Important:** `migrate:dev` (and `db:generate`) only run Prisma — they generate the client in `node_modules/@prisma/client`. They do **not** compile `@merlin/db` TypeScript into `packages/db/dist/`. That compilation happens in step 5.
 
 ## 5. Build shared packages
 
-The API and worker import workspace packages from their compiled `dist/` output (for example `@plunk/db/dist/index.js`, `@plunk/shared/dist/index.js`, and `@plunk/email/dist/index.js`). Those files do not exist until you build.
+The API and worker import workspace packages from their compiled `dist/` output (for example `@merlin/db/dist/index.js`, `@merlin/shared/dist/index.js`, and `@merlin/email/dist/index.js`). Those files do not exist until you build.
 
 Build all packages the API depends on **before** running the dev stack:
 
@@ -108,15 +108,15 @@ Build all packages the API depends on **before** running the dev stack:
 yarn build --filter="api..."
 ```
 
-The `...` suffix tells Turborepo to build `api` and every workspace package it depends on (`@plunk/db`, `@plunk/types`, `@plunk/shared`, `@plunk/email`, etc.).
+The `...` suffix tells Turborepo to build `api` and every workspace package it depends on (`@merlin/db`, `@merlin/types`, `@merlin/shared`, `@merlin/email`, etc.).
 
 If you hit import or type errors after pulling changes, rebuild explicitly:
 
 ```bash
-yarn build --filter="@plunk/db" --filter="@plunk/types" --filter="@plunk/shared" --filter="@plunk/email"
+yarn build --filter="@merlin/db" --filter="@merlin/types" --filter="@merlin/shared" --filter="@merlin/email"
 ```
 
-**Do not skip this step.** Running `yarn dev` alone does not build shared packages — Turborepo's `dev` task has no `dependsOn: ["^build"]`. Building only `@plunk/shared` is not enough: the API also imports `@plunk/email`, which is not a dependency of `@plunk/shared`.
+**Do not skip this step.** Running `yarn dev` alone does not build shared packages — Turborepo's `dev` task has no `dependsOn: ["^build"]`. Building only `@merlin/shared` is not enough: the API also imports `@merlin/email`, which is not a dependency of `@merlin/shared`.
 
 **For local dev, this is the only build you need.** You do not need to run `yarn build` (the full monorepo build) before `yarn dev`.
 
@@ -128,7 +128,7 @@ Start all apps (API server, worker, and frontends):
 yarn dev
 ```
 
-If you skip step 5, Next.js apps (web, wiki) may start, but the API and worker will crash with `ERR_MODULE_NOT_FOUND` for packages such as `@plunk/db/dist/index.js`, `@plunk/shared/dist/index.js`, or `@plunk/email/dist/index.js`.
+If you skip step 5, Next.js apps (web, wiki) may start, but the API and worker will crash with `ERR_MODULE_NOT_FOUND` for packages such as `@merlin/db/dist/index.js`, `@merlin/shared/dist/index.js`, or `@merlin/email/dist/index.js`.
 
 Or run components separately for debugging:
 
@@ -248,8 +248,8 @@ See [.github/pull_request_template.md](./.github/pull_request_template.md) for t
 | `yarn build` | Build all packages and apps |
 | `yarn lint` | Lint all packages |
 | `yarn test:run` | Run test suite once |
-| `yarn workspace @plunk/db migrate:dev` | Apply database migrations (dev) |
-| `yarn workspace @plunk/db db:generate` | Regenerate Prisma client |
+| `yarn workspace @merlin/db migrate:dev` | Apply database migrations (dev) |
+| `yarn workspace @merlin/db db:generate` | Regenerate Prisma client |
 | `yarn build --filter="api..."` | Build API and all workspace dependencies (required before first `yarn dev`) |
 | `yarn workspace wiki generate-docs` | Generate `openapi.local.json` and API docs for the wiki |
 | `yarn clean` | Remove node_modules and build artifacts |
@@ -270,7 +270,7 @@ Another process is bound to a dev port. Either stop it or change the port in the
 
 Common conflicts: `3000` (web), `8080` (api), `55432` (postgres), `56379` (redis).
 
-### `ERR_MODULE_NOT_FOUND` for `@plunk/db`, `@plunk/shared`, or `@plunk/email`
+### `ERR_MODULE_NOT_FOUND` for `@merlin/db`, `@merlin/shared`, or `@merlin/email`
 
 This usually means workspace packages were never built, or `dist/` was removed (for example after `yarn clean`).
 
@@ -289,10 +289,10 @@ yarn dev
 If that is not enough, rebuild the core packages explicitly:
 
 ```bash
-yarn build --filter="@plunk/db" --filter="@plunk/types" --filter="@plunk/shared" --filter="@plunk/email"
+yarn build --filter="@merlin/db" --filter="@merlin/types" --filter="@merlin/shared" --filter="@merlin/email"
 ```
 
-**Note:** `yarn workspace @plunk/db migrate:dev` does not replace this step. Migrations update the database and regenerate the Prisma client; they do not compile workspace packages into `dist/`.
+**Note:** `yarn workspace @merlin/db migrate:dev` does not replace this step. Migrations update the database and regenerate the Prisma client; they do not compile workspace packages into `dist/`.
 
 ### Wiki build fails on `/openapi.json`
 
@@ -343,5 +343,5 @@ And that the API server is running on port 8080.
 ## Next steps
 
 - Read [CONTRIBUTING.md](./CONTRIBUTING.md) for code standards and architecture overview.
-- Browse the [documentation site](https://docs.useplunk.com) for API and self-hosting guides.
+- Browse the [documentation site](https://docs.merlin.example) for API and self-hosting guides.
 - Open an issue or discussion if you get stuck.
