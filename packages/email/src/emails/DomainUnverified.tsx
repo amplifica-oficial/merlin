@@ -15,7 +15,7 @@ export function DomainUnverifiedEmail({
   projectName = 'My Project',
   projectId = 'proj_example123',
   domain = 'example.com',
-  dashboardUrl = 'https://next-app.useplunk.com',
+  dashboardUrl = 'https://next-app.merlin.example',
 }: DomainUnverifiedEmailProps) {
   return (
     <EmailLayout>

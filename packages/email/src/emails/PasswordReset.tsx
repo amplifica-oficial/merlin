@@ -12,8 +12,8 @@ interface PasswordResetEmailProps {
 
 export function PasswordResetEmail({
   email = 'user@example.com',
-  resetUrl = 'https://next-app.useplunk.com/auth/reset-password?token=abc123',
-  dashboardUrl = 'https://next-app.useplunk.com',
+  resetUrl = 'https://next-app.merlin.example/auth/reset-password?token=abc123',
+  dashboardUrl = 'https://next-app.merlin.example',
 }: PasswordResetEmailProps) {
   return (
     <EmailLayout>

@@ -2,7 +2,7 @@
  * Project membership types
  */
 
-import type {Role} from '@plunk/db';
+import type {Role} from '@merlin/db';
 
 /**
  * Project member with user email
