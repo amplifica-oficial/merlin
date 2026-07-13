@@ -13,7 +13,9 @@ Prepare and open a pull request from the current feature branch into `next`. Com
 
 | Item | Value |
 |------|-------|
-| Remote | `origin` → `amplifica-oficial/merlin-fork` |
+| Remote | `origin` → `amplifica-oficial/merlin` |
+| Target repo | `amplifica-oficial/merlin` (ALWAYS via `--repo`) |
+| Upstream | `useplunk/plunk` (NEVER a PR target without explicit user request) |
 | PR base | `next` (always — never target `main` directly) |
 | Prod branch | `main` (production; changes reach it via release, not direct PR) |
 | Protected | `next`, `main` — never force push |
@@ -33,10 +35,11 @@ Task Progress:
 - [ ] Step 6: Create PR via gh
 ```
 
-### Step 1: Verify gh authentication
+### Step 1: Verify gh authentication and target repo
 
 ```bash
 gh auth status
+gh repo view --json nameWithOwner -q .nameWithOwner
 ```
 
 If token is invalid or not logged in:
@@ -44,6 +47,21 @@ If token is invalid or not logged in:
 1. Stop immediately — do not attempt `gh pr create`.
 2. Tell the user to run: `gh auth login -h github.com`
 3. Resume only after auth succeeds.
+
+**Target repo guard (required):**
+
+```bash
+EXPECTED_REPO="amplifica-oficial/merlin"
+ACTUAL_REPO=$(gh repo view --json nameWithOwner -q .nameWithOwner)
+```
+
+If `ACTUAL_REPO` is not `amplifica-oficial/merlin`, stop immediately. Do not create a PR until the default repo is corrected:
+
+```bash
+gh repo set-default amplifica-oficial/merlin
+```
+
+Never proceed if the target would be `useplunk/plunk`, `*-fork`, or any repo other than `amplifica-oficial/merlin` unless the user explicitly requests an upstream contribution PR.
 
 ### Step 2: Verify branch state
 
@@ -147,7 +165,14 @@ If the user requests edits, update the draft and present again.
 After user confirmation:
 
 ```bash
-gh pr create --base next --title "type(scope): short summary" --body "$(cat <<'EOF'
+BRANCH=$(git branch --show-current)
+
+gh pr create \
+  --repo amplifica-oficial/merlin \
+  --base next \
+  --head "$BRANCH" \
+  --title "type(scope): short summary" \
+  --body "$(cat <<'EOF'
 ## Summary
 
 - Change description
@@ -159,12 +184,14 @@ EOF
 )"
 ```
 
-Return the PR URL from the command output.
+**Always pass `--repo amplifica-oficial/merlin` explicitly.** Never rely on the implicit `gh` default repo.
+
+After creation, validate the returned URL contains `github.com/amplifica-oficial/merlin/pull/`. If the URL points to `useplunk/plunk` or any other repo, report failure immediately — do not treat it as success.
 
 If a PR already exists for this branch:
 
 ```bash
-gh pr view --json url,title,state
+gh pr view --repo amplifica-oficial/merlin --json url,title,state
 ```
 
 Report the existing PR URL instead of creating a duplicate.
@@ -173,11 +200,14 @@ Report the existing PR URL instead of creating a duplicate.
 
 **Never:**
 
+- `gh pr create` without `--repo amplifica-oficial/merlin`
 - `gh pr create --base main` (prod is not a direct PR target)
+- Open a PR against `useplunk/plunk` or any `*-fork` repo without explicit user request
 - `git push --force` on `next`, `main`, or any branch
 - `--no-verify` on any git command
 - Create a PR without user confirmation
 - Modify `git config`
+- Treat a PR URL from the wrong repo as success
 
 ## Output format
 
@@ -186,7 +216,7 @@ After creating:
 ```markdown
 ## Pull request created
 
-**URL:** https://github.com/amplifica-oficial/merlin-fork/pull/NNN
+**URL:** https://github.com/amplifica-oficial/merlin/pull/NNN
 **Title:** feat(scope): short summary
 **Base:** next ← feat/my-feature
 **Commits:** N

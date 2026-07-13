@@ -11,7 +11,7 @@ Autonomously stage, commit, and push changes following this repo's Conventional 
 
 | Item | Value |
 |------|-------|
-| Remote | `origin` → `amplifica-oficial/merlin-fork` |
+| Remote | `origin` → `amplifica-oficial/merlin` |
 | Dev branch | `next` (integration) |
 | Prod branch | `main` (production) |
 | Protected | `next`, `main` — never commit directly, never force push |
