@@ -60,7 +60,6 @@ Environment variables are **per-package**. Each app/package ships its own `.env.
 cp apps/api/.env.example apps/api/.env
 cp packages/db/.env.example packages/db/.env
 cp apps/web/.env.example apps/web/.env
-cp apps/landing/.env.example apps/landing/.env
 cp apps/wiki/.env.example apps/wiki/.env
 ```
 
@@ -71,7 +70,6 @@ cp apps/wiki/.env.example apps/wiki/.env
 | `packages/db/.env` | Prisma CLI (`migrate:dev`, `db:generate`) | Database migrations |
 | `apps/api/.env` | API server and worker | Backend, queues, email, storage |
 | `apps/web/.env` | Dashboard (Next.js) | `NEXT_PUBLIC_*` URLs |
-| `apps/landing/.env` | Marketing site (Next.js) | `NEXT_PUBLIC_*` URLs |
 | `apps/wiki/.env` | Docs site (Next.js) | `NEXT_PUBLIC_*` URLs and OpenAPI doc generation |
 
 The default values in these templates already match the Docker Compose ports above. You can start developing without editing them.
@@ -130,7 +128,7 @@ Start all apps (API server, worker, and frontends):
 yarn dev
 ```
 
-If you skip step 5, Next.js apps (web, landing, wiki) may start, but the API and worker will crash with `ERR_MODULE_NOT_FOUND` for packages such as `@plunk/db/dist/index.js`, `@plunk/shared/dist/index.js`, or `@plunk/email/dist/index.js`.
+If you skip step 5, Next.js apps (web, wiki) may start, but the API and worker will crash with `ERR_MODULE_NOT_FOUND` for packages such as `@plunk/db/dist/index.js`, `@plunk/shared/dist/index.js`, or `@plunk/email/dist/index.js`.
 
 Or run components separately for debugging:
 
@@ -144,10 +142,7 @@ yarn workspace api dev:worker
 # Terminal 3 — Dashboard
 yarn workspace web dev
 
-# Terminal 4 — Landing page
-yarn workspace landing dev
-
-# Terminal 5 — Wiki / docs
+# Terminal 4 — Wiki / docs
 yarn workspace wiki dev
 ```
 
@@ -157,7 +152,6 @@ yarn workspace wiki dev
 |-----|-----|------|
 | API | http://localhost:8080 | 8080 |
 | Dashboard (web) | http://localhost:3000 | 3000 |
-| Landing | http://localhost:4000 | 4000 |
 | Wiki | http://localhost:1000 | 1000 |
 | MinIO Console | http://localhost:9001 | 9001 |
 
@@ -283,7 +277,7 @@ This usually means workspace packages were never built, or `dist/` was removed (
 Symptoms when running `yarn dev`:
 
 - `api` and `api` worker fail immediately
-- Frontends (web, landing, wiki) may still start
+- Frontends (web, wiki) may still start
 
 Fix — run step 5, then restart dev:
 

@@ -68,7 +68,6 @@ to run them separately (e.g., for debugging), use `dev:server` and `dev:worker` 
   - Background cron jobs (workflow processor, domain verification)
   - **Worker process** (separate): BullMQ worker for processing email, campaign, and workflow queues
 - **web**: Next.js app (Pages Router) - Main platform (next-app.useplunk.com)
-- **landing**: Next.js app (Pages Router) - Marketing site (www.useplunk.com)
 - **wiki**: Next.js app - Documentation site (docs.useplunk.com)
 
 ### Background Job Architecture
@@ -121,7 +120,7 @@ between groups.
 **Configuration File Setup:**
 
 - **Development**: Copy `.env.example` to `.env` at the repository root and fill in your values
-- **All apps** (API, web, landing, wiki) load environment variables from the root `.env` file
+- **All apps** (API, web, wiki) load environment variables from the root `.env` file
 - **Production**: Environment variables are injected by Docker/orchestration systems (no .env file needed)
 
 Required for builds and deployment (see turbo.json and .env.example):
@@ -136,7 +135,7 @@ Required for builds and deployment (see turbo.json and .env.example):
 - Security: `JWT_SECRET`
 - Database: `DATABASE_URL`, `DIRECT_DATABASE_URL`
 - Infrastructure: `REDIS_URL`
-- **Application URLs** (injected at runtime into Next.js apps): `API_URI`, `DASHBOARD_URI`, `LANDING_URI`, `WIKI_URI` (
+- **Application URLs** (injected at runtime into Next.js apps): `API_URI`, `DASHBOARD_URI`, `WIKI_URI` (
   optional)
 - S3-compatible Storage (Minio): `S3_ENDPOINT`, `S3_ACCESS_KEY_ID`, `S3_ACCESS_KEY_SECRET`, `S3_BUCKET`,
   `S3_PUBLIC_URL`, `S3_FORCE_PATH_STYLE`
