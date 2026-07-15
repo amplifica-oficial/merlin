@@ -2,7 +2,7 @@ version: '3.8'
 
 # Merlin Self-Hosting — simple stack (no MinIO, no ntfy)
 #
-# Services: postgres + redis + merlin
+# Services: postgres + redis + merlin (built from local Dockerfile)
 # S3 uploads and ntfy notifications stay off unless you set external URLs.
 #
 # Usage:
@@ -45,7 +45,10 @@ services:
       - merlin
 
   merlin:
-    image: ghcr.io/merlin/merlin:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: merlin:local
     container_name: merlin
     restart: unless-stopped
     environment:
