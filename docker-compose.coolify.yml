@@ -1,0 +1,92 @@
+# Merlin — Coolify reference compose
+# Deploy each service separately in Coolify using the Dockerfiles under apps/*.
+# Build context for every service: repository root (.)
+#
+# Example local build:
+#   docker build -f apps/api/Dockerfile -t merlin-api .
+#   docker build -f apps/web/Dockerfile -t merlin-web \
+#     --build-arg NEXT_PUBLIC_API_URI=https://api.example.com \
+#     --build-arg NEXT_PUBLIC_DASHBOARD_URI=https://app.example.com \
+#     --build-arg NEXT_PUBLIC_WIKI_URI=https://docs.example.com .
+#   docker build -f apps/wiki/Dockerfile -t merlin-wiki \
+#     --build-arg NEXT_PUBLIC_API_URI=https://api.example.com \
+#     --build-arg NEXT_PUBLIC_DASHBOARD_URI=https://app.example.com \
+#     --build-arg NEXT_PUBLIC_WIKI_URI=https://docs.example.com .
+
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    restart: unless-stopped
+    environment:
+      SERVICE: server
+      NODE_ENV: production
+      PORT: 8080
+      DATABASE_URL: ${DATABASE_URL}
+      DIRECT_DATABASE_URL: ${DIRECT_DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      JWT_SECRET: ${JWT_SECRET}
+      API_URI: ${API_URI}
+      DASHBOARD_URI: ${DASHBOARD_URI}
+      WIKI_URI: ${WIKI_URI}
+    ports:
+      - '8080:8080'
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:8080/health']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  worker:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    restart: unless-stopped
+    environment:
+      SERVICE: worker
+      NODE_ENV: production
+      DATABASE_URL: ${DATABASE_URL}
+      DIRECT_DATABASE_URL: ${DIRECT_DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      JWT_SECRET: ${JWT_SECRET}
+      API_URI: ${API_URI}
+      DASHBOARD_URI: ${DASHBOARD_URI}
+      WIKI_URI: ${WIKI_URI}
+    healthcheck:
+      test: ['CMD-SHELL', 'exit 0']
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URI: ${NEXT_PUBLIC_API_URI}
+        NEXT_PUBLIC_DASHBOARD_URI: ${NEXT_PUBLIC_DASHBOARD_URI}
+        NEXT_PUBLIC_WIKI_URI: ${NEXT_PUBLIC_WIKI_URI}
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      HOSTNAME: 0.0.0.0
+    ports:
+      - '3000:3000'
+
+  wiki:
+    build:
+      context: .
+      dockerfile: apps/wiki/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URI: ${NEXT_PUBLIC_API_URI}
+        NEXT_PUBLIC_DASHBOARD_URI: ${NEXT_PUBLIC_DASHBOARD_URI}
+        NEXT_PUBLIC_WIKI_URI: ${NEXT_PUBLIC_WIKI_URI}
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 1000
+      HOSTNAME: 0.0.0.0
+    ports:
+      - '1000:1000'
