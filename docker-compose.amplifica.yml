@@ -8,7 +8,7 @@ version: '3.8'
 # Usage:
 #   1. Copy .env.self-host.example to .env and configure
 #   2. Set domain names (API_DOMAIN, DASHBOARD_DOMAIN, etc.)
-#   3. Run: docker compose -f docker-compose.test-coolify.yml up -d
+#   3. Run: docker compose -f docker-compose.amplifica.yml up -d
 
 services:
   postgres:
