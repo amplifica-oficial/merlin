@@ -114,10 +114,13 @@ Merlin bundles a self-hosted [ntfy](https://ntfy.sh) server for internal system 
 
 ## User Management
 
-| Variable                 | Required | Description                                                                                                                 | Default |
-| ------------------------ | -------- | --------------------------------------------------------------------------------------------------------------------------- | ------- |
-| `DISABLE_SIGNUPS`        | No       | When `true`, the signup endpoint rejects new registrations. Useful for private instances.                                   | `false` |
-| `VERIFY_EMAIL_ON_SIGNUP` | No       | When `true`, validates emails on signup — checks for disposable domains, plus-addressing, domain existence, and MX records. | `false` |
+| Variable                   | Required | Description                                                                                                                                                                                                 | Default       |
+| -------------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------- |
+| `DISABLE_SIGNUPS`          | No       | When `true`, the signup endpoint rejects new registrations. Useful for private instances. Takes precedence over allowlist settings.                                                                         | `false`       |
+| `VERIFY_EMAIL_ON_SIGNUP`   | No       | When `true`, validates emails on signup — checks for disposable domains, plus-addressing, domain existence, and MX records.                                                                                 | `false`       |
+| `ALLOWLIST_TRUSTED_DOMAINS`| No       | Controls who can create an account. `ALL_DOMAINS` = open signup. Comma-separated domains (e.g. `empresa.com`) = restricted to those domains plus emails on the allowlist. Empty = closed (allowlist only). | `ALL_DOMAINS` |
+
+When allowlist mode is restricted or closed, configure `MERLIN_API_KEY` and `MERLIN_FROM_ADDRESS` so new users receive a verification email after signup. Users with a trusted-domain email can manage the allowlist from the **Authorization** page in the dashboard.
 
 ## Security
 
