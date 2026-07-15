@@ -12,6 +12,7 @@ import {
 import {prisma} from '../../database/prisma.js';
 import {BadRequest} from '../../exceptions/index.js';
 import {jwt} from '../../middleware/auth.js';
+import {AllowlistService} from '../../services/AllowlistService.js';
 import {NtfyService} from '../../services/NtfyService.js';
 import {UserService} from '../../services/UserService.js';
 import {CatchAsync} from '../../utils/asyncHandler.js';
@@ -86,6 +87,12 @@ export class Github {
       // Check if signups are disabled
       if (DISABLE_SIGNUPS) {
         throw new BadRequest('New user signups are currently disabled');
+      }
+
+      if (!(await AllowlistService.isSignupAllowed(email))) {
+        return res.redirect(
+          DASHBOARD_URI + '/auth/login?message=This email is not authorized to create an account',
+        );
       }
 
       user = await prisma.user.create({

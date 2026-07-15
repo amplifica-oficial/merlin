@@ -10,6 +10,7 @@ import {prisma} from '../database/prisma.js';
 import {ErrorCode, HttpException, NotAuthenticated, NotFound} from '../exceptions/index.js';
 import {isAuthenticated, requireEmailVerified} from '../middleware/auth.js';
 import {BillingLimitService} from '../services/BillingLimitService.js';
+import {AllowlistService} from '../services/AllowlistService.js';
 import {MembershipService} from '../services/MembershipService.js';
 import {NtfyService} from '../services/NtfyService.js';
 import {SecurityService} from '../services/SecurityService.js';
@@ -35,7 +36,13 @@ export class Users {
       throw new NotAuthenticated();
     }
 
-    return res.status(200).json({id: me.id, email: me.email});
+    return res.status(200).json({
+      id: me.id,
+      email: me.email,
+      type: me.type,
+      emailVerified: me.emailVerified,
+      canManageAllowlist: AllowlistService.isTrustedDomain(me.email),
+    });
   }
 
   @Get('@me/projects')

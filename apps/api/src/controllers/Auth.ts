@@ -22,6 +22,7 @@ import {redis, REDIS_ONE_MINUTE} from '../database/redis.js';
 import {BadRequest, NotAuthenticated, RateLimitError} from '../exceptions/index.js';
 import {jwt, parseJwt} from '../middleware/auth.js';
 import {AuthService} from '../services/AuthService.js';
+import {AllowlistService} from '../services/AllowlistService.js';
 import {EmailVerificationService} from '../services/EmailVerificationService.js';
 import {NtfyService} from '../services/NtfyService.js';
 import {UserService} from '../services/UserService.js';
@@ -107,6 +108,15 @@ export class Auth {
       return res.json({
         success: false,
         data: 'That email is already associated with another user',
+      });
+    }
+
+    if (!(await AllowlistService.isSignupAllowed(email))) {
+      await NtfyService.notifyFailedSignupAttempt(email, ['not authorized for signup']);
+
+      return res.json({
+        success: false,
+        data: 'This email is not authorized to create an account',
       });
     }
 

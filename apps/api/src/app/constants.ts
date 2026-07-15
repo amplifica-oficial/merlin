@@ -119,6 +119,17 @@ export const DISABLE_SIGNUPS = process.env.DISABLE_SIGNUPS === 'true';
 // Controls whether email validation checks are performed on signup (default: false)
 export const VERIFY_EMAIL_ON_SIGNUP = process.env.VERIFY_EMAIL_ON_SIGNUP === 'true';
 
+// Signup allowlist: ALL_DOMAINS = open signup; comma-separated domains = restricted;
+// empty (not ALL_DOMAINS) = closed except emails already on the allowlist table.
+const ALLOWLIST_TRUSTED_DOMAINS_RAW = validateEnv('ALLOWLIST_TRUSTED_DOMAINS', 'ALL_DOMAINS');
+export const ALLOWLIST_OPEN = ALLOWLIST_TRUSTED_DOMAINS_RAW.trim().toUpperCase() === 'ALL_DOMAINS';
+export const ALLOWLIST_TRUSTED_DOMAINS: string[] = ALLOWLIST_OPEN
+  ? []
+  : ALLOWLIST_TRUSTED_DOMAINS_RAW.split(',')
+      .map(domain => domain.trim().toLowerCase())
+      .filter(Boolean);
+export const ALLOWLIST_RESTRICTED = !ALLOWLIST_OPEN;
+
 // Attachment Limits (optional)
 // Maximum total attachment size in MB (default: 10). AWS SES supports up to 40 MB.
 export const MAX_ATTACHMENT_SIZE_MB = Number(validateEnv('MAX_ATTACHMENT_SIZE_MB', '10'));

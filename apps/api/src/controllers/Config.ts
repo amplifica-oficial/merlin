@@ -2,6 +2,7 @@ import {Controller, Get} from '@overnightjs/core';
 import type {Request, Response} from 'express';
 
 import {
+  ALLOWLIST_RESTRICTED,
   API_URI,
   AWS_SES_REGION,
   DASHBOARD_URI,
@@ -44,6 +45,7 @@ export class Config {
         },
         signup: {
           signupsDisabled: DISABLE_SIGNUPS,
+          allowlistRestricted: ALLOWLIST_RESTRICTED,
         },
         email: {
           trackingToggleEnabled: TRACKING_TOGGLE_ENABLED,

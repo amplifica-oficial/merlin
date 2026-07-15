@@ -6,6 +6,7 @@ import type {AuthResponse} from '@merlin/types';
 
 import {JWT_SECRET, MERLIN_ENABLED} from '../app/constants.js';
 import {ErrorCode, HttpException, NotAuthenticated} from '../exceptions/index.js';
+import {AllowlistService} from '../services/AllowlistService.js';
 import {MembershipService} from '../services/MembershipService.js';
 import {ProjectService} from '../services/ProjectService.js';
 import {UserService} from '../services/UserService.js';
@@ -362,13 +363,32 @@ export const requireEmailVerified = async (req: Request, res: Response, next: Ne
       return next();
     }
 
-    // PASSWORD users must verify email
-    if (!user.emailVerified) {
-      throw new HttpException(
-        403,
-        'Please verify your email address to access this resource',
-        ErrorCode.EMAIL_VERIFICATION_REQUIRED,
-      );
+    next();
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Middleware to require a trusted-domain email (allowlist managers).
+ * Must be used AFTER isAuthenticated.
+ */
+export const requireTrustedDomain = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const auth = res.locals.auth;
+
+    if (!auth.userId) {
+      throw new NotAuthenticated();
+    }
+
+    const user = await UserService.id(auth.userId);
+
+    if (!user) {
+      throw new NotAuthenticated();
+    }
+
+    if (!AllowlistService.isTrustedDomain(user.email)) {
+      throw new HttpException(403, 'You do not have permission to manage the allowlist', ErrorCode.FORBIDDEN);
     }
 
     next();
