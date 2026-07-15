@@ -3,7 +3,7 @@ import {DomainSchemas, UtilitySchemas} from '@merlin/shared';
 import type {NextFunction, Request, Response} from 'express';
 
 import {redis} from '../database/redis.js';
-import {NotAllowed, NotFound} from '../exceptions/index.js';
+import {BadRequest, ErrorCode, HttpException, NotAllowed, NotFound} from '../exceptions/index.js';
 import {requireAuth, requireEmailVerified} from '../middleware/auth.js';
 import {DomainService} from '../services/DomainService.js';
 import {Keys} from '../services/keys.js';
@@ -64,22 +64,20 @@ export class Domains {
 
     if (ownershipCheck.exists) {
       if (ownershipCheck.projectId === projectId) {
-        return res.status(400).json({
-          error: 'This domain is already linked to this project.',
-        });
+        throw new BadRequest('This domain is already linked to this project.');
       }
 
       // If domain exists and user is a member of that project, allow it
       if (ownershipCheck.isMember) {
-        return res.status(400).json({
-          error: `This domain is already linked to project "${ownershipCheck.projectName}". You are a member of that project, so you can use the domain from there.`,
-        });
+        throw new BadRequest(
+          `This domain is already linked to project "${ownershipCheck.projectName}". You are a member of that project, so you can use the domain from there.`,
+        );
       }
 
       // Domain exists but user is not a member - deny access
-      return res.status(403).json({
-        error: 'This domain is already linked to another project. Only members of that project can use this domain.',
-      });
+      throw new NotAllowed(
+        'This domain is already linked to another project. Only members of that project can use this domain.',
+      );
     }
 
     try {
@@ -89,8 +87,13 @@ export class Domains {
 
       return res.status(201).json(newDomain);
     } catch (error) {
+      // Surface the underlying error (e.g. AWS SES failure) through the standard
+      // error handler so the real message reaches the client and is logged.
+      if (error instanceof HttpException) {
+        throw error;
+      }
       if (error instanceof Error) {
-        return res.status(400).json({error: error.message});
+        throw new BadRequest(error.message, ErrorCode.EXTERNAL_SERVICE_ERROR);
       }
       throw error;
     }
