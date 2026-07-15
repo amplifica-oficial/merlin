@@ -23,13 +23,24 @@ model User {
   emailVerified Boolean    @default(false)
 
   // Relations
-  memberships Membership[]
+  memberships       Membership[]
+  allowlistedEmails AllowlistedEmail[]
 
   // Timestamps
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@map("users")
+}
+
+model AllowlistedEmail {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  addedBy   User?    @relation(fields: [addedById], references: [id], onDelete: SetNull)
+  addedById String?
+  createdAt DateTime @default(now())
+
+  @@map("allowlisted_emails")
 }
 
 model Project {
