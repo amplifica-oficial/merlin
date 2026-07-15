@@ -18,6 +18,7 @@ import {
   Menu,
   Plus,
   Settings,
+  ShieldCheck,
   Users,
   Workflow,
 } from 'lucide-react';
@@ -243,6 +244,21 @@ export function DashboardLayout({children}: DashboardLayoutProps) {
           <Settings className="h-5 w-5" />
           Settings
         </Link>
+
+        {user?.canManageAllowlist && (
+          <Link
+            href="/authorization"
+            onClick={() => setShowMobileMenu(false)}
+            className={`flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
+              router.pathname.startsWith('/authorization')
+                ? 'bg-neutral-100 text-neutral-900'
+                : 'text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900'
+            }`}
+          >
+            <ShieldCheck className="h-5 w-5" />
+            Authorization
+          </Link>
+        )}
 
         <DropdownMenu>
           <DropdownMenuTrigger className="group w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">

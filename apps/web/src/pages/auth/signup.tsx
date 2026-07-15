@@ -49,6 +49,7 @@ export default function Signup() {
     google: config?.features.authProviders.google ?? false,
   };
   const signupsDisabled = config?.features.signup.signupsDisabled ?? false;
+  const allowlistRestricted = config?.features.signup.allowlistRestricted ?? false;
 
   async function onSubmit(values: z.infer<typeof AuthenticationSchemas.signup>) {
     try {
@@ -123,7 +124,11 @@ export default function Signup() {
                     <div className="flex flex-col gap-6">
                       <div className="flex flex-col gap-1.5">
                         <h1 className="text-2xl font-bold tracking-tight">Create an account</h1>
-                        <p className="text-sm text-neutral-500">Start sending emails in minutes</p>
+                        <p className="text-sm text-neutral-500">
+                          {allowlistRestricted
+                            ? 'Registration is limited to authorized emails on this instance'
+                            : 'Start sending emails in minutes'}
+                        </p>
                       </div>
 
                       {(oauthConfig.github || oauthConfig.google) && (

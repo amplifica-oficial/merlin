@@ -11,7 +11,7 @@ export interface ConfigResponse {
     billing: {enabled: boolean};
     storage: {s3Enabled: boolean};
     authProviders: {github: boolean; google: boolean};
-    signup: {signupsDisabled: boolean};
+    signup: {signupsDisabled: boolean; allowlistRestricted: boolean};
     email: {trackingToggleEnabled: boolean};
   };
   aws: {
