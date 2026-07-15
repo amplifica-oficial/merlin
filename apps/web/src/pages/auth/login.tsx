@@ -70,7 +70,7 @@ export default function Login() {
       const response = await network.fetch<
         {
           success: boolean;
-          data: {id: string; email: string};
+          data: {id: string; email: string} | {needsVerification: true; email: string};
         },
         typeof AuthenticationSchemas.login
       >('POST', '/auth/login', values);
@@ -79,6 +79,12 @@ export default function Login() {
         setErrorMessage('Email or password is incorrect');
       } else {
         setErrorMessage(null);
+
+        if ('needsVerification' in response.data && response.data.needsVerification) {
+          await router.push(`/auth/verify-email?email=${encodeURIComponent(response.data.email)}`);
+          return;
+        }
+
         localStorage.setItem('merlin_last_auth_method', 'email');
 
         await userMutate();

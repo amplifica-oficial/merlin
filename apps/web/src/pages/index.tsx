@@ -11,6 +11,7 @@ import {
   Skeleton,
 } from '@merlin/ui';
 import type {Activity, ActivityStats, CursorPaginatedResponse} from '@merlin/types';
+import {AuthenticationSchemas} from '@merlin/shared';
 import {animate, AnimatePresence, motion, useMotionValue, useTransform} from 'framer-motion';
 import {
   AlertCircle,
@@ -374,10 +375,18 @@ export default function Index() {
     !hasDelivData ? 'text-neutral-500' : worstLevel === 'healthy' ? 'text-emerald-700' : worstLevel === 'warning' ? 'text-amber-700' : 'text-red-700';
 
   async function handleResendVerification() {
+    if (!user?.email) {
+      return;
+    }
+
     setIsResending(true);
     setResendMessage('');
     try {
-      const response = await network.fetch<{success: boolean}>('POST', '/auth/request-verification');
+      const response = await network.fetch<{success: boolean}, typeof AuthenticationSchemas.requestVerification>(
+        'POST',
+        '/auth/request-verification',
+        {email: user.email},
+      );
 
       if (response.success) {
         setResendMessage('Verification email sent! Please check your inbox.');

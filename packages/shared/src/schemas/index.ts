@@ -52,6 +52,9 @@ export const AuthenticationSchemas = {
   verifyEmail: z.object({
     token: z.string().length(64, 'Invalid verification token'),
   }),
+  requestVerification: z.object({
+    email,
+  }),
   requestPasswordReset: z.object({
     email,
   }),

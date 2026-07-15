@@ -56,7 +56,10 @@ export default function Signup() {
       const response = await network.fetch<
         {
           success: boolean;
-          data: {id: string; email: string} | string;
+          data:
+            | {id: string; email: string}
+            | {needsVerification: true; email: string}
+            | string;
         },
         typeof AuthenticationSchemas.signup
       >('POST', '/auth/signup', values);
@@ -66,6 +69,11 @@ export default function Signup() {
         setErrorMessage(errorData);
       } else {
         setErrorMessage(null);
+
+        if (typeof response.data === 'object' && 'needsVerification' in response.data && response.data.needsVerification) {
+          await router.push(`/auth/verify-email?email=${encodeURIComponent(response.data.email)}`);
+          return;
+        }
 
         await userMutate();
         await projectsMutate();

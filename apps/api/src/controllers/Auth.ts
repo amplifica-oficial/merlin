@@ -19,8 +19,8 @@ import {
 } from '../app/constants.js';
 import {prisma} from '../database/prisma.js';
 import {redis, REDIS_ONE_MINUTE} from '../database/redis.js';
-import {BadRequest, NotAuthenticated, RateLimitError} from '../exceptions/index.js';
-import {jwt, parseJwt} from '../middleware/auth.js';
+import {BadRequest} from '../exceptions/index.js';
+import {jwt} from '../middleware/auth.js';
 import {AuthService} from '../services/AuthService.js';
 import {AllowlistService} from '../services/AllowlistService.js';
 import {EmailVerificationService} from '../services/EmailVerificationService.js';
@@ -50,6 +50,13 @@ export class Auth {
 
     if (!verified) {
       return res.json({success: false, data: 'Incorrect email or password'});
+    }
+
+    if (MERLIN_ENABLED && user.type === 'PASSWORD' && !user.emailVerified) {
+      return res.json({
+        success: true,
+        data: {needsVerification: true, email: user.email},
+      });
     }
 
     await redis.set(Keys.User.id(user.id), JSON.stringify(user), 'EX', REDIS_ONE_MINUTE * 60);
@@ -154,6 +161,11 @@ export class Auth {
           dashboardUrl: DASHBOARD_URI,
         }),
       );
+
+      return res.json({
+        success: true,
+        data: {needsVerification: true, email: created_user.email},
+      });
     }
 
     const token = jwt.sign(created_user.id);
@@ -212,49 +224,40 @@ export class Auth {
   @Post('request-verification')
   @CatchAsync
   public async requestVerification(req: Request, res: Response, _next: NextFunction) {
-    const userId = parseJwt(req);
-    const user = await UserService.id(userId);
+    const {email} = AuthenticationSchemas.requestVerification.parse(req.body);
 
-    if (!user) {
-      throw new NotAuthenticated();
-    }
-
-    if (user.emailVerified) {
-      return res.json({success: true, data: {message: 'Email already verified'}});
-    }
-
-    // Check rate limit
-    const rateLimitKey = Keys.User.emailVerificationRateLimit(userId);
+    const rateLimitKey = Keys.User.emailVerificationRateLimit(email);
     const count = await redis.get(rateLimitKey);
 
     if (count && parseInt(count) >= EMAIL_VERIFICATION_RATE_LIMIT) {
-      throw new RateLimitError('Too many verification emails sent. Please try again later.');
+      return res.json({success: true, data: {message: 'If that email exists, a verification link has been sent'}});
     }
 
-    // Generate token
-    const token = randomBytes(32).toString('hex');
-    await redis.setex(
-      Keys.User.emailVerificationToken(token),
-      TOKEN_EXPIRY_SECONDS,
-      JSON.stringify({userId, email: user.email, createdAt: Date.now()}),
-    );
+    const user = await UserService.email(email);
 
-    // Send email
-    const verificationUrl = `${DASHBOARD_URI}/auth/verify-email?token=${token}`;
-    await sendPlatformEmail(
-      user.email,
-      'Verify your email address',
-      React.createElement(EmailVerificationEmail, {email: user.email, verificationUrl, dashboardUrl: DASHBOARD_URI}),
-    );
+    if (user && user.type === 'PASSWORD' && !user.emailVerified) {
+      const token = randomBytes(32).toString('hex');
+      await redis.setex(
+        Keys.User.emailVerificationToken(token),
+        TOKEN_EXPIRY_SECONDS,
+        JSON.stringify({userId: user.id, email: user.email, createdAt: Date.now()}),
+      );
 
-    // Increment rate limit
-    if (count) {
-      await redis.incr(rateLimitKey);
-    } else {
-      await redis.setex(rateLimitKey, EMAIL_VERIFICATION_RATE_WINDOW, '1');
+      const verificationUrl = `${DASHBOARD_URI}/auth/verify-email?token=${token}`;
+      await sendPlatformEmail(
+        user.email,
+        'Verify your email address',
+        React.createElement(EmailVerificationEmail, {email: user.email, verificationUrl, dashboardUrl: DASHBOARD_URI}),
+      );
+
+      if (count) {
+        await redis.incr(rateLimitKey);
+      } else {
+        await redis.setex(rateLimitKey, EMAIL_VERIFICATION_RATE_WINDOW, '1');
+      }
     }
 
-    return res.json({success: true, data: {message: 'Verification email sent'}});
+    return res.json({success: true, data: {message: 'If that email exists, a verification link has been sent'}});
   }
 
   @Post('request-password-reset')

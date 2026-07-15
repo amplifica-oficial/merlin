@@ -363,6 +363,14 @@ export const requireEmailVerified = async (req: Request, res: Response, next: Ne
       return next();
     }
 
+    if (!user.emailVerified) {
+      throw new HttpException(
+        403,
+        'Please verify your email address to access this resource',
+        ErrorCode.EMAIL_VERIFICATION_REQUIRED,
+      );
+    }
+
     next();
   } catch (error) {
     next(error);
