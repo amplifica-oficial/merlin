@@ -10,7 +10,7 @@ export interface ConfigResponse {
   features: {
     billing: {enabled: boolean};
     storage: {s3Enabled: boolean};
-    authProviders: {github: boolean; google: boolean};
+    authProviders: {github: boolean; google: boolean; passwordDisabled: boolean};
     signup: {signupsDisabled: boolean; allowlistRestricted: boolean};
     email: {trackingToggleEnabled: boolean};
   };

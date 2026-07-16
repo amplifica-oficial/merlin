@@ -63,7 +63,9 @@ export default function Login() {
     github: config?.features.authProviders.github ?? false,
     google: config?.features.authProviders.google ?? false,
   };
+  const passwordDisabled = config?.features.authProviders.passwordDisabled ?? false;
   const signupsDisabled = config?.features.signup.signupsDisabled ?? false;
+  const hasOAuth = oauthConfig.github || oauthConfig.google;
 
   async function onSubmit(values: z.infer<typeof AuthenticationSchemas.login>) {
     try {
@@ -222,17 +224,27 @@ export default function Login() {
                             </div>
                           )}
                         </div>
-                        <div className="relative">
-                          <div className="absolute inset-0 flex items-center">
-                            <span className="w-full border-t border-neutral-200" />
+                        {!passwordDisabled && (
+                          <div className="relative">
+                            <div className="absolute inset-0 flex items-center">
+                              <span className="w-full border-t border-neutral-200" />
+                            </div>
+                            <div className="relative flex justify-center text-xs uppercase">
+                              <span className="bg-white px-2 text-neutral-400 tracking-wider">or</span>
+                            </div>
                           </div>
-                          <div className="relative flex justify-center text-xs uppercase">
-                            <span className="bg-white px-2 text-neutral-400 tracking-wider">or</span>
-                          </div>
-                        </div>
+                        )}
                       </>
                     )}
 
+                    {passwordDisabled && !hasOAuth && (
+                      <p className="text-sm text-neutral-500 text-center">
+                        No login methods are enabled on this instance. Contact your administrator.
+                      </p>
+                    )}
+
+                    {!passwordDisabled && (
+                      <>
                     <div className="grid gap-4">
                       <FormField
                         control={form.control}
@@ -310,6 +322,8 @@ export default function Login() {
                         </Link>
                       </p>
                     )}
+                      </>
+                    )}
                   </div>
                 </form>
               </Form>
@@ -317,6 +331,7 @@ export default function Login() {
           </Card>
         </div>
 
+        {!passwordDisabled && (
         <Dialog
           open={showReset}
           onOpenChange={open => {
@@ -370,6 +385,7 @@ export default function Login() {
             </form>
           </DialogContent>
         </Dialog>
+        )}
       </div>
     </>
   );
