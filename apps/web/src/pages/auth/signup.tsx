@@ -23,6 +23,7 @@ import {useForm} from 'react-hook-form';
 import type {z} from 'zod';
 
 import {API_URI} from '../../lib/constants';
+import {formatAuthMessage} from '../../lib/authMessages';
 import {useConfig} from '../../lib/hooks/useConfig';
 import {useProjects} from '../../lib/hooks/useProject';
 import {useUser} from '../../lib/hooks/useUser';
@@ -68,7 +69,7 @@ export default function Signup() {
 
       if (!response.success) {
         const errorData = typeof response.data === 'string' ? response.data : 'Something went wrong';
-        setErrorMessage(errorData);
+        setErrorMessage(formatAuthMessage(errorData));
       } else {
         setErrorMessage(null);
 

@@ -24,11 +24,12 @@ import {NextSeo} from 'next-seo';
 import Image from 'next/image';
 import Link from 'next/link';
 import {useRouter} from 'next/router';
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {useForm} from 'react-hook-form';
 import type {z} from 'zod';
 
 import {API_URI} from '../../lib/constants';
+import {formatAuthMessage} from '../../lib/authMessages';
 import {useConfig} from '../../lib/hooks/useConfig';
 import {useProjects} from '../../lib/hooks/useProject';
 import {useUser} from '../../lib/hooks/useUser';
@@ -66,6 +67,17 @@ export default function Login() {
   const passwordDisabled = config?.features.authProviders.passwordDisabled ?? false;
   const signupsDisabled = config?.features.signup.signupsDisabled ?? false;
   const hasOAuth = oauthConfig.github || oauthConfig.google;
+
+  useEffect(() => {
+    if (!router.isReady) {
+      return;
+    }
+
+    const message = router.query.message;
+    if (typeof message === 'string' && message.length > 0) {
+      setErrorMessage(formatAuthMessage(message));
+    }
+  }, [router.isReady, router.query.message]);
 
   async function onSubmit(values: z.infer<typeof AuthenticationSchemas.login>) {
     try {
@@ -243,6 +255,20 @@ export default function Login() {
                       </p>
                     )}
 
+                    <AnimatePresence>
+                      {errorMessage && (
+                        <motion.p
+                          initial={{opacity: 0, y: -8}}
+                          animate={{opacity: 1, y: 0}}
+                          exit={{opacity: 0, y: -8}}
+                          transition={{duration: 0.15}}
+                          className="text-sm text-red-500"
+                        >
+                          {errorMessage}
+                        </motion.p>
+                      )}
+                    </AnimatePresence>
+
                     {!passwordDisabled && (
                       <>
                     <div className="grid gap-4">
@@ -288,20 +314,6 @@ export default function Login() {
                         )}
                       />
                     </div>
-
-                    <AnimatePresence>
-                      {errorMessage && (
-                        <motion.p
-                          initial={{opacity: 0, y: -8}}
-                          animate={{opacity: 1, y: 0}}
-                          exit={{opacity: 0, y: -8}}
-                          transition={{duration: 0.15}}
-                          className="text-sm text-red-500"
-                        >
-                          {errorMessage}
-                        </motion.p>
-                      )}
-                    </AnimatePresence>
 
                     <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
                       {form.formState.isSubmitting ? (
