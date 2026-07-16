@@ -182,6 +182,7 @@ services:
       # Self-hosting user management (documented in .env.self-host.example
       # and read by apps/api/src/app/constants.ts at import time)
       DISABLE_SIGNUPS: ${DISABLE_SIGNUPS:-false}
+      DISABLE_PASSWORD_AUTH: ${DISABLE_PASSWORD_AUTH:-false}
 
       # Explicit SES sending rate (avoid silent fallback to 14/sec when
       # ses:GetSendQuota is denied or transiently fails at worker startup)
