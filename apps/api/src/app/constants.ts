@@ -116,6 +116,8 @@ export const AUTO_PROJECT_DISABLE = validateEnv('AUTO_PROJECT_DISABLE', 'true') 
 // Self-hosting Configuration (optional)
 // Controls whether new user signups are allowed (default: false)
 export const DISABLE_SIGNUPS = process.env.DISABLE_SIGNUPS === 'true';
+// Controls whether email+password auth (login/signup/reset) is allowed (default: false)
+export const DISABLE_PASSWORD_AUTH = process.env.DISABLE_PASSWORD_AUTH === 'true';
 // Controls whether email validation checks are performed on signup (default: false)
 export const VERIFY_EMAIL_ON_SIGNUP = process.env.VERIFY_EMAIL_ON_SIGNUP === 'true';
 

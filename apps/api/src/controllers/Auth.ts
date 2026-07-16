@@ -7,6 +7,7 @@ import * as React from 'react';
 
 import {
   DASHBOARD_URI,
+  DISABLE_PASSWORD_AUTH,
   DISABLE_SIGNUPS,
   EMAIL_VERIFICATION_RATE_LIMIT,
   EMAIL_VERIFICATION_RATE_WINDOW,
@@ -34,6 +35,10 @@ export class Auth {
   @Post('login')
   @CatchAsync
   public async login(req: Request, res: Response, _next: NextFunction) {
+    if (DISABLE_PASSWORD_AUTH) {
+      return res.json({success: false, data: 'Password login is disabled'});
+    }
+
     const {email, password} = AuthenticationSchemas.login.parse(req.body);
 
     const user = await UserService.email(email);
@@ -72,6 +77,13 @@ export class Auth {
   @Post('signup')
   @CatchAsync
   public async signup(req: Request, res: Response, _next: NextFunction) {
+    if (DISABLE_PASSWORD_AUTH) {
+      return res.json({
+        success: false,
+        data: 'Password signup is disabled',
+      });
+    }
+
     // Check if signups are disabled
     if (DISABLE_SIGNUPS) {
       return res.json({
@@ -197,6 +209,10 @@ export class Auth {
   @Post('verify-email')
   @CatchAsync
   public async verifyEmail(req: Request, res: Response, _next: NextFunction) {
+    if (DISABLE_PASSWORD_AUTH) {
+      throw new BadRequest('Password authentication is disabled');
+    }
+
     const {token} = AuthenticationSchemas.verifyEmail.parse(req.body);
 
     // Look up token in Redis
@@ -224,6 +240,10 @@ export class Auth {
   @Post('request-verification')
   @CatchAsync
   public async requestVerification(req: Request, res: Response, _next: NextFunction) {
+    if (DISABLE_PASSWORD_AUTH) {
+      return res.json({success: true, data: {message: 'If that email exists, a verification link has been sent'}});
+    }
+
     const {email} = AuthenticationSchemas.requestVerification.parse(req.body);
 
     const rateLimitKey = Keys.User.emailVerificationRateLimit(email);
@@ -263,6 +283,10 @@ export class Auth {
   @Post('request-password-reset')
   @CatchAsync
   public async requestPasswordReset(req: Request, res: Response, _next: NextFunction) {
+    if (DISABLE_PASSWORD_AUTH) {
+      return res.json({success: true, data: {message: 'If that email exists, a reset link has been sent'}});
+    }
+
     const {email} = AuthenticationSchemas.requestPasswordReset.parse(req.body);
 
     // Check rate limit
@@ -308,6 +332,10 @@ export class Auth {
   @Post('reset-password')
   @CatchAsync
   public async resetPassword(req: Request, res: Response, _next: NextFunction) {
+    if (DISABLE_PASSWORD_AUTH) {
+      throw new BadRequest('Password authentication is disabled');
+    }
+
     const {token, newPassword} = AuthenticationSchemas.resetPassword.parse(req.body);
 
     // Look up token

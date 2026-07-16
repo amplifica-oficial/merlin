@@ -13,6 +13,7 @@ import {
   ALLOWLIST_RESTRICTED,
   ALLOWLIST_TRUSTED_DOMAINS,
   DASHBOARD_URI,
+  DISABLE_PASSWORD_AUTH,
   GITHUB_OAUTH_ENABLED,
   GOOGLE_OAUTH_ENABLED,
   NODE_ENV,
@@ -460,6 +461,11 @@ void prisma.$connect().then(async () => {
           ? `Restricted to ${ALLOWLIST_TRUSTED_DOMAINS.length} trusted domain(s)`
           : 'Closed (allowlist table only)',
     },
+    {
+      name: 'Password auth',
+      enabled: !DISABLE_PASSWORD_AUTH,
+      details: DISABLE_PASSWORD_AUTH ? 'Email+password login disabled' : 'Email+password login enabled',
+    },
   ];
 
   const rows = features.map(f => ({
@@ -472,6 +478,12 @@ void prisma.$connect().then(async () => {
   if (ALLOWLIST_RESTRICTED && !MERLIN_ENABLED) {
     signale.warn(
       '[ALLOWLIST] Restricted signup mode is active but platform emails are disabled. Email verification links will not be sent.',
+    );
+  }
+
+  if (DISABLE_PASSWORD_AUTH && !GOOGLE_OAUTH_ENABLED && !GITHUB_OAUTH_ENABLED) {
+    signale.warn(
+      '[AUTH] Password authentication is disabled but no OAuth providers are configured. No login methods are available.',
     );
   }
 
