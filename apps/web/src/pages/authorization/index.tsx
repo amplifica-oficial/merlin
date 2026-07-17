@@ -1,9 +1,10 @@
 import {NextSeo} from 'next-seo';
 import {useRouter} from 'next/router';
 import {useEffect} from 'react';
-import {IconSpinner} from '@merlin/ui';
+import {IconSpinner, Tabs, TabsContent, TabsList, TabsTrigger} from '@merlin/ui';
 
 import {AllowlistSettings} from '../../components/AllowlistSettings';
+import {AuditLogSettings} from '../../components/AuditLogSettings';
 import {DashboardLayout} from '../../components/DashboardLayout';
 import {useUser} from '../../lib/hooks/useUser';
 
@@ -42,7 +43,19 @@ export default function AuthorizationPage() {
             page.
           </p>
         </div>
-        <AllowlistSettings />
+
+        <Tabs defaultValue="emails">
+          <TabsList>
+            <TabsTrigger value="emails">Authorized emails</TabsTrigger>
+            <TabsTrigger value="audit-log">Audit log</TabsTrigger>
+          </TabsList>
+          <TabsContent value="emails">
+            <AllowlistSettings />
+          </TabsContent>
+          <TabsContent value="audit-log">
+            <AuditLogSettings />
+          </TabsContent>
+        </Tabs>
       </div>
     </DashboardLayout>
   );
