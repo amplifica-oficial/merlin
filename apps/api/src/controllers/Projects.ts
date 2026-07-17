@@ -127,6 +127,27 @@ export class Projects {
   }
 
   /**
+   * Get pending invites for a project
+   * GET /projects/:id/pending-members
+   */
+  @Get(':id/pending-members')
+  @Middleware([requireAuth, requireEmailVerified])
+  @CatchAsync
+  private async getPendingMembers(req: Request, res: Response, _next: NextFunction) {
+    const auth = res.locals.auth;
+    const {id} = UtilitySchemas.id.parse(req.params);
+
+    await MembershipService.requireAccess(auth.userId!, id);
+
+    const pendingMembers = await ProjectShareService.listPendingShares(id);
+
+    return res.json({
+      success: true,
+      data: pendingMembers,
+    });
+  }
+
+  /**
    * Add a member to a project by email
    * POST /projects/:id/members
    * Body: { email: string, role?: 'ADMIN' | 'MEMBER' }
@@ -156,7 +177,7 @@ export class Projects {
     await MembershipService.requireAdminAccess(auth.userId!, id);
 
     const isExternal = !AllowlistService.isTrustedDomain(normalized);
-    const effectiveRole = isExternal ? 'MEMBER' : role;
+    const effectiveRole = AllowlistService.resolveEffectiveRole(normalized, role);
 
     if (isExternal) {
       const allowlisted = await AllowlistService.isAllowlisted(normalized);
@@ -279,15 +300,17 @@ export class Projects {
       throw new HttpException(404, 'User not found');
     }
 
+    const effectiveRole = AllowlistService.resolveEffectiveRole(user.email, role);
+
     // Update role (service handles validation)
-    await MembershipService.updateRole(id, userId, role);
+    await MembershipService.updateRole(id, userId, effectiveRole);
 
     return res.json({
       success: true,
       data: {
         userId: user.id,
         email: user.email,
-        role,
+        role: effectiveRole,
       },
     });
   }
@@ -325,6 +348,34 @@ export class Projects {
     return res.json({
       success: true,
       data: {message: 'Member removed successfully'},
+    });
+  }
+
+  /**
+   * Revoke a pending invite for a project
+   * DELETE /projects/:id/pending-members/:shareId
+   */
+  @Delete(':id/pending-members/:shareId')
+  @Middleware([requireAuth, requireEmailVerified])
+  @CatchAsync
+  private async revokePendingMember(req: Request, res: Response, _next: NextFunction) {
+    const auth = res.locals.auth;
+    const {id, shareId} = req.params;
+
+    if (!id) {
+      throw new HttpException(400, 'Project ID is required');
+    }
+    if (!shareId) {
+      throw new HttpException(400, 'Share ID is required');
+    }
+
+    await MembershipService.requireAdminAccess(auth.userId!, id);
+
+    await ProjectShareService.revokePendingShare(id, shareId);
+
+    return res.json({
+      success: true,
+      data: {message: 'Pending invite revoked successfully'},
     });
   }
 }

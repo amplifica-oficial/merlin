@@ -1,8 +1,11 @@
 import type {Prisma} from '@prisma/client';
+import type {PendingMember} from '@merlin/types';
 import signale from 'signale';
 
 import {prisma} from '../database/prisma.js';
+import {HttpException} from '../exceptions/index.js';
 import {normalizeEmail} from '../utils/email.js';
+import {AllowlistService} from './AllowlistService.js';
 import {MembershipService} from './MembershipService.js';
 import {UserService} from './UserService.js';
 
@@ -28,6 +31,7 @@ export class ProjectShareService {
 
     const db = tx ?? prisma;
     const normalized = normalizeEmail(email);
+    const effectiveRole = AllowlistService.resolveEffectiveRole(normalized, role);
     const existingUser = tx
       ? await db.user.findFirst({
           where: {
@@ -57,7 +61,7 @@ export class ProjectShareService {
             data: {
               userId: existingUser.id,
               projectId,
-              role,
+              role: effectiveRole,
             },
           });
           cacheInvalidations.push({userId: existingUser.id, projectId});
@@ -73,11 +77,11 @@ export class ProjectShareService {
           create: {
             email: normalized,
             projectId,
-            role,
+            role: effectiveRole,
             addedById,
           },
           update: {
-            role,
+            role: effectiveRole,
             addedById,
           },
         });
@@ -117,12 +121,12 @@ export class ProjectShareService {
       });
 
       if (!membership) {
-        const role = share.role === 'ADMIN' ? 'ADMIN' : 'MEMBER';
+        const effectiveRole = AllowlistService.resolveEffectiveRole(normalized, share.role === 'ADMIN' ? 'ADMIN' : 'MEMBER');
         await prisma.membership.create({
           data: {
             userId,
             projectId: share.projectId,
-            role,
+            role: effectiveRole,
           },
         });
         cacheInvalidations.push({userId, projectId: share.projectId});
@@ -177,5 +181,39 @@ export class ProjectShareService {
       id: m.project.id,
       name: m.project.name,
     }));
+  }
+
+  /**
+   * List pending project shares for a project (emails without accounts yet).
+   */
+  public static async listPendingShares(projectId: string): Promise<PendingMember[]> {
+    const shares = await prisma.pendingProjectShare.findMany({
+      where: {projectId},
+      orderBy: {createdAt: 'desc'},
+      select: {
+        id: true,
+        email: true,
+        role: true,
+        createdAt: true,
+      },
+    });
+
+    return shares;
+  }
+
+  /**
+   * Revoke a pending project share scoped to a project.
+   */
+  public static async revokePendingShare(projectId: string, shareId: string): Promise<void> {
+    const result = await prisma.pendingProjectShare.deleteMany({
+      where: {
+        id: shareId,
+        projectId,
+      },
+    });
+
+    if (result.count === 0) {
+      throw new HttpException(404, 'Pending invite not found');
+    }
   }
 }
