@@ -26,6 +26,7 @@ model User {
   memberships          Membership[]
   allowlistedEmails    AllowlistedEmail[]
   pendingProjectShares PendingProjectShare[]
+  auditLogs            AuditLog[]
 
   // Timestamps
   createdAt DateTime @default(now())
@@ -57,6 +58,21 @@ model PendingProjectShare {
   @@unique([email, projectId])
   @@index([email])
   @@map("pending_project_shares")
+}
+
+model AuditLog {
+  id          String   @id @default(uuid())
+  action      String
+  actor       User?    @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  actorId     String?
+  actorEmail  String?
+  targetEmail String?
+  metadata    Json?
+  createdAt   DateTime @default(now())
+
+  @@index([action])
+  @@index([createdAt])
+  @@map("audit_logs")
 }
 
 model Project {
