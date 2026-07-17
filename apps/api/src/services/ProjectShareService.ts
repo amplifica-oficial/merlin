@@ -44,13 +44,15 @@ export class ProjectShareService {
       : await UserService.email(normalized);
 
     const cacheInvalidations: Array<{userId: string; projectId: string}> = [];
+    const canGrantImmediately =
+      existingUser !== null && (existingUser.emailVerified || existingUser.type !== 'PASSWORD');
 
     for (const projectId of projectIds) {
-      if (existingUser) {
+      if (canGrantImmediately) {
         const membership = await db.membership.findUnique({
           where: {
             userId_projectId: {
-              userId: existingUser.id,
+              userId: existingUser!.id,
               projectId,
             },
           },
@@ -59,12 +61,12 @@ export class ProjectShareService {
         if (!membership) {
           await db.membership.create({
             data: {
-              userId: existingUser.id,
+              userId: existingUser!.id,
               projectId,
               role: effectiveRole,
             },
           });
-          cacheInvalidations.push({userId: existingUser.id, projectId});
+          cacheInvalidations.push({userId: existingUser!.id, projectId});
         }
       } else {
         await db.pendingProjectShare.upsert({
@@ -99,6 +101,16 @@ export class ProjectShareService {
    * Materialize pending project shares for a user after signup/login.
    */
   public static async materializePendingShares(userId: string, email: string): Promise<void> {
+    const user = await prisma.user.findUnique({where: {id: userId}});
+
+    if (!user) {
+      return;
+    }
+
+    if (user.type === 'PASSWORD' && !user.emailVerified) {
+      return;
+    }
+
     const normalized = normalizeEmail(email);
     const pendingShares = await prisma.pendingProjectShare.findMany({
       where: {email: normalized},

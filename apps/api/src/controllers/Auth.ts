@@ -66,8 +66,6 @@ export class Auth {
       });
     }
 
-    await ProjectShareService.tryMaterializePendingShares(user.id, user.email);
-
     await redis.set(Keys.User.id(user.id), JSON.stringify(user), 'EX', REDIS_ONE_MINUTE * 60);
 
     const token = jwt.sign(user.id);
@@ -148,12 +146,9 @@ export class Auth {
         email: normalizeEmail(email),
         password: await AuthService.generateHash(password),
         type: 'PASSWORD',
-        // Auto-verify email if platform emails are disabled
-        emailVerified: !MERLIN_ENABLED,
+        emailVerified: false,
       },
     });
-
-    await ProjectShareService.tryMaterializePendingShares(created_user.id, created_user.email);
 
     await redis.set(Keys.User.id(created_user.id), JSON.stringify(created_user), 'EX', REDIS_ONE_MINUTE * 60);
 
@@ -228,13 +223,15 @@ export class Auth {
       throw new BadRequest('Invalid or expired verification token');
     }
 
-    const {userId} = JSON.parse(data);
+    const {userId, email} = JSON.parse(data);
 
     // Update user
     await prisma.user.update({
       where: {id: userId},
       data: {emailVerified: true},
     });
+
+    await ProjectShareService.tryMaterializePendingShares(userId, email);
 
     // Delete token (single use) and invalidate cache
     await redis.del(Keys.User.emailVerificationToken(token));

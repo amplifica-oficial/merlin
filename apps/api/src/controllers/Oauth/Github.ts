@@ -74,10 +74,14 @@ export class Github {
       return res.redirect(DASHBOARD_URI + '/auth/login?message=Failed to retrieve emails from GitHub');
     }
 
-    const primaryEmail = emails.find((e: {primary: boolean; email: string}) => e.primary);
+    const primaryEmail = emails.find(
+      (e: {primary: boolean; verified: boolean; email: string}) => e.primary && e.verified,
+    );
 
     if (!primaryEmail || !primaryEmail.email || typeof primaryEmail.email !== 'string') {
-      return res.redirect(DASHBOARD_URI + '/auth/login?message=Failed to retrieve primary email from GitHub');
+      return res.redirect(
+        DASHBOARD_URI + '/auth/login?message=Failed to retrieve a verified primary email from GitHub',
+      );
     }
 
     const email = primaryEmail.email;

@@ -4,7 +4,14 @@ import {Controller, Delete, Get, Middleware, Patch, Post, Put} from '@overnightj
 import {BillingLimitSchemas, ProjectSchemas, UtilitySchemas} from '@merlin/shared';
 import type {NextFunction, Request, Response} from 'express';
 
-import {DASHBOARD_URI, ALLOWLIST_OPEN, STRIPE_ENABLED, STRIPE_PRICE_EMAIL_USAGE, STRIPE_PRICE_ONBOARDING} from '../app/constants.js';
+import {
+  ALLOWLIST_OPEN,
+  DASHBOARD_URI,
+  MERLIN_ENABLED,
+  STRIPE_ENABLED,
+  STRIPE_PRICE_EMAIL_USAGE,
+  STRIPE_PRICE_ONBOARDING,
+} from '../app/constants.js';
 import {stripe} from '../app/stripe.js';
 import {prisma} from '../database/prisma.js';
 import {ErrorCode, HttpException, NotAuthenticated, NotFound} from '../exceptions/index.js';
@@ -41,6 +48,7 @@ export class Users {
       email: me.email,
       type: me.type,
       emailVerified: me.emailVerified,
+      emailVerificationEnabled: MERLIN_ENABLED,
       canManageAllowlist: AllowlistService.isTrustedDomain(me.email),
     });
   }
