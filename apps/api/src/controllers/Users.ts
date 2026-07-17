@@ -4,7 +4,7 @@ import {Controller, Delete, Get, Middleware, Patch, Post, Put} from '@overnightj
 import {BillingLimitSchemas, ProjectSchemas, UtilitySchemas} from '@merlin/shared';
 import type {NextFunction, Request, Response} from 'express';
 
-import {DASHBOARD_URI, STRIPE_ENABLED, STRIPE_PRICE_EMAIL_USAGE, STRIPE_PRICE_ONBOARDING} from '../app/constants.js';
+import {DASHBOARD_URI, ALLOWLIST_OPEN, STRIPE_ENABLED, STRIPE_PRICE_EMAIL_USAGE, STRIPE_PRICE_ONBOARDING} from '../app/constants.js';
 import {stripe} from '../app/stripe.js';
 import {prisma} from '../database/prisma.js';
 import {ErrorCode, HttpException, NotAuthenticated, NotFound} from '../exceptions/index.js';
@@ -68,6 +68,20 @@ export class Users {
 
     if (!auth.userId) {
       throw new NotAuthenticated();
+    }
+
+    const me = await UserService.id(auth.userId);
+
+    if (!me) {
+      throw new NotAuthenticated();
+    }
+
+    if (!ALLOWLIST_OPEN && !AllowlistService.isTrustedDomain(me.email)) {
+      throw new HttpException(
+        403,
+        'Only users with a trusted company email can create new projects on this instance',
+        ErrorCode.FORBIDDEN,
+      );
     }
 
     // Check if user is a member of any disabled project

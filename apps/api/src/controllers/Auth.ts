@@ -24,11 +24,13 @@ import {BadRequest} from '../exceptions/index.js';
 import {jwt} from '../middleware/auth.js';
 import {AuthService} from '../services/AuthService.js';
 import {AllowlistService} from '../services/AllowlistService.js';
+import {ProjectShareService} from '../services/ProjectShareService.js';
 import {EmailVerificationService} from '../services/EmailVerificationService.js';
 import {NtfyService} from '../services/NtfyService.js';
 import {UserService} from '../services/UserService.js';
 import {Keys} from '../services/keys.js';
 import {CatchAsync} from '../utils/asyncHandler.js';
+import {normalizeEmail} from '../utils/email.js';
 
 @Controller('auth')
 export class Auth {
@@ -63,6 +65,8 @@ export class Auth {
         data: {needsVerification: true, email: user.email},
       });
     }
+
+    await ProjectShareService.tryMaterializePendingShares(user.id, user.email);
 
     await redis.set(Keys.User.id(user.id), JSON.stringify(user), 'EX', REDIS_ONE_MINUTE * 60);
 
@@ -141,13 +145,15 @@ export class Auth {
 
     const created_user = await prisma.user.create({
       data: {
-        email,
+        email: normalizeEmail(email),
         password: await AuthService.generateHash(password),
         type: 'PASSWORD',
         // Auto-verify email if platform emails are disabled
         emailVerified: !MERLIN_ENABLED,
       },
     });
+
+    await ProjectShareService.tryMaterializePendingShares(created_user.id, created_user.email);
 
     await redis.set(Keys.User.id(created_user.id), JSON.stringify(created_user), 'EX', REDIS_ONE_MINUTE * 60);
 

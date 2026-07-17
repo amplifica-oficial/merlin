@@ -4,6 +4,8 @@ import type {NextFunction, Request, Response} from 'express';
 
 import {isAuthenticated, requireEmailVerified, requireTrustedDomain} from '../middleware/auth.js';
 import {AllowlistService} from '../services/AllowlistService.js';
+import {MembershipService} from '../services/MembershipService.js';
+import {ProjectShareService} from '../services/ProjectShareService.js';
 import {CatchAsync} from '../utils/asyncHandler.js';
 
 @Controller('allowlist')
@@ -17,15 +19,32 @@ export class Allowlist {
     return res.status(200).json({success: true, data});
   }
 
+  @Get('shareable-projects')
+  @Middleware([isAuthenticated, requireEmailVerified, requireTrustedDomain])
+  @CatchAsync
+  public async shareableProjects(_req: Request, res: Response, _next: NextFunction) {
+    const auth = res.locals.auth;
+    const data = await ProjectShareService.listShareableProjects(auth.userId!);
+
+    return res.status(200).json({success: true, data});
+  }
+
   @Post('')
   @Middleware([isAuthenticated, requireEmailVerified, requireTrustedDomain])
   @CatchAsync
   public async add(req: Request, res: Response, _next: NextFunction) {
     const auth = res.locals.auth;
-    const {email} = AllowlistSchemas.add.parse(req.body);
-    const data = await AllowlistService.add(email, auth.userId!);
+    const {email, projectIds} = AllowlistSchemas.add.parse(req.body);
 
-    return res.status(201).json({success: true, data});
+    for (const projectId of projectIds ?? []) {
+      await MembershipService.requireAdminAccess(auth.userId!, projectId);
+    }
+
+    const {entry, created} = await AllowlistService.add(email, auth.userId!, {
+      projectIds,
+    });
+
+    return res.status(created ? 201 : 200).json({success: true, data: entry});
   }
 
   @Delete(':id')

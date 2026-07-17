@@ -2,12 +2,17 @@ import {Controller, Delete, Get, Middleware, Patch, Post} from '@overnightjs/cor
 import type {NextFunction, Request, Response} from 'express';
 import {MembershipSchemas, UtilitySchemas} from '@merlin/shared';
 
+import {ALLOWLIST_RESTRICTED} from '../app/constants.js';
 import {prisma} from '../database/prisma.js';
-import {HttpException} from '../exceptions/index.js';
+import {HttpException, NotAllowed, NotAuthenticated} from '../exceptions/index.js';
 import {requireAuth, requireEmailVerified} from '../middleware/auth.js';
+import {AllowlistService} from '../services/AllowlistService.js';
 import {MembershipService} from '../services/MembershipService.js';
+import {ProjectShareService} from '../services/ProjectShareService.js';
 import {SecurityService} from '../services/SecurityService.js';
+import {UserService} from '../services/UserService.js';
 import {CatchAsync} from '../utils/asyncHandler.js';
+import {normalizeEmail} from '../utils/email.js';
 
 @Controller('projects')
 export class Projects {
@@ -145,22 +150,83 @@ export class Projects {
     }
 
     const {email, role} = parseResult.data;
+    const normalized = normalizeEmail(email);
 
     // Verify current user is ADMIN or OWNER
     await MembershipService.requireAdminAccess(auth.userId!, id);
 
-    // Find user by email
-    const userToAdd = await prisma.user.findUnique({
-      where: {email: email.toLowerCase()},
-      select: {id: true, email: true},
-    });
+    const isExternal = !AllowlistService.isTrustedDomain(normalized);
+    const effectiveRole = isExternal ? 'MEMBER' : role;
+
+    if (isExternal) {
+      const allowlisted = await AllowlistService.isAllowlisted(normalized);
+
+      if (!allowlisted) {
+        if (ALLOWLIST_RESTRICTED) {
+          const inviter = await UserService.id(auth.userId!);
+
+          if (!inviter) {
+            throw new NotAuthenticated();
+          }
+
+          if (!AllowlistService.isTrustedDomain(inviter.email)) {
+            throw new NotAllowed('Only allowlist managers can invite external email addresses');
+          }
+
+          await AllowlistService.add(normalized, auth.userId!, {projectIds: [id]});
+        } else {
+          await ProjectShareService.shareWithEmail(normalized, [id], 'MEMBER', auth.userId!);
+        }
+
+        const invitedUser = await UserService.email(normalized);
+        if (!invitedUser) {
+          return res.json({
+            success: true,
+            data: {email: normalized, pending: true, role: 'MEMBER'},
+          });
+        }
+
+        const membership = await MembershipService.getMembership(invitedUser.id, id);
+        return res.json({
+          success: true,
+          data: {
+            userId: invitedUser.id,
+            email: invitedUser.email,
+            role: membership?.role ?? 'MEMBER',
+          },
+        });
+      }
+
+      const invitedUser = await UserService.email(normalized);
+      if (!invitedUser) {
+        await ProjectShareService.shareWithEmail(normalized, [id], 'MEMBER', auth.userId!);
+
+        return res.json({
+          success: true,
+          data: {email: normalized, pending: true, role: 'MEMBER'},
+        });
+      }
+    }
+
+    const userToAdd = await UserService.email(normalized);
 
     if (!userToAdd) {
       throw new HttpException(404, 'User with this email does not have an account');
     }
 
-    // Add member to project
-    const newMembership = await MembershipService.addMember(id, userToAdd.id, role);
+    const existingMembership = await MembershipService.getMembership(userToAdd.id, id);
+    if (existingMembership) {
+      return res.json({
+        success: true,
+        data: {
+          userId: userToAdd.id,
+          email: userToAdd.email,
+          role: existingMembership.role,
+        },
+      });
+    }
+
+    const newMembership = await MembershipService.addMember(id, userToAdd.id, effectiveRole);
 
     return res.json({
       success: true,

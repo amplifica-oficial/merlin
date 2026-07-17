@@ -342,6 +342,24 @@ export class MembershipService {
   // ============================================
 
   /**
+   * Invalidate membership caches for one or more user/project pairs.
+   */
+  public static async invalidateCaches(
+    targets: Array<{userId: string; projectId: string}>,
+  ): Promise<void> {
+    const seen = new Set<string>();
+
+    for (const {userId, projectId} of targets) {
+      const key = `${userId}:${projectId}`;
+      if (seen.has(key)) {
+        continue;
+      }
+      seen.add(key);
+      await MembershipService.invalidateCache(projectId, userId);
+    }
+  }
+
+  /**
    * Invalidate all caches for a project and user
    * Called after membership changes
    */

@@ -13,9 +13,11 @@ import {prisma} from '../../database/prisma.js';
 import {BadRequest} from '../../exceptions/index.js';
 import {jwt} from '../../middleware/auth.js';
 import {AllowlistService} from '../../services/AllowlistService.js';
+import {ProjectShareService} from '../../services/ProjectShareService.js';
 import {NtfyService} from '../../services/NtfyService.js';
 import {UserService} from '../../services/UserService.js';
 import {CatchAsync} from '../../utils/asyncHandler.js';
+import {normalizeEmail} from '../../utils/email.js';
 
 @Controller('google')
 export class Google {
@@ -87,13 +89,15 @@ export class Google {
 
       user = await prisma.user.create({
         data: {
-          email,
+          email: normalizeEmail(email),
           type: 'GOOGLE_OAUTH',
           emailVerified: true,
         },
       });
       isNewUser = true;
     }
+
+    await ProjectShareService.tryMaterializePendingShares(user.id, user.email);
 
     if (user.type !== 'GOOGLE_OAUTH') {
       return res.redirect(DASHBOARD_URI + '/auth/login?message=You used another form of authentication');
