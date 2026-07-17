@@ -1,4 +1,5 @@
 import {useActiveProject} from '../lib/contexts/ActiveProjectProvider';
+import {useConfig} from '../lib/hooks/useConfig';
 import {useUser} from '../lib/hooks/useUser';
 import {WIKI_URI} from '../lib/constants';
 import {network} from '../lib/network';
@@ -94,8 +95,12 @@ function avatarGradient(seed: string): string {
 export function DashboardLayout({children}: DashboardLayoutProps) {
   const router = useRouter();
   const {data: user, mutate: mutateUser} = useUser();
+  const {data: config} = useConfig();
   const {activeProject, availableProjects, setActiveProject} = useActiveProject();
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+
+  const allowlistRestricted = config?.features.signup.allowlistRestricted ?? false;
+  const canCreateProject = !allowlistRestricted || user?.canManageAllowlist === true;
 
   // Sort projects alphabetically by name
   const sortedProjects = useMemo(() => {
@@ -174,13 +179,17 @@ export function DashboardLayout({children}: DashboardLayoutProps) {
                 )}
               </DropdownMenuItem>
             ))}
-            <DropdownMenuSeparator />
-            <DropdownMenuItem asChild className="gap-2 px-3 py-2 cursor-pointer text-neutral-700">
-              <Link href="/projects/create" onClick={() => setShowMobileMenu(false)}>
-                <Plus className="h-4 w-4" />
-                <span>Create project</span>
-              </Link>
-            </DropdownMenuItem>
+            {canCreateProject && (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild className="gap-2 px-3 py-2 cursor-pointer text-neutral-700">
+                  <Link href="/projects/create" onClick={() => setShowMobileMenu(false)}>
+                    <Plus className="h-4 w-4" />
+                    <span>Create project</span>
+                  </Link>
+                </DropdownMenuItem>
+              </>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

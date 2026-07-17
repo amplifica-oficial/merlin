@@ -7,6 +7,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  Checkbox,
   Dialog,
   DialogContent,
   DialogDescription,
@@ -15,6 +16,7 @@ import {
   DialogTitle,
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -43,6 +45,11 @@ interface AllowlistedEntry {
   createdAt: string;
 }
 
+interface ShareableProject {
+  id: string;
+  name: string;
+}
+
 type AddAllowlistForm = z.infer<typeof AllowlistSchemas.add>;
 
 export function AllowlistSettings() {
@@ -56,14 +63,39 @@ export function AllowlistSettings() {
     revalidateOnFocus: false,
   });
 
+  const {data: shareableProjectsData, isLoading: isLoadingProjects} = useSWR<{
+    success: boolean;
+    data: ShareableProject[];
+  }>('/allowlist/shareable-projects', {
+    revalidateOnFocus: false,
+  });
+
   const entries = data?.data || [];
+  const shareableProjects = shareableProjectsData?.data ?? [];
 
   const form = useForm<AddAllowlistForm>({
     resolver: zodResolver(AllowlistSchemas.add),
     defaultValues: {
       email: '',
+      projectIds: [],
     },
   });
+
+  const selectedProjectIds = form.watch('projectIds') ?? [];
+
+  const toggleProject = (projectId: string, checked: boolean) => {
+    const current = form.getValues('projectIds') ?? [];
+    if (checked) {
+      form.setValue('projectIds', [...current, projectId], {shouldValidate: true});
+      return;
+    }
+
+    form.setValue(
+      'projectIds',
+      current.filter(id => id !== projectId),
+      {shouldValidate: true},
+    );
+  };
 
   const handleAdd = async (values: AddAllowlistForm) => {
     setIsSubmitting(true);
@@ -74,7 +106,7 @@ export function AllowlistSettings() {
       await network.fetch<void, typeof AllowlistSchemas.add>('POST', '/allowlist', values);
       setSuccess('Email added to allowlist');
       await mutate();
-      form.reset();
+      form.reset({email: '', projectIds: []});
       setShowAddDialog(false);
       setTimeout(() => setSuccess(null), 3000);
     } catch (err: unknown) {
@@ -136,8 +168,8 @@ export function AllowlistSettings() {
           <div className="space-y-1">
             <CardTitle>Authorized emails</CardTitle>
             <CardDescription>
-              People on this list can create an account even if their email domain is not trusted. They must still verify
-              their email address after signing up.
+              People on this list can create an account even if their email domain is not trusted. Optionally share
+              projects with them so those projects appear as soon as they sign in.
             </CardDescription>
           </div>
           <Button onClick={() => setShowAddDialog(true)}>
@@ -194,11 +226,11 @@ export function AllowlistSettings() {
       </Card>
 
       <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-        <DialogContent>
+        <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle>Add authorized email</DialogTitle>
             <DialogDescription>
-              This person will be able to create an account. They will receive a verification email to confirm ownership.
+              This person will be able to create an account. Share projects now so they appear immediately after signup.
             </DialogDescription>
           </DialogHeader>
           <Form {...form}>
@@ -222,6 +254,41 @@ export function AllowlistSettings() {
                   </FormItem>
                 )}
               />
+
+              <FormField
+                control={form.control}
+                name="projectIds"
+                render={() => (
+                  <FormItem>
+                    <FormLabel>Share projects (optional)</FormLabel>
+                    <FormDescription>
+                      Only projects where you are an admin or owner are listed. If the person already has an account,
+                      access is granted immediately.
+                    </FormDescription>
+                    {isLoadingProjects ? (
+                      <div className="flex items-center py-3">
+                        <IconSpinner className="h-4 w-4" />
+                      </div>
+                    ) : shareableProjects.length === 0 ? (
+                      <p className="text-sm text-neutral-500 py-2">You do not admin any projects yet.</p>
+                    ) : (
+                      <div className="max-h-40 overflow-y-auto rounded-md border border-neutral-200 p-3 space-y-3">
+                        {shareableProjects.map(project => (
+                          <label key={project.id} className="flex items-center gap-3 text-sm cursor-pointer">
+                            <Checkbox
+                              checked={selectedProjectIds.includes(project.id)}
+                              onCheckedChange={checked => toggleProject(project.id, checked === true)}
+                            />
+                            <span>{project.name}</span>
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
               <DialogFooter>
                 <Button type="button" variant="outline" onClick={() => setShowAddDialog(false)}>
                   Cancel
@@ -242,7 +309,7 @@ export function AllowlistSettings() {
             <DialogTitle>Remove authorized email</DialogTitle>
             <DialogDescription>
               {entryToRemove
-                ? `Remove ${entryToRemove.email} from the allowlist? They will no longer be able to create a new account.`
+                ? `Remove ${entryToRemove.email} from the allowlist? They will no longer be able to create a new account, and their access to shared projects will be revoked.`
                 : ''}
             </DialogDescription>
           </DialogHeader>

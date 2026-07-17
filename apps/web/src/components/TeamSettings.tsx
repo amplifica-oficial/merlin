@@ -100,7 +100,13 @@ export function TeamSettings({projectId, currentUserRole, currentUserId}: TeamSe
       setTimeout(() => setSuccess(null), 3000);
     } catch (err: unknown) {
       if (err instanceof Error) {
-        setError(err.message);
+        if (err.message === 'Only allowlist managers can invite external email addresses') {
+          setError(
+            'External emails can only be invited by users with access to Authorization settings. Ask an allowlist manager to add this email first.',
+          );
+        } else {
+          setError(err.message);
+        }
       } else {
         setError('Failed to add member');
       }
