@@ -4,6 +4,7 @@ import {EmailVerificationEmail, PasswordResetEmail, sendPlatformEmail} from '@me
 import {randomBytes} from 'node:crypto';
 import type {NextFunction, Request, Response} from 'express';
 import * as React from 'react';
+import signale from 'signale';
 
 import {
   DASHBOARD_URI,
@@ -15,6 +16,8 @@ import {
   GOOGLE_OAUTH_ENABLED,
   PASSWORD_RESET_RATE_LIMIT,
   MERLIN_ENABLED,
+  SIGNUP_RATE_LIMIT,
+  SIGNUP_RATE_LIMIT_IP,
   TOKEN_EXPIRY_SECONDS,
   VERIFY_EMAIL_ON_SIGNUP,
 } from '../app/constants.js';
@@ -31,6 +34,53 @@ import {UserService} from '../services/UserService.js';
 import {Keys} from '../services/keys.js';
 import {CatchAsync} from '../utils/asyncHandler.js';
 import {normalizeEmail} from '../utils/email.js';
+
+function getClientIp(req: Request): string {
+  const forwarded = req.headers['x-forwarded-for'];
+  if (typeof forwarded === 'string' && forwarded.length > 0) {
+    return forwarded.split(',')[0]?.trim() ?? 'unknown';
+  }
+
+  return req.ip ?? 'unknown';
+}
+
+async function checkSignupRateLimit(email: string, ip: string): Promise<boolean> {
+  const emailKey = Keys.User.signupRateLimit(email);
+  const ipKey = Keys.User.signupRateLimitIp(ip);
+
+  const [emailCount, ipCount] = await Promise.all([redis.get(emailKey), redis.get(ipKey)]);
+
+  if (emailCount && parseInt(emailCount, 10) >= SIGNUP_RATE_LIMIT) {
+    signale.warn(`[Auth] Signup rate limit exceeded for email: ${email}`);
+    return false;
+  }
+
+  if (ipCount && parseInt(ipCount, 10) >= SIGNUP_RATE_LIMIT_IP) {
+    signale.warn(`[Auth] Signup rate limit exceeded for IP: ${ip}`);
+    return false;
+  }
+
+  return true;
+}
+
+async function incrementSignupRateLimit(email: string, ip: string): Promise<void> {
+  const emailKey = Keys.User.signupRateLimit(email);
+  const ipKey = Keys.User.signupRateLimitIp(ip);
+
+  const [emailCount, ipCount] = await Promise.all([redis.get(emailKey), redis.get(ipKey)]);
+
+  if (emailCount) {
+    await redis.incr(emailKey);
+  } else {
+    await redis.setex(emailKey, EMAIL_VERIFICATION_RATE_WINDOW, '1');
+  }
+
+  if (ipCount) {
+    await redis.incr(ipKey);
+  } else {
+    await redis.setex(ipKey, EMAIL_VERIFICATION_RATE_WINDOW, '1');
+  }
+}
 
 @Controller('auth')
 export class Auth {
@@ -66,6 +116,8 @@ export class Auth {
       });
     }
 
+    await ProjectShareService.tryMaterializePendingShares(user.id, user.email);
+
     await redis.set(Keys.User.id(user.id), JSON.stringify(user), 'EX', REDIS_ONE_MINUTE * 60);
 
     const token = jwt.sign(user.id);
@@ -95,6 +147,17 @@ export class Auth {
     }
 
     const {email, password} = AuthenticationSchemas.login.parse(req.body);
+    const normalizedEmail = normalizeEmail(email);
+    const clientIp = getClientIp(req);
+
+    if (!(await checkSignupRateLimit(normalizedEmail, clientIp))) {
+      return res.json({
+        success: false,
+        data: 'Too many signup attempts. Please try again later.',
+      });
+    }
+
+    await incrementSignupRateLimit(normalizedEmail, clientIp);
 
     // Verify email is valid and not disposable/plus-addressed (if verification enabled)
     if (VERIFY_EMAIL_ON_SIGNUP) {
@@ -123,17 +186,18 @@ export class Auth {
       }
     }
 
-    const user = await UserService.email(email);
+    const user = await UserService.email(normalizedEmail);
 
     if (user) {
+      signale.warn(`[Auth] Signup attempt for existing email: ${normalizedEmail} (IP: ${clientIp})`);
       return res.json({
         success: false,
         data: 'That email is already associated with another user',
       });
     }
 
-    if (!(await AllowlistService.isSignupAllowed(email))) {
-      await NtfyService.notifyFailedSignupAttempt(email, ['not authorized for signup']);
+    if (!(await AllowlistService.isSignupAllowed(normalizedEmail))) {
+      await NtfyService.notifyFailedSignupAttempt(normalizedEmail, ['not authorized for signup']);
 
       return res.json({
         success: false,
@@ -143,12 +207,17 @@ export class Auth {
 
     const created_user = await prisma.user.create({
       data: {
-        email: normalizeEmail(email),
+        email: normalizedEmail,
         password: await AuthService.generateHash(password),
         type: 'PASSWORD',
-        emailVerified: false,
+        // Auto-verify email if platform emails are disabled
+        emailVerified: !MERLIN_ENABLED,
       },
     });
+
+    if (created_user.emailVerified) {
+      await ProjectShareService.tryMaterializePendingShares(created_user.id, created_user.email);
+    }
 
     await redis.set(Keys.User.id(created_user.id), JSON.stringify(created_user), 'EX', REDIS_ONE_MINUTE * 60);
 

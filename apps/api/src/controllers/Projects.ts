@@ -300,6 +300,10 @@ export class Projects {
       throw new HttpException(404, 'User not found');
     }
 
+    if (role === 'ADMIN' && !AllowlistService.isTrustedDomain(user.email)) {
+      throw new NotAllowed('External email addresses cannot be promoted to admin');
+    }
+
     const effectiveRole = AllowlistService.resolveEffectiveRole(user.email, role);
 
     // Update role (service handles validation)

@@ -147,6 +147,11 @@ export const TOKEN_EXPIRY_SECONDS = 3600; // 1 hour
 export const EMAIL_VERIFICATION_RATE_LIMIT = 3; // Max 3 emails per hour
 export const PASSWORD_RESET_RATE_LIMIT = 3; // Max 3 emails per hour
 export const EMAIL_VERIFICATION_RATE_WINDOW = 3600; // 1 hour in seconds
+export const SIGNUP_RATE_LIMIT = 10; // Max signup attempts per email per hour
+export const SIGNUP_RATE_LIMIT_IP = 20; // Max signup attempts per IP per hour
+
+// Pending project share invites expire after this many days (not configurable via env)
+export const PENDING_SHARE_TTL_DAYS = 30;
 
 // Phishing Detection (optional)
 // OpenRouter API integration for content safety checks

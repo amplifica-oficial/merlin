@@ -191,6 +191,9 @@ export class AllowlistService {
 
         invalidations.push(...memberships);
 
+        // Intentional: removing an email from the allowlist revokes that user's access
+        // across the entire instance (all non-OWNER memberships). Allowlist managers
+        // use this to fully de-authorize an external collaborator, not just one project.
         await tx.membership.deleteMany({
           where: {
             userId: user.id,

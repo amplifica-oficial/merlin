@@ -2,6 +2,7 @@ import type {Prisma} from '@prisma/client';
 import type {PendingMember} from '@merlin/types';
 import signale from 'signale';
 
+import {PENDING_SHARE_TTL_DAYS} from '../app/constants.js';
 import {prisma} from '../database/prisma.js';
 import {HttpException} from '../exceptions/index.js';
 import {normalizeEmail} from '../utils/email.js';
@@ -10,6 +11,12 @@ import {MembershipService} from './MembershipService.js';
 import {UserService} from './UserService.js';
 
 type TransactionClient = Prisma.TransactionClient;
+
+function getShareExpiresAt(): Date {
+  const expiresAt = new Date();
+  expiresAt.setDate(expiresAt.getDate() + PENDING_SHARE_TTL_DAYS);
+  return expiresAt;
+}
 
 export class ProjectShareService {
   /**
@@ -69,6 +76,7 @@ export class ProjectShareService {
           cacheInvalidations.push({userId: existingUser!.id, projectId});
         }
       } else {
+        const expiresAt = getShareExpiresAt();
         await db.pendingProjectShare.upsert({
           where: {
             email_projectId: {
@@ -81,10 +89,12 @@ export class ProjectShareService {
             projectId,
             role: effectiveRole,
             addedById,
+            expiresAt,
           },
           update: {
             role: effectiveRole,
             addedById,
+            expiresAt,
           },
         });
       }
@@ -112,8 +122,22 @@ export class ProjectShareService {
     }
 
     const normalized = normalizeEmail(email);
+    const now = new Date();
+
+    await prisma.pendingProjectShare.deleteMany({
+      where: {
+        email: normalized,
+        expiresAt: {
+          lte: now,
+        },
+      },
+    });
+
     const pendingShares = await prisma.pendingProjectShare.findMany({
-      where: {email: normalized},
+      where: {
+        email: normalized,
+        OR: [{expiresAt: null}, {expiresAt: {gt: now}}],
+      },
     });
 
     if (pendingShares.length === 0) {
@@ -199,8 +223,12 @@ export class ProjectShareService {
    * List pending project shares for a project (emails without accounts yet).
    */
   public static async listPendingShares(projectId: string): Promise<PendingMember[]> {
+    const now = new Date();
     const shares = await prisma.pendingProjectShare.findMany({
-      where: {projectId},
+      where: {
+        projectId,
+        OR: [{expiresAt: null}, {expiresAt: {gt: now}}],
+      },
       orderBy: {createdAt: 'desc'},
       select: {
         id: true,

@@ -18,6 +18,12 @@ export const Keys = {
     passwordResetRateLimit(email: string): string {
       return `auth:password_reset_rate:${email}`;
     },
+    signupRateLimit(email: string): string {
+      return `auth:signup_rate:${email}`;
+    },
+    signupRateLimitIp(ip: string): string {
+      return `auth:signup_rate_ip:${ip}`;
+    },
   },
   Domain: {
     id(id: string): string {
