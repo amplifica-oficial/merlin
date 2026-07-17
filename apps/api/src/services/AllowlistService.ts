@@ -2,6 +2,7 @@ import {ALLOWLIST_OPEN, ALLOWLIST_TRUSTED_DOMAINS} from '../app/constants.js';
 import {prisma} from '../database/prisma.js';
 import {BadRequest, NotFound} from '../exceptions/index.js';
 import {normalizeEmail} from '../utils/email.js';
+import {AuditService} from './AuditService.js';
 import {MembershipService} from './MembershipService.js';
 import {ProjectShareService} from './ProjectShareService.js';
 
@@ -22,6 +23,10 @@ export class AllowlistService {
     }
 
     return ALLOWLIST_TRUSTED_DOMAINS.includes(domain);
+  }
+
+  public static resolveEffectiveRole(email: string, requested: 'ADMIN' | 'MEMBER'): 'ADMIN' | 'MEMBER' {
+    return AllowlistService.isTrustedDomain(email) ? requested : 'MEMBER';
   }
 
   public static async isAllowlisted(email: string): Promise<boolean> {
@@ -111,6 +116,22 @@ export class AllowlistService {
           ? await ProjectShareService.shareWithEmail(normalized, projectIds, role, addedById, tx)
           : [];
 
+      const actor = await tx.user.findUnique({
+        where: {id: addedById},
+        select: {email: true},
+      });
+
+      await AuditService.record(tx, {
+        action: 'allowlist.add',
+        actorId: addedById,
+        actorEmail: actor?.email ?? '',
+        targetEmail: normalized,
+        metadata: {
+          created: wasCreated,
+          projectIds,
+        },
+      });
+
       return {
         entry: allowlistEntry,
         created: wasCreated,
@@ -131,7 +152,7 @@ export class AllowlistService {
     };
   }
 
-  public static async remove(id: string) {
+  public static async remove(id: string, actor: {id: string; email: string}) {
     const entry = await prisma.allowlistedEmail.findUnique({
       where: {id},
       select: {id: true, email: true},
@@ -186,6 +207,19 @@ export class AllowlistService {
 
       await tx.pendingProjectShare.deleteMany({
         where: {email: entry.email},
+      });
+
+      const projectIds = [...new Set(invalidations.map(invalidation => invalidation.projectId))];
+
+      await AuditService.record(tx, {
+        action: 'allowlist.remove',
+        actorId: actor.id,
+        actorEmail: actor.email,
+        targetEmail: entry.email,
+        metadata: {
+          removedMembershipCount: invalidations.length,
+          projectIds,
+        },
       });
 
       return invalidations;

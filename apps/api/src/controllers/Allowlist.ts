@@ -3,9 +3,12 @@ import {AllowlistSchemas, UtilitySchemas} from '@merlin/shared';
 import type {NextFunction, Request, Response} from 'express';
 
 import {isAuthenticated, requireEmailVerified, requireTrustedDomain} from '../middleware/auth.js';
+import {AuditService} from '../services/AuditService.js';
 import {AllowlistService} from '../services/AllowlistService.js';
 import {MembershipService} from '../services/MembershipService.js';
 import {ProjectShareService} from '../services/ProjectShareService.js';
+import {UserService} from '../services/UserService.js';
+import {NotAuthenticated} from '../exceptions/index.js';
 import {CatchAsync} from '../utils/asyncHandler.js';
 
 @Controller('allowlist')
@@ -27,6 +30,18 @@ export class Allowlist {
     const data = await ProjectShareService.listShareableProjects(auth.userId!);
 
     return res.status(200).json({success: true, data});
+  }
+
+  @Get('audit-logs')
+  @Middleware([isAuthenticated, requireEmailVerified, requireTrustedDomain])
+  @CatchAsync
+  public async auditLogs(req: Request, res: Response, _next: NextFunction) {
+    const page = parseInt(req.query.page as string, 10) || 1;
+    const pageSize = parseInt(req.query.pageSize as string, 10) || 20;
+
+    const result = await AuditService.list(page, pageSize);
+
+    return res.status(200).json({success: true, ...result});
   }
 
   @Post('')
@@ -51,8 +66,15 @@ export class Allowlist {
   @Middleware([isAuthenticated, requireEmailVerified, requireTrustedDomain])
   @CatchAsync
   public async remove(req: Request, res: Response, _next: NextFunction) {
+    const auth = res.locals.auth;
     const {id} = UtilitySchemas.id.parse(req.params);
-    await AllowlistService.remove(id);
+
+    const actor = await UserService.id(auth.userId!);
+    if (!actor) {
+      throw new NotAuthenticated();
+    }
+
+    await AllowlistService.remove(id, {id: actor.id, email: actor.email});
 
     return res.status(200).json({success: true});
   }
