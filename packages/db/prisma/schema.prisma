@@ -46,17 +46,19 @@ model AllowlistedEmail {
 }
 
 model PendingProjectShare {
-  id        String   @id @default(uuid())
+  id        String    @id @default(uuid())
   email     String
-  role      Role     @default(MEMBER)
-  addedBy   User?    @relation(fields: [addedById], references: [id], onDelete: SetNull)
+  role      Role      @default(MEMBER)
+  addedBy   User?     @relation(fields: [addedById], references: [id], onDelete: SetNull)
   addedById String?
-  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  project   Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
   projectId String
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
+  expiresAt DateTime?
 
   @@unique([email, projectId])
   @@index([email])
+  @@index([expiresAt])
   @@map("pending_project_shares")
 }
 
