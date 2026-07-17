@@ -67,6 +67,8 @@ export const AuthenticationSchemas = {
 export const AllowlistSchemas = {
   add: z.object({
     email,
+    projectIds: z.array(z.string().uuid()).max(50).optional(),
+    role: z.literal('MEMBER').default('MEMBER'),
   }),
 } as const;
 
