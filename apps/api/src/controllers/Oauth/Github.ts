@@ -12,9 +12,12 @@ import {
 import {prisma} from '../../database/prisma.js';
 import {BadRequest} from '../../exceptions/index.js';
 import {jwt} from '../../middleware/auth.js';
+import {AllowlistService} from '../../services/AllowlistService.js';
+import {ProjectShareService} from '../../services/ProjectShareService.js';
 import {NtfyService} from '../../services/NtfyService.js';
 import {UserService} from '../../services/UserService.js';
 import {CatchAsync} from '../../utils/asyncHandler.js';
+import {normalizeEmail} from '../../utils/email.js';
 
 @Controller('github')
 export class Github {
@@ -71,10 +74,14 @@ export class Github {
       return res.redirect(DASHBOARD_URI + '/auth/login?message=Failed to retrieve emails from GitHub');
     }
 
-    const primaryEmail = emails.find((e: {primary: boolean; email: string}) => e.primary);
+    const primaryEmail = emails.find(
+      (e: {primary: boolean; verified: boolean; email: string}) => e.primary && e.verified,
+    );
 
     if (!primaryEmail || !primaryEmail.email || typeof primaryEmail.email !== 'string') {
-      return res.redirect(DASHBOARD_URI + '/auth/login?message=Failed to retrieve primary email from GitHub');
+      return res.redirect(
+        DASHBOARD_URI + '/auth/login?message=Failed to retrieve a verified primary email from GitHub',
+      );
     }
 
     const email = primaryEmail.email;
@@ -88,15 +95,23 @@ export class Github {
         throw new BadRequest('New user signups are currently disabled');
       }
 
+      if (!(await AllowlistService.isSignupAllowed(email))) {
+        return res.redirect(
+          DASHBOARD_URI + '/auth/login?message=This email is not authorized to create an account',
+        );
+      }
+
       user = await prisma.user.create({
         data: {
-          email,
+          email: normalizeEmail(email),
           type: 'GITHUB_OAUTH',
           emailVerified: true,
         },
       });
       isNewUser = true;
     }
+
+    await ProjectShareService.tryMaterializePendingShares(user.id, user.email);
 
     if (user.type !== 'GITHUB_OAUTH') {
       return res.redirect(DASHBOARD_URI + '/auth/login?message=You used another form of authentication');

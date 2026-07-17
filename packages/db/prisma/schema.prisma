@@ -23,13 +23,59 @@ model User {
   emailVerified Boolean    @default(false)
 
   // Relations
-  memberships Membership[]
+  memberships          Membership[]
+  allowlistedEmails    AllowlistedEmail[]
+  pendingProjectShares PendingProjectShare[]
+  auditLogs            AuditLog[]
 
   // Timestamps
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@map("users")
+}
+
+model AllowlistedEmail {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  addedBy   User?    @relation(fields: [addedById], references: [id], onDelete: SetNull)
+  addedById String?
+  createdAt DateTime @default(now())
+
+  @@map("allowlisted_emails")
+}
+
+model PendingProjectShare {
+  id        String    @id @default(uuid())
+  email     String
+  role      Role      @default(MEMBER)
+  addedBy   User?     @relation(fields: [addedById], references: [id], onDelete: SetNull)
+  addedById String?
+  project   Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId String
+  createdAt DateTime  @default(now())
+  expiresAt DateTime?
+
+  @@unique([email, projectId])
+  @@index([email])
+  @@index([expiresAt])
+  @@map("pending_project_shares")
+}
+
+model AuditLog {
+  id          String   @id @default(uuid())
+  action      String
+  actor       User?    @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  actorId     String?
+  actorEmail  String?
+  targetEmail String?
+  metadata    Json?
+  createdAt   DateTime @default(now())
+
+  @@index([action])
+  @@index([createdAt])
+  @@index([createdAt, id])
+  @@map("audit_logs")
 }
 
 model Project {
@@ -63,8 +109,9 @@ model Project {
   language String @default("en") // Language code for customer-facing content (ISO 639-1)
 
   // Relations
-  members     Membership[]
-  contacts    Contact[]
+  members              Membership[]
+  pendingProjectShares PendingProjectShare[]
+  contacts             Contact[]
   templates   Template[]
   segments    Segment[]
   workflows   Workflow[]

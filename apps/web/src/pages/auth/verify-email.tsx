@@ -110,10 +110,21 @@ export default function VerifyEmail() {
   }, [cooldownExpiry]);
 
   async function handleResend() {
+    const email = typeof router.query.email === 'string' ? router.query.email : undefined;
+
+    if (!email) {
+      setResendMessage('Please use the link from your signup or login page to resend the verification email.');
+      return;
+    }
+
     setIsResending(true);
     setResendMessage('');
     try {
-      const response = await network.fetch<{success: boolean}>('POST', '/auth/request-verification');
+      const response = await network.fetch<{success: boolean}, typeof AuthenticationSchemas.requestVerification>(
+        'POST',
+        '/auth/request-verification',
+        {email},
+      );
 
       if (response.success) {
         setResendMessage('Verification email sent! Please check your inbox.');

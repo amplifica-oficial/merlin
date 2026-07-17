@@ -12,11 +12,17 @@ export const Keys = {
     passwordResetToken(token: string): string {
       return `auth:password_reset:${token}`;
     },
-    emailVerificationRateLimit(userId: string): string {
-      return `auth:email_verification_rate:${userId}`;
+    emailVerificationRateLimit(email: string): string {
+      return `auth:email_verification_rate:${email}`;
     },
     passwordResetRateLimit(email: string): string {
       return `auth:password_reset_rate:${email}`;
+    },
+    signupRateLimit(email: string): string {
+      return `auth:signup_rate:${email}`;
+    },
+    signupRateLimitIp(ip: string): string {
+      return `auth:signup_rate_ip:${ip}`;
     },
   },
   Domain: {

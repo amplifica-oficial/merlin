@@ -24,6 +24,7 @@ import {
   Megaphone,
   Plus,
   Settings,
+  ShieldCheck,
   Users,
   Workflow as WorkflowIcon,
 } from 'lucide-react';
@@ -33,6 +34,7 @@ import {toast} from 'sonner';
 import useSWR from 'swr';
 import {useActiveProject} from '../lib/contexts/ActiveProjectProvider';
 import {WIKI_URI} from '../lib/constants';
+import {useUser} from '../lib/hooks/useUser';
 import {addRecentPage, getRecentPages} from '../lib/recentPages';
 
 interface Action {
@@ -87,6 +89,7 @@ function ShortcutHint({shortcut}: {shortcut: [string, string]}) {
 
 export function CommandPalette() {
   const router = useRouter();
+  const {data: user} = useUser();
   const {activeProject, availableProjects, setActiveProject} = useActiveProject();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -97,6 +100,23 @@ export function CommandPalette() {
   openRef.current = open;
 
   const recentPages = useMemo(() => (open ? getRecentPages() : []), [open]);
+
+  const navActions = useMemo(() => {
+    if (!user?.canManageAllowlist) {
+      return NAV_ACTIONS;
+    }
+
+    return [
+      ...NAV_ACTIONS,
+      {
+        label: 'Authorization',
+        href: '/authorization',
+        icon: ShieldCheck,
+        keywords: 'allowlist signup invite authorized',
+        shortcut: ['G', 'U'] as [string, string],
+      },
+    ];
+  }, [user?.canManageAllowlist]);
 
   const fireChord = (key: string): boolean => {
     if (chordKeyRef.current) {
@@ -183,8 +203,8 @@ export function CommandPalette() {
   );
 
   const filteredNavActions = shouldSearch
-    ? NAV_ACTIONS.filter(a => matches(a.label, query) || matches(a.keywords, query))
-    : NAV_ACTIONS;
+    ? navActions.filter(a => matches(a.label, query) || matches(a.keywords, query))
+    : navActions;
 
   const filteredCreateActions = shouldSearch
     ? CREATE_ACTIONS.filter(a => matches(a.label, query) || matches(a.keywords, query))

@@ -39,6 +39,7 @@ import {
   TableRow,
   IconSpinner,
 } from '@merlin/ui';
+import type {PendingMember} from '@merlin/types';
 import {MembershipSchemas} from '@merlin/shared';
 import {MoreVertical, Trash2, UserPlus} from 'lucide-react';
 import {AnimatePresence, motion} from 'framer-motion';
@@ -53,6 +54,16 @@ interface Member {
   role: 'OWNER' | 'ADMIN' | 'MEMBER';
 }
 
+interface AddMemberResponse {
+  success: boolean;
+  data: {
+    userId?: string;
+    email: string;
+    role: 'OWNER' | 'ADMIN' | 'MEMBER';
+    pending?: boolean;
+  };
+}
+
 interface TeamSettingsProps {
   projectId: string;
   currentUserRole: 'OWNER' | 'ADMIN' | 'MEMBER';
@@ -64,6 +75,7 @@ type AddMemberForm = z.infer<typeof MembershipSchemas.addMember>;
 export function TeamSettings({projectId, currentUserRole, currentUserId}: TeamSettingsProps) {
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [memberToRemove, setMemberToRemove] = useState<Member | null>(null);
+  const [pendingToRemove, setPendingToRemove] = useState<PendingMember | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -73,7 +85,18 @@ export function TeamSettings({projectId, currentUserRole, currentUserId}: TeamSe
     {revalidateOnFocus: false},
   );
 
+  const {
+    data: pendingData,
+    mutate: mutatePending,
+    isLoading: isLoadingPending,
+  } = useSWR<{success: boolean; data: PendingMember[]}>(
+    projectId ? `/projects/${projectId}/pending-members` : null,
+    {revalidateOnFocus: false},
+  );
+
   const members = data?.data || [];
+  const pendingMembers = pendingData?.data || [];
+  const isLoadingMembers = isLoading || isLoadingPending;
   const canManageMembers = currentUserRole === 'OWNER' || currentUserRole === 'ADMIN';
 
   const form = useForm<AddMemberForm>({
@@ -90,9 +113,17 @@ export function TeamSettings({projectId, currentUserRole, currentUserId}: TeamSe
     setSuccess(null);
 
     try {
-      await network.fetch<void, typeof MembershipSchemas.addMember>('POST', `/projects/${projectId}/members`, values);
-      setSuccess('Member added successfully');
-      await mutate();
+      const response = await network.fetch<AddMemberResponse, typeof MembershipSchemas.addMember>(
+        'POST',
+        `/projects/${projectId}/members`,
+        values,
+      );
+      setSuccess(
+        response.data.pending
+          ? 'Invite sent. They will appear as a member once they create an account.'
+          : 'Member added successfully',
+      );
+      await Promise.all([mutate(), mutatePending()]);
       form.reset();
       setShowAddDialog(false);
 
@@ -100,7 +131,13 @@ export function TeamSettings({projectId, currentUserRole, currentUserId}: TeamSe
       setTimeout(() => setSuccess(null), 3000);
     } catch (err: unknown) {
       if (err instanceof Error) {
-        setError(err.message);
+        if (err.message === 'Only allowlist managers can invite external email addresses') {
+          setError(
+            'External emails can only be invited by users with access to Authorization settings. Ask an allowlist manager to add this email first.',
+          );
+        } else {
+          setError(err.message);
+        }
       } else {
         setError('Failed to add member');
       }
@@ -129,6 +166,31 @@ export function TeamSettings({projectId, currentUserRole, currentUserId}: TeamSe
         setError(err.message);
       } else {
         setError('Failed to remove member');
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleRevokePending = async () => {
+    if (!pendingToRemove) return;
+
+    setIsSubmitting(true);
+    setError(null);
+    setSuccess(null);
+
+    try {
+      await network.fetch('DELETE', `/projects/${projectId}/pending-members/${pendingToRemove.id}`);
+      setSuccess('Pending invite revoked successfully');
+      await mutatePending();
+      setPendingToRemove(null);
+
+      setTimeout(() => setSuccess(null), 3000);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('Failed to revoke pending invite');
       }
     } finally {
       setIsSubmitting(false);
@@ -220,11 +282,11 @@ export function TeamSettings({projectId, currentUserRole, currentUserId}: TeamSe
           </div>
         </CardHeader>
         <CardContent>
-          {isLoading ? (
+          {isLoadingMembers ? (
             <div className="flex justify-center py-8">
               <IconSpinner />
             </div>
-          ) : members.length === 0 ? (
+          ) : members.length === 0 && pendingMembers.length === 0 ? (
             <div className="py-8 text-center text-sm text-neutral-500">No members found</div>
           ) : (
             <Table>
@@ -296,6 +358,36 @@ export function TeamSettings({projectId, currentUserRole, currentUserId}: TeamSe
                     </TableRow>
                   );
                 })}
+                {pendingMembers.map(pending => (
+                  <TableRow key={pending.id}>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        {pending.email}
+                        <Badge variant="outline" className="text-xs">
+                          Pending
+                        </Badge>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge className="capitalize" variant={getRoleBadgeVariant(pending.role)}>
+                        {pending.role.toLowerCase()}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      {canManageMembers && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                          onClick={() => setPendingToRemove(pending)}
+                          aria-label={`Revoke invite for ${pending.email}`}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
               </TableBody>
             </Table>
           )}
@@ -316,7 +408,8 @@ export function TeamSettings({projectId, currentUserRole, currentUserId}: TeamSe
           <DialogHeader>
             <DialogTitle>Add Team Member</DialogTitle>
             <DialogDescription>
-              Add a user to this project by their email address. They must have an existing account.
+              Add a user to this project by their email address. External emails without an account will appear as
+              pending until they sign up.
             </DialogDescription>
           </DialogHeader>
           <Form {...form}>
@@ -402,6 +495,27 @@ export function TeamSettings({projectId, currentUserRole, currentUserId}: TeamSe
             </Button>
             <Button variant="destructive" onClick={handleRemoveMember} disabled={isSubmitting}>
               {isSubmitting ? 'Removing...' : 'Remove Member'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Revoke Pending Invite Dialog */}
+      <Dialog open={!!pendingToRemove} onOpenChange={() => setPendingToRemove(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Revoke Pending Invite</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to revoke the invite for <strong>{pendingToRemove?.email}</strong>? They will not
+              gain access to this project when they create an account unless invited again.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPendingToRemove(null)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleRevokePending} disabled={isSubmitting}>
+              {isSubmitting ? 'Revoking...' : 'Revoke Invite'}
             </Button>
           </DialogFooter>
         </DialogContent>

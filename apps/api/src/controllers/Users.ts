@@ -4,12 +4,20 @@ import {Controller, Delete, Get, Middleware, Patch, Post, Put} from '@overnightj
 import {BillingLimitSchemas, ProjectSchemas, UtilitySchemas} from '@merlin/shared';
 import type {NextFunction, Request, Response} from 'express';
 
-import {DASHBOARD_URI, STRIPE_ENABLED, STRIPE_PRICE_EMAIL_USAGE, STRIPE_PRICE_ONBOARDING} from '../app/constants.js';
+import {
+  ALLOWLIST_OPEN,
+  DASHBOARD_URI,
+  MERLIN_ENABLED,
+  STRIPE_ENABLED,
+  STRIPE_PRICE_EMAIL_USAGE,
+  STRIPE_PRICE_ONBOARDING,
+} from '../app/constants.js';
 import {stripe} from '../app/stripe.js';
 import {prisma} from '../database/prisma.js';
 import {ErrorCode, HttpException, NotAuthenticated, NotFound} from '../exceptions/index.js';
 import {isAuthenticated, requireEmailVerified} from '../middleware/auth.js';
 import {BillingLimitService} from '../services/BillingLimitService.js';
+import {AllowlistService} from '../services/AllowlistService.js';
 import {MembershipService} from '../services/MembershipService.js';
 import {NtfyService} from '../services/NtfyService.js';
 import {SecurityService} from '../services/SecurityService.js';
@@ -35,7 +43,14 @@ export class Users {
       throw new NotAuthenticated();
     }
 
-    return res.status(200).json({id: me.id, email: me.email});
+    return res.status(200).json({
+      id: me.id,
+      email: me.email,
+      type: me.type,
+      emailVerified: me.emailVerified,
+      emailVerificationEnabled: MERLIN_ENABLED,
+      canManageAllowlist: AllowlistService.isTrustedDomain(me.email),
+    });
   }
 
   @Get('@me/projects')
@@ -61,6 +76,20 @@ export class Users {
 
     if (!auth.userId) {
       throw new NotAuthenticated();
+    }
+
+    const me = await UserService.id(auth.userId);
+
+    if (!me) {
+      throw new NotAuthenticated();
+    }
+
+    if (!ALLOWLIST_OPEN && !AllowlistService.isTrustedDomain(me.email)) {
+      throw new HttpException(
+        403,
+        'Only users with a trusted company email can create new projects on this instance',
+        ErrorCode.FORBIDDEN,
+      );
     }
 
     // Check if user is a member of any disabled project

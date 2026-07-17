@@ -114,10 +114,14 @@ Merlin bundles a self-hosted [ntfy](https://ntfy.sh) server for internal system 
 
 ## User Management
 
-| Variable                 | Required | Description                                                                                                                 | Default |
-| ------------------------ | -------- | --------------------------------------------------------------------------------------------------------------------------- | ------- |
-| `DISABLE_SIGNUPS`        | No       | When `true`, the signup endpoint rejects new registrations. Useful for private instances.                                   | `false` |
-| `VERIFY_EMAIL_ON_SIGNUP` | No       | When `true`, validates emails on signup — checks for disposable domains, plus-addressing, domain existence, and MX records. | `false` |
+| Variable                   | Required | Description                                                                                                                                                                                                 | Default       |
+| -------------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------- |
+| `DISABLE_SIGNUPS`          | No       | When `true`, the signup endpoint rejects new registrations. Useful for private instances. Takes precedence over allowlist settings.                                                                         | `false`       |
+| `DISABLE_PASSWORD_AUTH`    | No       | When `true`, disables email+password login, signup, and password reset. OAuth (Google/GitHub) remains available if configured. Configure at least one OAuth provider, otherwise no login method will be available. | `false`       |
+| `VERIFY_EMAIL_ON_SIGNUP`   | No       | When `true`, validates emails on signup — checks for disposable domains, plus-addressing, domain existence, and MX records.                                                                                 | `false`       |
+| `ALLOWLIST_TRUSTED_DOMAINS`| No       | Controls who can create an account and who can create new projects. `ALL_DOMAINS` = open signup and anyone can create projects. Comma-separated domains (e.g. `empresa.com`) = restricted to those domains plus emails on the allowlist; only trusted-domain users can create projects. Empty = closed (allowlist only). Allowlisted external users can sign in but must be shared projects from the **Authorization** page before they see any project. | `ALL_DOMAINS` |
+
+When allowlist mode is restricted or closed, configure `MERLIN_API_KEY` and `MERLIN_FROM_ADDRESS` so new users receive a verification email after signup. Users with a trusted-domain email can manage the allowlist from the **Authorization** page in the dashboard and optionally share their admin/owner projects with allowlisted emails before those users sign up.
 
 ## Security
 

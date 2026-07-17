@@ -116,8 +116,21 @@ export const AUTO_PROJECT_DISABLE = validateEnv('AUTO_PROJECT_DISABLE', 'true') 
 // Self-hosting Configuration (optional)
 // Controls whether new user signups are allowed (default: false)
 export const DISABLE_SIGNUPS = process.env.DISABLE_SIGNUPS === 'true';
+// Controls whether email+password auth (login/signup/reset) is allowed (default: false)
+export const DISABLE_PASSWORD_AUTH = process.env.DISABLE_PASSWORD_AUTH === 'true';
 // Controls whether email validation checks are performed on signup (default: false)
 export const VERIFY_EMAIL_ON_SIGNUP = process.env.VERIFY_EMAIL_ON_SIGNUP === 'true';
+
+// Signup allowlist: ALL_DOMAINS = open signup; comma-separated domains = restricted;
+// empty (not ALL_DOMAINS) = closed except emails already on the allowlist table.
+const ALLOWLIST_TRUSTED_DOMAINS_RAW = validateEnv('ALLOWLIST_TRUSTED_DOMAINS', 'ALL_DOMAINS');
+export const ALLOWLIST_OPEN = ALLOWLIST_TRUSTED_DOMAINS_RAW.trim().toUpperCase() === 'ALL_DOMAINS';
+export const ALLOWLIST_TRUSTED_DOMAINS: string[] = ALLOWLIST_OPEN
+  ? []
+  : ALLOWLIST_TRUSTED_DOMAINS_RAW.split(',')
+      .map(domain => domain.trim().toLowerCase())
+      .filter(Boolean);
+export const ALLOWLIST_RESTRICTED = !ALLOWLIST_OPEN;
 
 // Attachment Limits (optional)
 // Maximum total attachment size in MB (default: 10). AWS SES supports up to 40 MB.
@@ -134,6 +147,11 @@ export const TOKEN_EXPIRY_SECONDS = 3600; // 1 hour
 export const EMAIL_VERIFICATION_RATE_LIMIT = 3; // Max 3 emails per hour
 export const PASSWORD_RESET_RATE_LIMIT = 3; // Max 3 emails per hour
 export const EMAIL_VERIFICATION_RATE_WINDOW = 3600; // 1 hour in seconds
+export const SIGNUP_RATE_LIMIT = 10; // Max signup attempts per email per hour
+export const SIGNUP_RATE_LIMIT_IP = 20; // Max signup attempts per IP per hour
+
+// Pending project share invites expire after this many days (not configurable via env)
+export const PENDING_SHARE_TTL_DAYS = 30;
 
 // Phishing Detection (optional)
 // OpenRouter API integration for content safety checks

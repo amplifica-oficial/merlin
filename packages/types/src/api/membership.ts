@@ -15,6 +15,16 @@ export interface MemberWithEmail {
 }
 
 /**
+ * Pending project invite for an email without an account yet
+ */
+export interface PendingMember {
+  id: string;
+  email: string;
+  role: Role;
+  createdAt: Date;
+}
+
+/**
  * Project owner information
  */
 export interface OwnerInfo {

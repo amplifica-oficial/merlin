@@ -2,9 +2,11 @@ import {Controller, Get} from '@overnightjs/core';
 import type {Request, Response} from 'express';
 
 import {
+  ALLOWLIST_RESTRICTED,
   API_URI,
   AWS_SES_REGION,
   DASHBOARD_URI,
+  DISABLE_PASSWORD_AUTH,
   DISABLE_SIGNUPS,
   GITHUB_OAUTH_ENABLED,
   GOOGLE_OAUTH_ENABLED,
@@ -41,9 +43,11 @@ export class Config {
         authProviders: {
           github: GITHUB_OAUTH_ENABLED,
           google: GOOGLE_OAUTH_ENABLED,
+          passwordDisabled: DISABLE_PASSWORD_AUTH,
         },
         signup: {
           signupsDisabled: DISABLE_SIGNUPS,
+          allowlistRestricted: ALLOWLIST_RESTRICTED,
         },
         email: {
           trackingToggleEnabled: TRACKING_TOGGLE_ENABLED,

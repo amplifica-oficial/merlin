@@ -1,4 +1,5 @@
 import {useActiveProject} from '../lib/contexts/ActiveProjectProvider';
+import {useConfig} from '../lib/hooks/useConfig';
 import {useUser} from '../lib/hooks/useUser';
 import {WIKI_URI} from '../lib/constants';
 import {network} from '../lib/network';
@@ -18,6 +19,7 @@ import {
   Menu,
   Plus,
   Settings,
+  ShieldCheck,
   Users,
   Workflow,
 } from 'lucide-react';
@@ -93,8 +95,12 @@ function avatarGradient(seed: string): string {
 export function DashboardLayout({children}: DashboardLayoutProps) {
   const router = useRouter();
   const {data: user, mutate: mutateUser} = useUser();
+  const {data: config} = useConfig();
   const {activeProject, availableProjects, setActiveProject} = useActiveProject();
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+
+  const allowlistRestricted = config?.features.signup.allowlistRestricted ?? false;
+  const canCreateProject = !allowlistRestricted || user?.canManageAllowlist === true;
 
   // Sort projects alphabetically by name
   const sortedProjects = useMemo(() => {
@@ -173,13 +179,17 @@ export function DashboardLayout({children}: DashboardLayoutProps) {
                 )}
               </DropdownMenuItem>
             ))}
-            <DropdownMenuSeparator />
-            <DropdownMenuItem asChild className="gap-2 px-3 py-2 cursor-pointer text-neutral-700">
-              <Link href="/projects/create" onClick={() => setShowMobileMenu(false)}>
-                <Plus className="h-4 w-4" />
-                <span>Create project</span>
-              </Link>
-            </DropdownMenuItem>
+            {canCreateProject && (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild className="gap-2 px-3 py-2 cursor-pointer text-neutral-700">
+                  <Link href="/projects/create" onClick={() => setShowMobileMenu(false)}>
+                    <Plus className="h-4 w-4" />
+                    <span>Create project</span>
+                  </Link>
+                </DropdownMenuItem>
+              </>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
@@ -243,6 +253,21 @@ export function DashboardLayout({children}: DashboardLayoutProps) {
           <Settings className="h-5 w-5" />
           Settings
         </Link>
+
+        {user?.canManageAllowlist && (
+          <Link
+            href="/authorization"
+            onClick={() => setShowMobileMenu(false)}
+            className={`flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
+              router.pathname.startsWith('/authorization')
+                ? 'bg-neutral-100 text-neutral-900'
+                : 'text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900'
+            }`}
+          >
+            <ShieldCheck className="h-5 w-5" />
+            Authorization
+          </Link>
+        )}
 
         <DropdownMenu>
           <DropdownMenuTrigger className="group w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">

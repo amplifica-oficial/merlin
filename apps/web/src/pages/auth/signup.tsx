@@ -23,6 +23,7 @@ import {useForm} from 'react-hook-form';
 import type {z} from 'zod';
 
 import {API_URI} from '../../lib/constants';
+import {formatAuthMessage} from '../../lib/authMessages';
 import {useConfig} from '../../lib/hooks/useConfig';
 import {useProjects} from '../../lib/hooks/useProject';
 import {useUser} from '../../lib/hooks/useUser';
@@ -48,23 +49,34 @@ export default function Signup() {
     github: config?.features.authProviders.github ?? false,
     google: config?.features.authProviders.google ?? false,
   };
+  const passwordDisabled = config?.features.authProviders.passwordDisabled ?? false;
   const signupsDisabled = config?.features.signup.signupsDisabled ?? false;
+  const allowlistRestricted = config?.features.signup.allowlistRestricted ?? false;
+  const hasOAuth = oauthConfig.github || oauthConfig.google;
 
   async function onSubmit(values: z.infer<typeof AuthenticationSchemas.signup>) {
     try {
       const response = await network.fetch<
         {
           success: boolean;
-          data: {id: string; email: string} | string;
+          data:
+            | {id: string; email: string}
+            | {needsVerification: true; email: string}
+            | string;
         },
         typeof AuthenticationSchemas.signup
       >('POST', '/auth/signup', values);
 
       if (!response.success) {
         const errorData = typeof response.data === 'string' ? response.data : 'Something went wrong';
-        setErrorMessage(errorData);
+        setErrorMessage(formatAuthMessage(errorData));
       } else {
         setErrorMessage(null);
+
+        if (typeof response.data === 'object' && 'needsVerification' in response.data && response.data.needsVerification) {
+          await router.push(`/auth/verify-email?email=${encodeURIComponent(response.data.email)}`);
+          return;
+        }
 
         await userMutate();
         await projectsMutate();
@@ -123,7 +135,11 @@ export default function Signup() {
                     <div className="flex flex-col gap-6">
                       <div className="flex flex-col gap-1.5">
                         <h1 className="text-2xl font-bold tracking-tight">Create an account</h1>
-                        <p className="text-sm text-neutral-500">Start sending emails in minutes</p>
+                        <p className="text-sm text-neutral-500">
+                          {allowlistRestricted
+                            ? 'Registration is limited to authorized emails on this instance'
+                            : 'Start sending emails in minutes'}
+                        </p>
                       </div>
 
                       {(oauthConfig.github || oauthConfig.google) && (
@@ -175,17 +191,27 @@ export default function Signup() {
                               </Button>
                             )}
                           </div>
-                          <div className="relative">
-                            <div className="absolute inset-0 flex items-center">
-                              <span className="w-full border-t border-neutral-200" />
+                          {!passwordDisabled && (
+                            <div className="relative">
+                              <div className="absolute inset-0 flex items-center">
+                                <span className="w-full border-t border-neutral-200" />
+                              </div>
+                              <div className="relative flex justify-center text-xs uppercase">
+                                <span className="bg-white px-2 text-neutral-400 tracking-wider">or</span>
+                              </div>
                             </div>
-                            <div className="relative flex justify-center text-xs uppercase">
-                              <span className="bg-white px-2 text-neutral-400 tracking-wider">or</span>
-                            </div>
-                          </div>
+                          )}
                         </>
                       )}
 
+                      {passwordDisabled && !hasOAuth && (
+                        <p className="text-sm text-neutral-500 text-center">
+                          No signup methods are enabled on this instance. Contact your administrator.
+                        </p>
+                      )}
+
+                      {!passwordDisabled && (
+                        <>
                       <div className="grid gap-4">
                         <FormField
                           control={form.control}
@@ -247,6 +273,8 @@ export default function Signup() {
                           Log in
                         </Link>
                       </p>
+                        </>
+                      )}
                     </div>
                   </form>
                 </Form>

@@ -9,7 +9,11 @@ import signale from 'signale';
 import {ZodError} from 'zod';
 
 import {
+  ALLOWLIST_OPEN,
+  ALLOWLIST_RESTRICTED,
+  ALLOWLIST_TRUSTED_DOMAINS,
   DASHBOARD_URI,
+  DISABLE_PASSWORD_AUTH,
   GITHUB_OAUTH_ENABLED,
   GOOGLE_OAUTH_ENABLED,
   NODE_ENV,
@@ -22,6 +26,7 @@ import {
 } from './app/constants.js';
 import {Actions} from './controllers/Actions.js';
 import {Activity} from './controllers/Activity.js';
+import {Allowlist} from './controllers/Allowlist.js';
 import {Analytics} from './controllers/Analytics.js';
 import {Auth} from './controllers/Auth.js';
 import {Campaigns} from './controllers/Campaigns.js';
@@ -155,6 +160,7 @@ const server = new (class extends Server {
     this.addControllers([
       new Actions(),
       new Activity(),
+      new Allowlist(),
       new Analytics(),
       new Auth(),
       new Campaigns(),
@@ -446,6 +452,20 @@ void prisma.$connect().then(async () => {
       enabled: MERLIN_ENABLED,
       details: MERLIN_ENABLED ? 'Platform email notifications enabled' : 'MERLIN_API_KEY not configured',
     },
+    {
+      name: 'Signup allowlist',
+      enabled: ALLOWLIST_RESTRICTED,
+      details: ALLOWLIST_OPEN
+        ? 'Open (ALL_DOMAINS)'
+        : ALLOWLIST_TRUSTED_DOMAINS.length > 0
+          ? `Restricted to ${ALLOWLIST_TRUSTED_DOMAINS.length} trusted domain(s)`
+          : 'Closed (allowlist table only)',
+    },
+    {
+      name: 'Password auth',
+      enabled: !DISABLE_PASSWORD_AUTH,
+      details: DISABLE_PASSWORD_AUTH ? 'Email+password login disabled' : 'Email+password login enabled',
+    },
   ];
 
   const rows = features.map(f => ({
@@ -454,6 +474,18 @@ void prisma.$connect().then(async () => {
   }));
 
   console.table(rows);
+
+  if (ALLOWLIST_RESTRICTED && !MERLIN_ENABLED) {
+    signale.warn(
+      '[ALLOWLIST] Restricted signup mode is active but platform emails are disabled. Email verification links will not be sent.',
+    );
+  }
+
+  if (DISABLE_PASSWORD_AUTH && !GOOGLE_OAUTH_ENABLED && !GITHUB_OAUTH_ENABLED) {
+    signale.warn(
+      '[AUTH] Password authentication is disabled but no OAuth providers are configured. No login methods are available.',
+    );
+  }
 
   if (S3_ENABLED) {
     try {

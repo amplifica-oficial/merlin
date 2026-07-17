@@ -2,12 +2,17 @@ import {Controller, Delete, Get, Middleware, Patch, Post} from '@overnightjs/cor
 import type {NextFunction, Request, Response} from 'express';
 import {MembershipSchemas, UtilitySchemas} from '@merlin/shared';
 
+import {ALLOWLIST_RESTRICTED} from '../app/constants.js';
 import {prisma} from '../database/prisma.js';
-import {HttpException} from '../exceptions/index.js';
+import {HttpException, NotAllowed, NotAuthenticated} from '../exceptions/index.js';
 import {requireAuth, requireEmailVerified} from '../middleware/auth.js';
+import {AllowlistService} from '../services/AllowlistService.js';
 import {MembershipService} from '../services/MembershipService.js';
+import {ProjectShareService} from '../services/ProjectShareService.js';
 import {SecurityService} from '../services/SecurityService.js';
+import {UserService} from '../services/UserService.js';
 import {CatchAsync} from '../utils/asyncHandler.js';
+import {normalizeEmail} from '../utils/email.js';
 
 @Controller('projects')
 export class Projects {
@@ -122,6 +127,27 @@ export class Projects {
   }
 
   /**
+   * Get pending invites for a project
+   * GET /projects/:id/pending-members
+   */
+  @Get(':id/pending-members')
+  @Middleware([requireAuth, requireEmailVerified])
+  @CatchAsync
+  private async getPendingMembers(req: Request, res: Response, _next: NextFunction) {
+    const auth = res.locals.auth;
+    const {id} = UtilitySchemas.id.parse(req.params);
+
+    await MembershipService.requireAccess(auth.userId!, id);
+
+    const pendingMembers = await ProjectShareService.listPendingShares(id);
+
+    return res.json({
+      success: true,
+      data: pendingMembers,
+    });
+  }
+
+  /**
    * Add a member to a project by email
    * POST /projects/:id/members
    * Body: { email: string, role?: 'ADMIN' | 'MEMBER' }
@@ -145,22 +171,83 @@ export class Projects {
     }
 
     const {email, role} = parseResult.data;
+    const normalized = normalizeEmail(email);
 
     // Verify current user is ADMIN or OWNER
     await MembershipService.requireAdminAccess(auth.userId!, id);
 
-    // Find user by email
-    const userToAdd = await prisma.user.findUnique({
-      where: {email: email.toLowerCase()},
-      select: {id: true, email: true},
-    });
+    const isExternal = !AllowlistService.isTrustedDomain(normalized);
+    const effectiveRole = AllowlistService.resolveEffectiveRole(normalized, role);
+
+    if (isExternal) {
+      const allowlisted = await AllowlistService.isAllowlisted(normalized);
+
+      if (!allowlisted) {
+        if (ALLOWLIST_RESTRICTED) {
+          const inviter = await UserService.id(auth.userId!);
+
+          if (!inviter) {
+            throw new NotAuthenticated();
+          }
+
+          if (!AllowlistService.isTrustedDomain(inviter.email)) {
+            throw new NotAllowed('Only allowlist managers can invite external email addresses');
+          }
+
+          await AllowlistService.add(normalized, auth.userId!, {projectIds: [id]});
+        } else {
+          await ProjectShareService.shareWithEmail(normalized, [id], 'MEMBER', auth.userId!);
+        }
+
+        const invitedUser = await UserService.email(normalized);
+        if (!invitedUser) {
+          return res.json({
+            success: true,
+            data: {email: normalized, pending: true, role: 'MEMBER'},
+          });
+        }
+
+        const membership = await MembershipService.getMembership(invitedUser.id, id);
+        return res.json({
+          success: true,
+          data: {
+            userId: invitedUser.id,
+            email: invitedUser.email,
+            role: membership?.role ?? 'MEMBER',
+          },
+        });
+      }
+
+      const invitedUser = await UserService.email(normalized);
+      if (!invitedUser) {
+        await ProjectShareService.shareWithEmail(normalized, [id], 'MEMBER', auth.userId!);
+
+        return res.json({
+          success: true,
+          data: {email: normalized, pending: true, role: 'MEMBER'},
+        });
+      }
+    }
+
+    const userToAdd = await UserService.email(normalized);
 
     if (!userToAdd) {
       throw new HttpException(404, 'User with this email does not have an account');
     }
 
-    // Add member to project
-    const newMembership = await MembershipService.addMember(id, userToAdd.id, role);
+    const existingMembership = await MembershipService.getMembership(userToAdd.id, id);
+    if (existingMembership) {
+      return res.json({
+        success: true,
+        data: {
+          userId: userToAdd.id,
+          email: userToAdd.email,
+          role: existingMembership.role,
+        },
+      });
+    }
+
+    const newMembership = await MembershipService.addMember(id, userToAdd.id, effectiveRole);
 
     return res.json({
       success: true,
@@ -213,15 +300,21 @@ export class Projects {
       throw new HttpException(404, 'User not found');
     }
 
+    if (role === 'ADMIN' && !AllowlistService.isTrustedDomain(user.email)) {
+      throw new NotAllowed('External email addresses cannot be promoted to admin');
+    }
+
+    const effectiveRole = AllowlistService.resolveEffectiveRole(user.email, role);
+
     // Update role (service handles validation)
-    await MembershipService.updateRole(id, userId, role);
+    await MembershipService.updateRole(id, userId, effectiveRole);
 
     return res.json({
       success: true,
       data: {
         userId: user.id,
         email: user.email,
-        role,
+        role: effectiveRole,
       },
     });
   }
@@ -259,6 +352,34 @@ export class Projects {
     return res.json({
       success: true,
       data: {message: 'Member removed successfully'},
+    });
+  }
+
+  /**
+   * Revoke a pending invite for a project
+   * DELETE /projects/:id/pending-members/:shareId
+   */
+  @Delete(':id/pending-members/:shareId')
+  @Middleware([requireAuth, requireEmailVerified])
+  @CatchAsync
+  private async revokePendingMember(req: Request, res: Response, _next: NextFunction) {
+    const auth = res.locals.auth;
+    const {id, shareId} = req.params;
+
+    if (!id) {
+      throw new HttpException(400, 'Project ID is required');
+    }
+    if (!shareId) {
+      throw new HttpException(400, 'Share ID is required');
+    }
+
+    await MembershipService.requireAdminAccess(auth.userId!, id);
+
+    await ProjectShareService.revokePendingShare(id, shareId);
+
+    return res.json({
+      success: true,
+      data: {message: 'Pending invite revoked successfully'},
     });
   }
 }

@@ -52,12 +52,23 @@ export const AuthenticationSchemas = {
   verifyEmail: z.object({
     token: z.string().length(64, 'Invalid verification token'),
   }),
+  requestVerification: z.object({
+    email,
+  }),
   requestPasswordReset: z.object({
     email,
   }),
   resetPassword: z.object({
     token: z.string().length(64, 'Invalid reset token'),
     newPassword: z.string().min(6, 'Password must be at least 6 characters'),
+  }),
+} as const;
+
+export const AllowlistSchemas = {
+  add: z.object({
+    email,
+    projectIds: z.array(z.string().uuid()).max(50).optional(),
+    role: z.literal('MEMBER').default('MEMBER'),
   }),
 } as const;
 

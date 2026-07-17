@@ -4,9 +4,11 @@ import {EmailVerificationEmail, PasswordResetEmail, sendPlatformEmail} from '@me
 import {randomBytes} from 'node:crypto';
 import type {NextFunction, Request, Response} from 'express';
 import * as React from 'react';
+import signale from 'signale';
 
 import {
   DASHBOARD_URI,
+  DISABLE_PASSWORD_AUTH,
   DISABLE_SIGNUPS,
   EMAIL_VERIFICATION_RATE_LIMIT,
   EMAIL_VERIFICATION_RATE_WINDOW,
@@ -14,25 +16,81 @@ import {
   GOOGLE_OAUTH_ENABLED,
   PASSWORD_RESET_RATE_LIMIT,
   MERLIN_ENABLED,
+  SIGNUP_RATE_LIMIT,
+  SIGNUP_RATE_LIMIT_IP,
   TOKEN_EXPIRY_SECONDS,
   VERIFY_EMAIL_ON_SIGNUP,
 } from '../app/constants.js';
 import {prisma} from '../database/prisma.js';
 import {redis, REDIS_ONE_MINUTE} from '../database/redis.js';
-import {BadRequest, NotAuthenticated, RateLimitError} from '../exceptions/index.js';
-import {jwt, parseJwt} from '../middleware/auth.js';
+import {BadRequest} from '../exceptions/index.js';
+import {jwt} from '../middleware/auth.js';
 import {AuthService} from '../services/AuthService.js';
+import {AllowlistService} from '../services/AllowlistService.js';
+import {ProjectShareService} from '../services/ProjectShareService.js';
 import {EmailVerificationService} from '../services/EmailVerificationService.js';
 import {NtfyService} from '../services/NtfyService.js';
 import {UserService} from '../services/UserService.js';
 import {Keys} from '../services/keys.js';
 import {CatchAsync} from '../utils/asyncHandler.js';
+import {normalizeEmail} from '../utils/email.js';
+
+function getClientIp(req: Request): string {
+  const forwarded = req.headers['x-forwarded-for'];
+  if (typeof forwarded === 'string' && forwarded.length > 0) {
+    return forwarded.split(',')[0]?.trim() ?? 'unknown';
+  }
+
+  return req.ip ?? 'unknown';
+}
+
+async function checkSignupRateLimit(email: string, ip: string): Promise<boolean> {
+  const emailKey = Keys.User.signupRateLimit(email);
+  const ipKey = Keys.User.signupRateLimitIp(ip);
+
+  const [emailCount, ipCount] = await Promise.all([redis.get(emailKey), redis.get(ipKey)]);
+
+  if (emailCount && parseInt(emailCount, 10) >= SIGNUP_RATE_LIMIT) {
+    signale.warn(`[Auth] Signup rate limit exceeded for email: ${email}`);
+    return false;
+  }
+
+  if (ipCount && parseInt(ipCount, 10) >= SIGNUP_RATE_LIMIT_IP) {
+    signale.warn(`[Auth] Signup rate limit exceeded for IP: ${ip}`);
+    return false;
+  }
+
+  return true;
+}
+
+async function incrementSignupRateLimit(email: string, ip: string): Promise<void> {
+  const emailKey = Keys.User.signupRateLimit(email);
+  const ipKey = Keys.User.signupRateLimitIp(ip);
+
+  const [emailCount, ipCount] = await Promise.all([redis.get(emailKey), redis.get(ipKey)]);
+
+  if (emailCount) {
+    await redis.incr(emailKey);
+  } else {
+    await redis.setex(emailKey, EMAIL_VERIFICATION_RATE_WINDOW, '1');
+  }
+
+  if (ipCount) {
+    await redis.incr(ipKey);
+  } else {
+    await redis.setex(ipKey, EMAIL_VERIFICATION_RATE_WINDOW, '1');
+  }
+}
 
 @Controller('auth')
 export class Auth {
   @Post('login')
   @CatchAsync
   public async login(req: Request, res: Response, _next: NextFunction) {
+    if (DISABLE_PASSWORD_AUTH) {
+      return res.json({success: false, data: 'Password login is disabled'});
+    }
+
     const {email, password} = AuthenticationSchemas.login.parse(req.body);
 
     const user = await UserService.email(email);
@@ -51,6 +109,15 @@ export class Auth {
       return res.json({success: false, data: 'Incorrect email or password'});
     }
 
+    if (MERLIN_ENABLED && user.type === 'PASSWORD' && !user.emailVerified) {
+      return res.json({
+        success: true,
+        data: {needsVerification: true, email: user.email},
+      });
+    }
+
+    await ProjectShareService.tryMaterializePendingShares(user.id, user.email);
+
     await redis.set(Keys.User.id(user.id), JSON.stringify(user), 'EX', REDIS_ONE_MINUTE * 60);
 
     const token = jwt.sign(user.id);
@@ -64,6 +131,13 @@ export class Auth {
   @Post('signup')
   @CatchAsync
   public async signup(req: Request, res: Response, _next: NextFunction) {
+    if (DISABLE_PASSWORD_AUTH) {
+      return res.json({
+        success: false,
+        data: 'Password signup is disabled',
+      });
+    }
+
     // Check if signups are disabled
     if (DISABLE_SIGNUPS) {
       return res.json({
@@ -73,6 +147,17 @@ export class Auth {
     }
 
     const {email, password} = AuthenticationSchemas.login.parse(req.body);
+    const normalizedEmail = normalizeEmail(email);
+    const clientIp = getClientIp(req);
+
+    if (!(await checkSignupRateLimit(normalizedEmail, clientIp))) {
+      return res.json({
+        success: false,
+        data: 'Too many signup attempts. Please try again later.',
+      });
+    }
+
+    await incrementSignupRateLimit(normalizedEmail, clientIp);
 
     // Verify email is valid and not disposable/plus-addressed (if verification enabled)
     if (VERIFY_EMAIL_ON_SIGNUP) {
@@ -101,24 +186,38 @@ export class Auth {
       }
     }
 
-    const user = await UserService.email(email);
+    const user = await UserService.email(normalizedEmail);
 
     if (user) {
+      signale.warn(`[Auth] Signup attempt for existing email: ${normalizedEmail} (IP: ${clientIp})`);
       return res.json({
         success: false,
         data: 'That email is already associated with another user',
       });
     }
 
+    if (!(await AllowlistService.isSignupAllowed(normalizedEmail))) {
+      await NtfyService.notifyFailedSignupAttempt(normalizedEmail, ['not authorized for signup']);
+
+      return res.json({
+        success: false,
+        data: 'This email is not authorized to create an account',
+      });
+    }
+
     const created_user = await prisma.user.create({
       data: {
-        email,
+        email: normalizedEmail,
         password: await AuthService.generateHash(password),
         type: 'PASSWORD',
         // Auto-verify email if platform emails are disabled
         emailVerified: !MERLIN_ENABLED,
       },
     });
+
+    if (created_user.emailVerified) {
+      await ProjectShareService.tryMaterializePendingShares(created_user.id, created_user.email);
+    }
 
     await redis.set(Keys.User.id(created_user.id), JSON.stringify(created_user), 'EX', REDIS_ONE_MINUTE * 60);
 
@@ -144,6 +243,11 @@ export class Auth {
           dashboardUrl: DASHBOARD_URI,
         }),
       );
+
+      return res.json({
+        success: true,
+        data: {needsVerification: true, email: created_user.email},
+      });
     }
 
     const token = jwt.sign(created_user.id);
@@ -175,6 +279,10 @@ export class Auth {
   @Post('verify-email')
   @CatchAsync
   public async verifyEmail(req: Request, res: Response, _next: NextFunction) {
+    if (DISABLE_PASSWORD_AUTH) {
+      throw new BadRequest('Password authentication is disabled');
+    }
+
     const {token} = AuthenticationSchemas.verifyEmail.parse(req.body);
 
     // Look up token in Redis
@@ -184,13 +292,15 @@ export class Auth {
       throw new BadRequest('Invalid or expired verification token');
     }
 
-    const {userId} = JSON.parse(data);
+    const {userId, email} = JSON.parse(data);
 
     // Update user
     await prisma.user.update({
       where: {id: userId},
       data: {emailVerified: true},
     });
+
+    await ProjectShareService.tryMaterializePendingShares(userId, email);
 
     // Delete token (single use) and invalidate cache
     await redis.del(Keys.User.emailVerificationToken(token));
@@ -202,54 +312,53 @@ export class Auth {
   @Post('request-verification')
   @CatchAsync
   public async requestVerification(req: Request, res: Response, _next: NextFunction) {
-    const userId = parseJwt(req);
-    const user = await UserService.id(userId);
-
-    if (!user) {
-      throw new NotAuthenticated();
+    if (DISABLE_PASSWORD_AUTH) {
+      return res.json({success: true, data: {message: 'If that email exists, a verification link has been sent'}});
     }
 
-    if (user.emailVerified) {
-      return res.json({success: true, data: {message: 'Email already verified'}});
-    }
+    const {email} = AuthenticationSchemas.requestVerification.parse(req.body);
 
-    // Check rate limit
-    const rateLimitKey = Keys.User.emailVerificationRateLimit(userId);
+    const rateLimitKey = Keys.User.emailVerificationRateLimit(email);
     const count = await redis.get(rateLimitKey);
 
     if (count && parseInt(count) >= EMAIL_VERIFICATION_RATE_LIMIT) {
-      throw new RateLimitError('Too many verification emails sent. Please try again later.');
+      return res.json({success: true, data: {message: 'If that email exists, a verification link has been sent'}});
     }
 
-    // Generate token
-    const token = randomBytes(32).toString('hex');
-    await redis.setex(
-      Keys.User.emailVerificationToken(token),
-      TOKEN_EXPIRY_SECONDS,
-      JSON.stringify({userId, email: user.email, createdAt: Date.now()}),
-    );
+    const user = await UserService.email(email);
 
-    // Send email
-    const verificationUrl = `${DASHBOARD_URI}/auth/verify-email?token=${token}`;
-    await sendPlatformEmail(
-      user.email,
-      'Verify your email address',
-      React.createElement(EmailVerificationEmail, {email: user.email, verificationUrl, dashboardUrl: DASHBOARD_URI}),
-    );
+    if (user && user.type === 'PASSWORD' && !user.emailVerified) {
+      const token = randomBytes(32).toString('hex');
+      await redis.setex(
+        Keys.User.emailVerificationToken(token),
+        TOKEN_EXPIRY_SECONDS,
+        JSON.stringify({userId: user.id, email: user.email, createdAt: Date.now()}),
+      );
 
-    // Increment rate limit
-    if (count) {
-      await redis.incr(rateLimitKey);
-    } else {
-      await redis.setex(rateLimitKey, EMAIL_VERIFICATION_RATE_WINDOW, '1');
+      const verificationUrl = `${DASHBOARD_URI}/auth/verify-email?token=${token}`;
+      await sendPlatformEmail(
+        user.email,
+        'Verify your email address',
+        React.createElement(EmailVerificationEmail, {email: user.email, verificationUrl, dashboardUrl: DASHBOARD_URI}),
+      );
+
+      if (count) {
+        await redis.incr(rateLimitKey);
+      } else {
+        await redis.setex(rateLimitKey, EMAIL_VERIFICATION_RATE_WINDOW, '1');
+      }
     }
 
-    return res.json({success: true, data: {message: 'Verification email sent'}});
+    return res.json({success: true, data: {message: 'If that email exists, a verification link has been sent'}});
   }
 
   @Post('request-password-reset')
   @CatchAsync
   public async requestPasswordReset(req: Request, res: Response, _next: NextFunction) {
+    if (DISABLE_PASSWORD_AUTH) {
+      return res.json({success: true, data: {message: 'If that email exists, a reset link has been sent'}});
+    }
+
     const {email} = AuthenticationSchemas.requestPasswordReset.parse(req.body);
 
     // Check rate limit
@@ -295,6 +404,10 @@ export class Auth {
   @Post('reset-password')
   @CatchAsync
   public async resetPassword(req: Request, res: Response, _next: NextFunction) {
+    if (DISABLE_PASSWORD_AUTH) {
+      throw new BadRequest('Password authentication is disabled');
+    }
+
     const {token, newPassword} = AuthenticationSchemas.resetPassword.parse(req.body);
 
     // Look up token

@@ -24,11 +24,12 @@ import {NextSeo} from 'next-seo';
 import Image from 'next/image';
 import Link from 'next/link';
 import {useRouter} from 'next/router';
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {useForm} from 'react-hook-form';
 import type {z} from 'zod';
 
 import {API_URI} from '../../lib/constants';
+import {formatAuthMessage} from '../../lib/authMessages';
 import {useConfig} from '../../lib/hooks/useConfig';
 import {useProjects} from '../../lib/hooks/useProject';
 import {useUser} from '../../lib/hooks/useUser';
@@ -63,14 +64,27 @@ export default function Login() {
     github: config?.features.authProviders.github ?? false,
     google: config?.features.authProviders.google ?? false,
   };
+  const passwordDisabled = config?.features.authProviders.passwordDisabled ?? false;
   const signupsDisabled = config?.features.signup.signupsDisabled ?? false;
+  const hasOAuth = oauthConfig.github || oauthConfig.google;
+
+  useEffect(() => {
+    if (!router.isReady) {
+      return;
+    }
+
+    const message = router.query.message;
+    if (typeof message === 'string' && message.length > 0) {
+      setErrorMessage(formatAuthMessage(message));
+    }
+  }, [router.isReady, router.query.message]);
 
   async function onSubmit(values: z.infer<typeof AuthenticationSchemas.login>) {
     try {
       const response = await network.fetch<
         {
           success: boolean;
-          data: {id: string; email: string};
+          data: {id: string; email: string} | {needsVerification: true; email: string};
         },
         typeof AuthenticationSchemas.login
       >('POST', '/auth/login', values);
@@ -79,6 +93,12 @@ export default function Login() {
         setErrorMessage('Email or password is incorrect');
       } else {
         setErrorMessage(null);
+
+        if ('needsVerification' in response.data && response.data.needsVerification) {
+          await router.push(`/auth/verify-email?email=${encodeURIComponent(response.data.email)}`);
+          return;
+        }
+
         localStorage.setItem('merlin_last_auth_method', 'email');
 
         await userMutate();
@@ -216,17 +236,41 @@ export default function Login() {
                             </div>
                           )}
                         </div>
-                        <div className="relative">
-                          <div className="absolute inset-0 flex items-center">
-                            <span className="w-full border-t border-neutral-200" />
+                        {!passwordDisabled && (
+                          <div className="relative">
+                            <div className="absolute inset-0 flex items-center">
+                              <span className="w-full border-t border-neutral-200" />
+                            </div>
+                            <div className="relative flex justify-center text-xs uppercase">
+                              <span className="bg-white px-2 text-neutral-400 tracking-wider">or</span>
+                            </div>
                           </div>
-                          <div className="relative flex justify-center text-xs uppercase">
-                            <span className="bg-white px-2 text-neutral-400 tracking-wider">or</span>
-                          </div>
-                        </div>
+                        )}
                       </>
                     )}
 
+                    {passwordDisabled && !hasOAuth && (
+                      <p className="text-sm text-neutral-500 text-center">
+                        No login methods are enabled on this instance. Contact your administrator.
+                      </p>
+                    )}
+
+                    <AnimatePresence>
+                      {errorMessage && (
+                        <motion.p
+                          initial={{opacity: 0, y: -8}}
+                          animate={{opacity: 1, y: 0}}
+                          exit={{opacity: 0, y: -8}}
+                          transition={{duration: 0.15}}
+                          className="text-sm text-red-500"
+                        >
+                          {errorMessage}
+                        </motion.p>
+                      )}
+                    </AnimatePresence>
+
+                    {!passwordDisabled && (
+                      <>
                     <div className="grid gap-4">
                       <FormField
                         control={form.control}
@@ -271,20 +315,6 @@ export default function Login() {
                       />
                     </div>
 
-                    <AnimatePresence>
-                      {errorMessage && (
-                        <motion.p
-                          initial={{opacity: 0, y: -8}}
-                          animate={{opacity: 1, y: 0}}
-                          exit={{opacity: 0, y: -8}}
-                          transition={{duration: 0.15}}
-                          className="text-sm text-red-500"
-                        >
-                          {errorMessage}
-                        </motion.p>
-                      )}
-                    </AnimatePresence>
-
                     <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
                       {form.formState.isSubmitting ? (
                         <>
@@ -304,6 +334,8 @@ export default function Login() {
                         </Link>
                       </p>
                     )}
+                      </>
+                    )}
                   </div>
                 </form>
               </Form>
@@ -311,6 +343,7 @@ export default function Login() {
           </Card>
         </div>
 
+        {!passwordDisabled && (
         <Dialog
           open={showReset}
           onOpenChange={open => {
@@ -364,6 +397,7 @@ export default function Login() {
             </form>
           </DialogContent>
         </Dialog>
+        )}
       </div>
     </>
   );
