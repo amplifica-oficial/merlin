@@ -153,6 +153,8 @@ Required for builds and deployment (see turbo.json and .env.example):
     plus-addressing, domain existence, and MX records
 - Security (optional): `AUTO_PROJECT_DISABLE` (default: true) - Controls whether projects are automatically disabled when
   bounce/complaint rate thresholds are exceeded
+  - `ALLOW_SHARED_DOMAINS` (default: false) - When set to true, allows the same domain to be linked to multiple projects,
+    bypassing the cross-project ownership check
 - Attachment Limits (optional):
   - `MAX_ATTACHMENT_SIZE_MB` (default: 10) - Maximum total attachment size in megabytes per email. AWS SES supports up to 40 MB.
   - `MAX_ATTACHMENTS_COUNT` (default: 10) - Maximum number of attachments per email

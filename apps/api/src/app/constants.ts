@@ -112,6 +112,8 @@ export const MERLIN_ENABLED = MERLIN_API_KEY !== '' && MERLIN_FROM_ADDRESS !== '
 // Controls whether projects are automatically disabled when bounce/complaint rate thresholds are exceeded
 // Useful for self-hosters who want to manage project status manually
 export const AUTO_PROJECT_DISABLE = validateEnv('AUTO_PROJECT_DISABLE', 'true') === 'true';
+// Allows the same domain to be linked to multiple projects (bypasses cross-project ownership check)
+export const ALLOW_SHARED_DOMAINS = process.env.ALLOW_SHARED_DOMAINS === 'true';
 
 // Self-hosting Configuration (optional)
 // Controls whether new user signups are allowed (default: false)

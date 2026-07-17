@@ -2,6 +2,7 @@ import {Controller, Delete, Get, Middleware, Post} from '@overnightjs/core';
 import {DomainSchemas, UtilitySchemas} from '@merlin/shared';
 import type {NextFunction, Request, Response} from 'express';
 
+import {ALLOW_SHARED_DOMAINS} from '../app/constants.js';
 import {redis} from '../database/redis.js';
 import {BadRequest, ErrorCode, HttpException, NotAllowed, NotFound} from '../exceptions/index.js';
 import {requireAuth, requireEmailVerified} from '../middleware/auth.js';
@@ -67,17 +68,19 @@ export class Domains {
         throw new BadRequest('This domain is already linked to this project.');
       }
 
-      // If domain exists and user is a member of that project, allow it
-      if (ownershipCheck.isMember) {
-        throw new BadRequest(
-          `This domain is already linked to project "${ownershipCheck.projectName}". You are a member of that project, so you can use the domain from there.`,
+      if (!ALLOW_SHARED_DOMAINS) {
+        // If domain exists and user is a member of that project, allow it
+        if (ownershipCheck.isMember) {
+          throw new BadRequest(
+            `This domain is already linked to project "${ownershipCheck.projectName}". You are a member of that project, so you can use the domain from there.`,
+          );
+        }
+
+        // Domain exists but user is not a member - deny access
+        throw new NotAllowed(
+          'This domain is already linked to another project. Only members of that project can use this domain.',
         );
       }
-
-      // Domain exists but user is not a member - deny access
-      throw new NotAllowed(
-        'This domain is already linked to another project. Only members of that project can use this domain.',
-      );
     }
 
     try {
