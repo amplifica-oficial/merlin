@@ -1,6 +1,6 @@
 import {useState} from 'react';
 import useSWR from 'swr';
-import type {AuditLogEntry, PaginatedResponse} from '@merlin/types';
+import type {AuditLogEntry, CursorPaginatedResponse} from '@merlin/types';
 import {
   Button,
   Card,
@@ -53,18 +53,33 @@ function formatMetadataDetails(action: string, metadata: Record<string, unknown>
 }
 
 export function AuditLogSettings() {
-  const [page, setPage] = useState(1);
+  const [cursor, setCursor] = useState<string | undefined>();
+  const [cursorHistory, setCursorHistory] = useState<(string | undefined)[]>([]);
 
-  const {data, isLoading} = useSWR<PaginatedResponse<AuditLogEntry> & {success: boolean}>(
-    `/allowlist/audit-logs?page=${page}&pageSize=${PAGE_SIZE}`,
-    {
-      revalidateOnFocus: false,
-    },
-  );
+  const swrKey = `/allowlist/audit-logs?limit=${PAGE_SIZE}${cursor ? `&cursor=${encodeURIComponent(cursor)}` : ''}`;
+
+  const {data, isLoading} = useSWR<CursorPaginatedResponse<AuditLogEntry> & {success: boolean}>(swrKey, {
+    revalidateOnFocus: false,
+  });
 
   const entries = data?.data ?? [];
-  const totalPages = data?.totalPages ?? 1;
-  const total = data?.total ?? 0;
+  const hasMore = data?.hasMore ?? false;
+  const total = data?.total;
+
+  const goNext = () => {
+    if (data?.cursor) {
+      setCursorHistory(prev => [...prev, cursor]);
+      setCursor(data.cursor);
+    }
+  };
+
+  const goPrevious = () => {
+    const previousCursor = cursorHistory[cursorHistory.length - 1];
+    setCursorHistory(prev => prev.slice(0, -1));
+    setCursor(previousCursor);
+  };
+
+  const showPagination = hasMore || cursorHistory.length > 0;
 
   return (
     <Card>
@@ -116,21 +131,21 @@ export function AuditLogSettings() {
               </TableBody>
             </Table>
 
-            {totalPages > 1 && (
+            {showPagination && (
               <div className="flex items-center justify-between mt-4 pt-4 border-t">
                 <p className="text-sm text-neutral-500">
-                  Page {page} of {totalPages} ({total} total)
+                  {total !== undefined ? `${total} total records` : 'Showing recent events'}
                 </p>
                 <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm" onClick={() => setPage(p => p - 1)} disabled={page === 1}>
-                    Previous
-                  </Button>
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setPage(p => p + 1)}
-                    disabled={page === totalPages}
+                    onClick={goPrevious}
+                    disabled={cursorHistory.length === 0}
                   >
+                    Previous
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={goNext} disabled={!hasMore}>
                     Next
                   </Button>
                 </div>

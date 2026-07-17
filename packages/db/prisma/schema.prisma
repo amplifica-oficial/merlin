@@ -74,6 +74,7 @@ model AuditLog {
 
   @@index([action])
   @@index([createdAt])
+  @@index([createdAt, id])
   @@map("audit_logs")
 }
 

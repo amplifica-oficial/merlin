@@ -36,10 +36,10 @@ export class Allowlist {
   @Middleware([isAuthenticated, requireEmailVerified, requireTrustedDomain])
   @CatchAsync
   public async auditLogs(req: Request, res: Response, _next: NextFunction) {
-    const page = parseInt(req.query.page as string, 10) || 1;
-    const pageSize = parseInt(req.query.pageSize as string, 10) || 20;
+    const limit = parseInt(req.query.limit as string, 10) || 20;
+    const cursor = typeof req.query.cursor === 'string' ? req.query.cursor : undefined;
 
-    const result = await AuditService.list(page, pageSize);
+    const result = await AuditService.list(limit, cursor);
 
     return res.status(200).json({success: true, ...result});
   }
