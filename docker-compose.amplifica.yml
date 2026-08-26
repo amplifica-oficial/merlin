@@ -100,6 +100,7 @@ services:
       S3_BUCKET: ${S3_BUCKET:-uploads}
       S3_PUBLIC_URL: ${S3_PUBLIC_URL:-}
       S3_FORCE_PATH_STYLE: ${S3_FORCE_PATH_STYLE:-true}
+      S3_BEAUTIFUL_DOMAIN: ${S3_BEAUTIFUL_DOMAIN:-}
 
       # Notifications off unless you point at external ntfy
       NTFY_URL: ${NTFY_URL:-}

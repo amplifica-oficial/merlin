@@ -14,6 +14,7 @@ import {
   S3_BUCKET,
   S3_ENABLED,
   S3_ENDPOINT,
+  S3_BEAUTIFUL_DOMAIN,
   S3_FORCE_PATH_STYLE,
   S3_PUBLIC_URL,
 } from '../app/constants.js';
@@ -150,8 +151,9 @@ export async function uploadFile(params: UploadFileParams): Promise<UploadFileRe
     }),
   );
 
-  // Construct public URL
-  const url = `${S3_PUBLIC_URL}/${key}`;
+  // Construct public URL (S3_BEAUTIFUL_DOMAIN for emails/images; fallback to S3_PUBLIC_URL)
+  const base = S3_BEAUTIFUL_DOMAIN || S3_PUBLIC_URL;
+  const url = `${base.replace(/\/$/, '')}/${key}`;
 
   return {url, key};
 }
