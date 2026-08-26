@@ -9,6 +9,7 @@ import type {
   BulkContactActionSelector,
   CampaignBatchJobData,
   ContactImportJobData,
+  ContactImportOptions,
   DomainVerificationJobData,
   EmailBodyCleanupJobData,
   MeterEventJobData,
@@ -337,10 +338,11 @@ export class QueueService {
     projectId: string,
     csvData: string,
     filename: string,
+    options?: ContactImportOptions,
   ): Promise<Job<ContactImportJobData>> {
     return importQueue.add(
       'import-contacts',
-      {projectId, csvData, filename},
+      {projectId, csvData, filename, options},
       {
         jobId: `import-${projectId}-${Date.now()}`,
       },

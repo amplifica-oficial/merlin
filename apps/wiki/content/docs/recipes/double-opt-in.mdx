@@ -8,6 +8,8 @@ Double opt-in adds a confirmation step between "user signs up" and "user starts 
 
 <Callout title="No-code alternative" type="info">
   Enable **Double opt-in** on a [Form](/concepts/forms). Contacts submit via the hosted page as unsubscribed; wire a workflow on `form.submitted` to send the confirmation email with `{{subscribeUrl}}`.
+
+  For CSV imports, enable **Send confirmation email (double opt-in)** in the import dialog. New contacts are imported unsubscribed and emit `contact.imported` — wire a workflow on that event the same way.
 </Callout>
 
 The trick is `{{subscribeUrl}}`: a per-contact link Merlin auto-injects into every send. Clicking it flips `subscribed` to `true` and fires a `contact.subscribed` event.
@@ -84,6 +86,17 @@ Enable it. `contact.subscribed` fires whenever a contact opts in — including v
 </Step>
 
 </Steps>
+
+## CSV import
+
+For bulk migrations, import contacts with double opt-in enabled:
+
+1. **Contacts → Import** → enable **Send confirmation email (double opt-in)**, or pass `-F "doubleOptIn=true"` to `POST /contacts/import`.
+2. New contacts are created unsubscribed. Each new row emits `contact.imported`.
+3. Create a workflow triggered on `contact.imported` with a transactional template containing `{{subscribeUrl}}` (same as Workflow A below, but with trigger `contact.imported` instead of `form.submitted` or a custom signup event).
+4. Optionally reuse Workflow B (`contact.subscribed`) for the welcome email after confirmation.
+
+Existing contacts in the CSV are updated in place but keep their current subscription status — they do not receive a new confirmation email.
 
 ## Reminder if they don't confirm
 

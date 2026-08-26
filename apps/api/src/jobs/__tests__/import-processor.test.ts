@@ -1,7 +1,14 @@
-import {beforeEach, describe, expect, it} from 'vitest';
+import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {factories, getPrismaClient} from '../../../../../test/helpers';
 import {ContactService} from '../../services/ContactService.js';
-import {coerceCustomValue} from '../import-processor.js';
+import {EventService} from '../../services/EventService.js';
+import {coerceCustomValue, processImportContactRow} from '../import-processor.js';
+
+vi.mock('../../services/EventService.js', () => ({
+  EventService: {
+    trackEvent: vi.fn().mockResolvedValue({}),
+  },
+}));
 
 /**
  * Tests for Contact Import Processor - Subscription Status Preservation
@@ -278,6 +285,138 @@ describe('Contact Import - Subscription Status Preservation', () => {
       expect(data?.lastName).toBe('Doe'); // New
       expect(data?.company).toBe('Acme Inc'); // New
     });
+  });
+});
+
+describe('Contact Import - Double opt-in mode', () => {
+  let projectId: string;
+  const prisma = getPrismaClient();
+  const trackEventMock = vi.mocked(EventService.trackEvent);
+
+  beforeEach(async () => {
+    trackEventMock.mockClear();
+    const {project} = await factories.createUserWithProject();
+    projectId = project.id;
+  });
+
+  it('should create new contact as unsubscribed and emit contact.imported', async () => {
+    const result = await processImportContactRow({
+      projectId,
+      record: {email: 'new-double-optin@example.com', firstname: 'Ada', subscribed: 'true'},
+      doubleOptIn: true,
+      confirmationEventName: 'contact.imported',
+      filename: 'contacts.csv',
+    });
+
+    expect(result).toEqual({success: true, isUpdate: false});
+
+    const contact = await prisma.contact.findFirst({
+      where: {projectId, email: 'new-double-optin@example.com'},
+    });
+
+    expect(contact?.subscribed).toBe(false);
+    expect(trackEventMock).toHaveBeenCalledTimes(1);
+    expect(trackEventMock).toHaveBeenCalledWith(
+      projectId,
+      'contact.imported',
+      contact?.id,
+      undefined,
+      {source: 'import', filename: 'contacts.csv'},
+    );
+  });
+
+  it('should not downgrade existing subscribed contact or emit event', async () => {
+    const existing = await factories.createContact({
+      projectId,
+      subscribed: true,
+      email: 'existing-double-optin@example.com',
+    });
+
+    const result = await processImportContactRow({
+      projectId,
+      record: {email: existing.email, subscribed: 'false'},
+      doubleOptIn: true,
+      confirmationEventName: 'contact.imported',
+      filename: 'contacts.csv',
+    });
+
+    expect(result).toEqual({success: true, isUpdate: true});
+
+    const contact = await prisma.contact.findUnique({where: {id: existing.id}});
+    expect(contact?.subscribed).toBe(true);
+    expect(trackEventMock).not.toHaveBeenCalled();
+  });
+
+  it('should preserve default import behavior when double opt-in is disabled', async () => {
+    const result = await processImportContactRow({
+      projectId,
+      record: {email: 'standard-import@example.com'},
+      doubleOptIn: false,
+      confirmationEventName: 'contact.imported',
+      filename: 'contacts.csv',
+    });
+
+    expect(result).toEqual({success: true, isUpdate: false});
+
+    const contact = await prisma.contact.findFirst({
+      where: {projectId, email: 'standard-import@example.com'},
+    });
+
+    expect(contact?.subscribed).toBe(true);
+    expect(trackEventMock).not.toHaveBeenCalled();
+  });
+
+  it('should re-emit confirmation event on re-import when contact is unsubscribed and event was never recorded', async () => {
+    const existing = await factories.createContact({
+      projectId,
+      subscribed: false,
+      email: 'orphaned-doi@example.com',
+    });
+
+    const result = await processImportContactRow({
+      projectId,
+      record: {email: existing.email, firstname: 'Ada'},
+      doubleOptIn: true,
+      confirmationEventName: 'contact.imported',
+      filename: 'contacts.csv',
+    });
+
+    expect(result).toEqual({success: true, isUpdate: true});
+    expect(trackEventMock).toHaveBeenCalledTimes(1);
+    expect(trackEventMock).toHaveBeenCalledWith(
+      projectId,
+      'contact.imported',
+      existing.id,
+      undefined,
+      {source: 'import', filename: 'contacts.csv'},
+    );
+  });
+
+  it('should not re-emit confirmation event when contact is unsubscribed but event already exists', async () => {
+    const existing = await factories.createContact({
+      projectId,
+      subscribed: false,
+      email: 'pending-doi@example.com',
+    });
+
+    await prisma.event.create({
+      data: {
+        projectId,
+        contactId: existing.id,
+        name: 'contact.imported',
+      },
+    });
+
+    const result = await processImportContactRow({
+      projectId,
+      record: {email: existing.email, firstname: 'Ada'},
+      doubleOptIn: true,
+      confirmationEventName: 'contact.imported',
+      filename: 'contacts.csv',
+    });
+
+    expect(result).toEqual({success: true, isUpdate: true});
+    expect(trackEventMock).not.toHaveBeenCalled();
   });
 });
 

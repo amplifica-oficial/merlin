@@ -912,6 +912,7 @@ interface ImportResult {
 
 function ImportContactsDialog({open, onOpenChange, onSuccess}: ImportContactsDialogProps) {
   const [file, setFile] = useState<File | null>(null);
+  const [doubleOptIn, setDoubleOptIn] = useState(false);
   const [, setJobId] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -945,6 +946,7 @@ function ImportContactsDialog({open, onOpenChange, onSuccess}: ImportContactsDia
       // Reset state when dialog closes
       setTimeout(() => {
         setFile(null);
+        setDoubleOptIn(false);
         setJobId(null);
         setProgress(0);
         setStatus('idle');
@@ -1042,6 +1044,9 @@ function ImportContactsDialog({open, onOpenChange, onSuccess}: ImportContactsDia
     try {
       const formData = new FormData();
       formData.append('file', file);
+      if (doubleOptIn) {
+        formData.append('doubleOptIn', 'true');
+      }
 
       const data = await network.upload<{jobId: string; message: string}>('POST', '/contacts/import', formData);
 
@@ -1090,27 +1095,48 @@ function ImportContactsDialog({open, onOpenChange, onSuccess}: ImportContactsDia
 
             {/* File Upload */}
             {status === 'idle' || status === 'failed' ? (
-              <div>
-                <Label htmlFor="csv-file">Select CSV File</Label>
-                <div className="mt-2">
-                  <input
-                    ref={fileInputRef}
-                    id="csv-file"
-                    type="file"
-                    accept=".csv"
-                    onChange={handleFileChange}
-                    className="hidden"
-                  />
-                  <Button
-                    variant="outline"
-                    className="w-full"
-                    onClick={() => fileInputRef.current?.click()}
-                    type="button"
-                  >
-                    <FileUp className="h-4 w-4 mr-2" />
-                    {file ? truncateFileName(file.name) : 'Choose CSV File'}
-                  </Button>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="csv-file">Select CSV File</Label>
+                  <div className="mt-2">
+                    <input
+                      ref={fileInputRef}
+                      id="csv-file"
+                      type="file"
+                      accept=".csv"
+                      onChange={handleFileChange}
+                      className="hidden"
+                    />
+                    <Button
+                      variant="outline"
+                      className="w-full"
+                      onClick={() => fileInputRef.current?.click()}
+                      type="button"
+                    >
+                      <FileUp className="h-4 w-4 mr-2" />
+                      {file ? truncateFileName(file.name) : 'Choose CSV File'}
+                    </Button>
+                  </div>
                 </div>
+
+                <label className="flex items-start gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={doubleOptIn}
+                    onChange={e => setDoubleOptIn(e.target.checked)}
+                    className="rounded mt-0.5"
+                  />
+                  <span>
+                    <span className="font-medium">Send confirmation email (double opt-in)</span>
+                    <span className="block text-neutral-500">
+                      New contacts are imported as unsubscribed. Requires a workflow triggered by{' '}
+                      <code className="bg-neutral-100 px-1 rounded">contact.imported</code> with a transactional
+                      template containing{' '}
+                      <code className="bg-neutral-100 px-1 rounded">{'{{subscribeUrl}}'}</code>. Existing contacts
+                      are not changed.
+                    </span>
+                  </span>
+                </label>
               </div>
             ) : null}
 

@@ -327,9 +327,12 @@ export class Contacts {
       // Convert file buffer to base64 for storage in queue
       const csvData = req.file.buffer.toString('base64');
       const filename = req.file.originalname;
+      const doubleOptIn = req.body?.doubleOptIn === 'true';
 
       // Queue import job
-      const job = await QueueService.queueImport(auth.projectId!, csvData, filename);
+      const job = await QueueService.queueImport(auth.projectId!, csvData, filename, {
+        doubleOptIn: doubleOptIn || undefined,
+      });
 
       return res.status(202).json({
         message: 'Import queued successfully',
