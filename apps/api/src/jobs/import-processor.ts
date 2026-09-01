@@ -237,17 +237,11 @@ export async function processImportContactRow(
     ? await ContactService.upsert(projectId, email, data, undefined, false)
     : await ContactService.upsert(projectId, email, data, subscribed);
 
-  if (doubleOptIn && !contact.subscribed) {
-    const alreadyEmitted = await prisma.event.findFirst({
-      where: {projectId, contactId: contact.id, name: confirmationEventName},
-      select: {id: true},
+  if (doubleOptIn && !isUpdate) {
+    await EventService.trackEvent(projectId, confirmationEventName, contact.id, undefined, {
+      source: 'import',
+      filename,
     });
-    if (!alreadyEmitted) {
-      await EventService.trackEvent(projectId, confirmationEventName, contact.id, undefined, {
-        source: 'import',
-        filename,
-      });
-    }
   }
 
   return {success: true, isUpdate};

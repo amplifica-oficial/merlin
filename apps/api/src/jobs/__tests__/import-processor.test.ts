@@ -366,7 +366,7 @@ describe('Contact Import - Double opt-in mode', () => {
     expect(trackEventMock).not.toHaveBeenCalled();
   });
 
-  it('should re-emit confirmation event on re-import when contact is unsubscribed and event was never recorded', async () => {
+  it('should not emit confirmation event when re-importing existing unsubscribed contact', async () => {
     const existing = await factories.createContact({
       projectId,
       subscribed: false,
@@ -382,40 +382,35 @@ describe('Contact Import - Double opt-in mode', () => {
     });
 
     expect(result).toEqual({success: true, isUpdate: true});
-    expect(trackEventMock).toHaveBeenCalledTimes(1);
-    expect(trackEventMock).toHaveBeenCalledWith(
-      projectId,
-      'contact.imported',
-      existing.id,
-      undefined,
-      {source: 'import', filename: 'contacts.csv'},
-    );
+
+    const contact = await prisma.contact.findUnique({where: {id: existing.id}});
+    expect(contact?.subscribed).toBe(false);
+    expect(trackEventMock).not.toHaveBeenCalled();
   });
 
-  it('should not re-emit confirmation event when contact is unsubscribed but event already exists', async () => {
-    const existing = await factories.createContact({
+  it('should emit confirmation event only once for duplicate new rows in the same import', async () => {
+    const firstResult = await processImportContactRow({
       projectId,
-      subscribed: false,
-      email: 'pending-doi@example.com',
-    });
-
-    await prisma.event.create({
-      data: {
-        projectId,
-        contactId: existing.id,
-        name: 'contact.imported',
-      },
-    });
-
-    const result = await processImportContactRow({
-      projectId,
-      record: {email: existing.email, firstname: 'Ada'},
+      record: {email: 'duplicate-doi@example.com', firstname: 'Ada'},
       doubleOptIn: true,
       confirmationEventName: 'contact.imported',
       filename: 'contacts.csv',
     });
 
-    expect(result).toEqual({success: true, isUpdate: true});
+    expect(firstResult).toEqual({success: true, isUpdate: false});
+    expect(trackEventMock).toHaveBeenCalledTimes(1);
+
+    trackEventMock.mockClear();
+
+    const secondResult = await processImportContactRow({
+      projectId,
+      record: {email: 'duplicate-doi@example.com', firstname: 'Ada'},
+      doubleOptIn: true,
+      confirmationEventName: 'contact.imported',
+      filename: 'contacts.csv',
+    });
+
+    expect(secondResult).toEqual({success: true, isUpdate: true});
     expect(trackEventMock).not.toHaveBeenCalled();
   });
 });

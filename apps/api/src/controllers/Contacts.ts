@@ -327,11 +327,15 @@ export class Contacts {
       // Convert file buffer to base64 for storage in queue
       const csvData = req.file.buffer.toString('base64');
       const filename = req.file.originalname;
-      const doubleOptIn = req.body?.doubleOptIn === 'true';
+      const doubleOptInResult = parseDoubleOptInFlag(req.body?.doubleOptIn);
+
+      if (doubleOptInResult === 'invalid') {
+        return res.status(400).json({error: 'doubleOptIn must be true, false, 1, 0, yes, or no'});
+      }
 
       // Queue import job
       const job = await QueueService.queueImport(auth.projectId!, csvData, filename, {
-        doubleOptIn: doubleOptIn || undefined,
+        doubleOptIn: doubleOptInResult || undefined,
       });
 
       return res.status(202).json({
@@ -527,4 +531,54 @@ async function queueBulkAction(
       error: error instanceof Error ? error.message : `Failed to queue bulk ${operation}`,
     });
   }
+}
+
+const DOUBLE_OPT_IN_TRUE = new Set(['true', '1', 'yes']);
+const DOUBLE_OPT_IN_FALSE = new Set(['false', '0', 'no']);
+
+function parseDoubleOptInFlag(value: unknown): boolean | 'invalid' {
+  if (value === undefined || value === null || value === '') {
+    return false;
+  }
+
+  if (typeof value !== 'string') {
+    return 'invalid';
+  }
+
+  const normalized = value.toLowerCase().trim();
+
+  if (DOUBLE_OPT_IN_TRUE.has(normalized)) {
+    return true;
+  }
+
+  if (DOUBLE_OPT_IN_FALSE.has(normalized)) {
+    return false;
+  }
+
+  return 'invalid';
+}
+
+const DOUBLE_OPT_IN_TRUE = new Set(['true', '1', 'yes']);
+const DOUBLE_OPT_IN_FALSE = new Set(['false', '0', 'no']);
+
+function parseDoubleOptInFlag(value: unknown): boolean | 'invalid' {
+  if (value === undefined || value === null || value === '') {
+    return false;
+  }
+
+  if (typeof value !== 'string') {
+    return 'invalid';
+  }
+
+  const normalized = value.toLowerCase().trim();
+
+  if (DOUBLE_OPT_IN_TRUE.has(normalized)) {
+    return true;
+  }
+
+  if (DOUBLE_OPT_IN_FALSE.has(normalized)) {
+    return false;
+  }
+
+  return 'invalid';
 }
