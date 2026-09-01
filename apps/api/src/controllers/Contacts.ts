@@ -536,32 +536,7 @@ async function queueBulkAction(
 const DOUBLE_OPT_IN_TRUE = new Set(['true', '1', 'yes']);
 const DOUBLE_OPT_IN_FALSE = new Set(['false', '0', 'no']);
 
-function parseDoubleOptInFlag(value: unknown): boolean | 'invalid' {
-  if (value === undefined || value === null || value === '') {
-    return false;
-  }
-
-  if (typeof value !== 'string') {
-    return 'invalid';
-  }
-
-  const normalized = value.toLowerCase().trim();
-
-  if (DOUBLE_OPT_IN_TRUE.has(normalized)) {
-    return true;
-  }
-
-  if (DOUBLE_OPT_IN_FALSE.has(normalized)) {
-    return false;
-  }
-
-  return 'invalid';
-}
-
-const DOUBLE_OPT_IN_TRUE = new Set(['true', '1', 'yes']);
-const DOUBLE_OPT_IN_FALSE = new Set(['false', '0', 'no']);
-
-function parseDoubleOptInFlag(value: unknown): boolean | 'invalid' {
+export function parseDoubleOptInFlag(value: unknown): boolean | 'invalid' {
   if (value === undefined || value === null || value === '') {
     return false;
   }

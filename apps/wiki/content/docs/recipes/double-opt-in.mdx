@@ -92,7 +92,7 @@ Enable it. `contact.subscribed` fires whenever a contact opts in — including v
 For bulk migrations, import contacts with double opt-in enabled:
 
 1. **Contacts → Import** → enable **Send confirmation email (double opt-in)**, or pass `-F "doubleOptIn=true"` to `POST /contacts/import`.
-2. New contacts are created unsubscribed. Each new row emits `contact.imported`.
+2. New contacts are created unsubscribed. Each newly created contact emits `contact.imported`.
 3. Create a workflow triggered on `contact.imported` with a transactional template containing `{{subscribeUrl}}` (same as Workflow A below, but with trigger `contact.imported` instead of `form.submitted` or a custom signup event).
 4. Optionally reuse Workflow B (`contact.subscribed`) for the welcome email after confirmation.
 

@@ -375,7 +375,7 @@ describe('Contact Import - Double opt-in mode', () => {
 
     const result = await processImportContactRow({
       projectId,
-      record: {email: existing.email, firstname: 'Ada'},
+      record: {email: existing.email, firstname: 'Ada', subscribed: 'true'},
       doubleOptIn: true,
       confirmationEventName: 'contact.imported',
       filename: 'contacts.csv',

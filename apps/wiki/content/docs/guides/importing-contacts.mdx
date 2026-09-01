@@ -52,7 +52,7 @@ import {Tab, Tabs} from 'fumadocs-ui/components/tabs';
 
 1. Open **Contacts** and click **Import**.
 2. Pick your CSV file. Merlin validates the header and shows a preview of the first few rows.
-3. Optionally enable **Send confirmation email (double opt-in)** if you need imported contacts to confirm before receiving marketing email. New contacts are imported as unsubscribed and trigger a `contact.imported` event for each new row.
+3. Optionally enable **Send confirmation email (double opt-in)** if you need imported contacts to confirm before receiving marketing email. New contacts are imported as unsubscribed and trigger a `contact.imported` event for each newly created contact.
 4. Confirm. The import is queued and runs in the background.
 5. The Imports page shows progress and any per-row errors when complete.
 
@@ -71,7 +71,9 @@ curl -X POST {{API_URL}}/contacts/import \
   -F "doubleOptIn=true"
 ```
 
-When `doubleOptIn=true`, new contacts are created unsubscribed and each new row emits a `contact.imported` event. Existing contacts are not downgraded. Wire a workflow on `contact.imported` with a transactional template containing `{{subscribeUrl}}` to send confirmation emails. See [Double opt-in](/recipes/double-opt-in).
+When `doubleOptIn=true`, new contacts are created unsubscribed and each newly created contact emits a `contact.imported` event. Existing contacts are not downgraded. Wire a workflow on `contact.imported` with a transactional template containing `{{subscribeUrl}}` to send confirmation emails. See [Double opt-in](/recipes/double-opt-in).
+
+Accepted values for `doubleOptIn`: `true`, `false`, `1`, `0`, `yes`, `no` (case-insensitive). Unrecognized values return `400`.
 
 The response includes a `jobId`:
 
