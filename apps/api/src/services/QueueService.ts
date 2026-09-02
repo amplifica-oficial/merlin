@@ -641,7 +641,7 @@ export class QueueService {
     // campaign waiting on them would stay stuck in SENDING.
     const failed = await prisma.email.updateMany({
       where: {projectId, status: EmailStatus.PENDING},
-      data: {status: EmailStatus.FAILED, error: 'Project is disabled'},
+      data: {status: EmailStatus.FAILED, failedAt: new Date(), error: 'Project is disabled'},
     });
 
     if (failed.count > 0) {

@@ -108,6 +108,7 @@ export async function createEmailWorker() {
           where: {id: emailId},
           data: {
             status: EmailStatus.FAILED,
+            failedAt: new Date(),
             error: 'Project is disabled',
           },
         });
@@ -220,6 +221,7 @@ export async function createEmailWorker() {
             where: {id: emailId},
             data: {
               status: EmailStatus.FAILED,
+              failedAt: new Date(),
               error: 'This email could not be sent. The project has been disabled. Please contact support.',
             },
           });
@@ -287,6 +289,7 @@ export async function createEmailWorker() {
           where: {id: emailId},
           data: {
             status: EmailStatus.FAILED,
+            failedAt: new Date(),
             error: error instanceof Error ? error.message : 'Unknown error',
           },
         });

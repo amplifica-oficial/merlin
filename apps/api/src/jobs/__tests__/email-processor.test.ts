@@ -81,12 +81,14 @@ describe('Email Processor', () => {
         where: {id: email.id},
         data: {
           status: EmailStatus.FAILED,
+          failedAt: new Date(),
           error: 'Project is disabled',
         },
       });
 
       const failed = await prisma.email.findUnique({where: {id: email.id}});
       expect(failed?.status).toBe(EmailStatus.FAILED);
+      expect(failed?.failedAt).toBeDefined();
       expect(failed?.error).toBe('Project is disabled');
     });
 
@@ -172,12 +174,14 @@ describe('Email Processor', () => {
         where: {id: email.id},
         data: {
           status: EmailStatus.FAILED,
+          failedAt: new Date(),
           error: 'SES send failed: Invalid email address',
         },
       });
 
       const failed = await prisma.email.findUnique({where: {id: email.id}});
       expect(failed?.status).toBe(EmailStatus.FAILED);
+      expect(failed?.failedAt).toBeDefined();
       expect(failed?.error).toContain('SES send failed');
     });
   });
@@ -231,12 +235,14 @@ describe('Email Processor', () => {
         where: {id: email.id},
         data: {
           status: EmailStatus.FAILED,
+          failedAt: new Date(),
           error: errorMessage,
         },
       });
 
       const failed = await prisma.email.findUnique({where: {id: email.id}});
       expect(failed?.status).toBe(EmailStatus.FAILED);
+      expect(failed?.failedAt).toBeDefined();
       expect(failed?.error).toBe(errorMessage);
     });
   });

@@ -5,6 +5,7 @@ import signale from 'signale';
 
 import {prisma} from '../database/prisma.js';
 import {redis} from '../database/redis.js';
+import {UNSUBSCRIBED_MARKETING_ERROR} from './emailSkip.js';
 import {Keys} from './keys.js';
 
 /**
@@ -380,7 +381,7 @@ export class ActivityService {
   }
 
   /**
-   * Fetch email activities (sent, delivered, opened, clicked, bounced)
+   * Fetch email activities (sent, delivered, opened, clicked, bounced, failed)
    */
   private static async fetchEmailActivities(
     projectId: string,
@@ -439,6 +440,9 @@ export class ActivityService {
     }
     if (!types || types.includes(ActivityType.EMAIL_COMPLAINT)) {
       orConditions.push({complainedAt: {not: null, ...dateFilter}});
+    }
+    if (!types || types.includes(ActivityType.EMAIL_FAILED) || types.includes(ActivityType.EMAIL_SKIPPED)) {
+      orConditions.push({failedAt: {not: null, ...dateFilter}});
     }
 
     // If no OR conditions, return empty (shouldn't happen but defensive)
@@ -614,6 +618,25 @@ export class ActivityService {
             error: email.error,
           },
         });
+      }
+
+      // Email failed to send or skipped (e.g. unsubscribed marketing)
+      if (email.failedAt && isInDateRange(email.failedAt)) {
+        const isSkip = email.error === UNSUBSCRIBED_MARKETING_ERROR;
+        const failType = isSkip ? ActivityType.EMAIL_SKIPPED : ActivityType.EMAIL_FAILED;
+        if (!types || types.includes(failType)) {
+          activities.push({
+            id: `${email.id}_${isSkip ? 'skipped' : 'failed'}`,
+            type: failType,
+            timestamp: email.failedAt,
+            contactEmail: email.contact.email,
+            contactId: email.contactId,
+            metadata: {
+              ...baseMetadata,
+              error: email.error,
+            },
+          });
+        }
       }
     }
 

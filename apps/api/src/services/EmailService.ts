@@ -11,6 +11,7 @@ import {createTranslatorSync, renderTemplate} from '@merlin/shared';
 import {BillingLimitService} from './BillingLimitService.js';
 import {DomainService} from './DomainService.js';
 import {bodyHasListManagementLink, buildEmailHeaders, classifyEmail} from './EmailHeaderService.js';
+import {UNSUBSCRIBED_MARKETING_ERROR} from './emailSkip.js';
 import {EventService} from './EventService.js';
 import {QueueService} from './QueueService.js';
 import {sendRawEmail} from './SESService.js';
@@ -249,7 +250,8 @@ export class EmailService {
             workflowExecutionId: params.workflowExecutionId,
             workflowStepExecutionId: params.workflowStepExecutionId,
             status: EmailStatus.FAILED,
-            error: 'Contact is unsubscribed from marketing emails',
+            failedAt: new Date(),
+            error: UNSUBSCRIBED_MARKETING_ERROR,
           },
         });
       }
@@ -339,7 +341,8 @@ export class EmailService {
           where: {id: emailId},
           data: {
             status: EmailStatus.FAILED,
-            error: 'Contact is unsubscribed from marketing emails',
+            failedAt: new Date(),
+            error: UNSUBSCRIBED_MARKETING_ERROR,
           },
         });
         return;
@@ -483,6 +486,7 @@ export class EmailService {
         where: {id: emailId},
         data: {
           status: EmailStatus.FAILED,
+          failedAt: new Date(),
           error: error instanceof Error ? error.message : 'Unknown error',
         },
       });
