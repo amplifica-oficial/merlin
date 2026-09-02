@@ -17,6 +17,7 @@ import {
   AlertCircle,
   ArrowDownRight,
   ArrowUpRight,
+  Ban,
   Calendar,
   Eye,
   Inbox,
@@ -154,6 +155,10 @@ function activityVisual(a: Activity): ActivityVisual {
       return {icon: XCircle, tone: 'red', label: 'Bounced'};
     case 'email.complaint':
       return {icon: AlertCircle, tone: 'red', label: 'Complaint'};
+    case 'email.failed':
+      return {icon: XCircle, tone: 'red', label: 'Failed'};
+    case 'email.skipped':
+      return {icon: Ban, tone: 'neutral', label: 'Skipped'};
     case 'event.triggered':
       return {icon: Zap, tone: 'amber', label: 'Event'};
     case 'campaign.sent':
