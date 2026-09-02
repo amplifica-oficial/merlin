@@ -9,7 +9,7 @@ Double opt-in adds a confirmation step between "user signs up" and "user starts 
 <Callout title="No-code alternative" type="info">
   Enable **Double opt-in** on a [Form](/concepts/forms). Contacts submit via the hosted page as unsubscribed; wire a workflow on `form.submitted` to send the confirmation email with `{{subscribeUrl}}`.
 
-  For CSV imports, enable **Send confirmation email (double opt-in)** in the import dialog. New contacts are imported unsubscribed and emit `contact.imported` — wire a workflow on that event the same way. The CSV `subscribed` column is ignored while double opt-in is enabled.
+  For CSV imports and **Add Contact**, enable **Send confirmation email (double opt-in)** and pick a transactional template. New contacts are created unsubscribed and Merlin sends the confirmation email immediately. The last template you used is remembered in the browser. The CSV `subscribed` column is ignored while double opt-in is enabled.
 </Callout>
 
 The trick is `{{subscribeUrl}}`: a per-contact link Merlin auto-injects into every send. Clicking it flips `subscribed` to `true` and fires a `contact.subscribed` event.
@@ -23,6 +23,8 @@ import {Step, Steps} from 'fumadocs-ui/components/steps';
 <Step>
 
 ### Create two templates
+
+New projects already include a transactional **Confirm your subscription** template with `{{subscribeUrl}}`. Edit its `from` address after you verify a domain, or create your own:
 
 - A **Transactional** template for the confirmation email, containing `{{subscribeUrl}}`:
 
@@ -87,16 +89,21 @@ Enable it. `contact.subscribed` fires whenever a contact opts in — including v
 
 </Steps>
 
-## CSV import
+## CSV import and Add Contact
 
-For bulk migrations, import contacts with double opt-in enabled:
+New projects get a transactional **Confirm your subscription** template under [Templates](/concepts/templates). Edit the `from` address after you verify a domain.
 
-1. **Contacts → Import** → enable **Send confirmation email (double opt-in)**, or pass `-F "doubleOptIn=true"` to `POST /contacts/import`.
-2. New contacts are created unsubscribed. Each newly created contact emits `contact.imported`.
-3. Create a workflow triggered on `contact.imported` with a transactional template containing `{{subscribeUrl}}` (same as Workflow A below, but with trigger `contact.imported` instead of `form.submitted` or a custom signup event).
-4. Optionally reuse Workflow B (`contact.subscribed`) for the welcome email after confirmation.
+For bulk migrations or a single contact:
 
-Existing contacts in the CSV are updated in place but keep their current subscription status — they do not receive a new confirmation email. The CSV `subscribed` column is ignored while double opt-in is enabled.
+1. **Contacts → Import** or **Add Contact** → enable **Send confirmation email (double opt-in)** and choose a transactional template (the last one used is stored in the browser).
+2. Or pass `-F "doubleOptIn=true"` and optionally `-F "confirmationTemplateId=<uuid>"` to `POST /contacts/import`. Manual create accepts the same fields on `POST /contacts`.
+3. New contacts are created unsubscribed. Merlin sends the confirmation email from the selected template (`{{subscribeUrl}}` is injected automatically). Each newly imported contact also emits `contact.imported`; each newly created contact emits `contact.created`.
+4. If you omit `confirmationTemplateId`, Merlin uses (or creates) the project default confirmation template.
+5. Optionally add a workflow on `contact.subscribed` for a welcome email after they confirm.
+
+Existing contacts are updated in place but keep their current subscription status — they do not receive a new confirmation email. The CSV `subscribed` column is ignored while double opt-in is enabled.
+
+A workflow on `contact.imported` is optional. Use it only if you want extra steps (reminders, branching) beyond the confirmation email itself.
 
 ## Reminder if they don't confirm
 

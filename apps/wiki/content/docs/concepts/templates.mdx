@@ -28,6 +28,8 @@ import {TypeTable} from 'fumadocs-ui/components/type-table';
 
 When a template is used by `/v1/send`, the request can override any of `subject`, `body`, `from`, `fromName`, `replyTo` — the template's values act as defaults.
 
+New projects already include a transactional **Confirm your subscription** template with `{{subscribeUrl}}`, seeded for [double opt-in](/recipes/double-opt-in). Its `from` address is a placeholder (`noreply@yourdomain.com`) — edit it after you [verify a domain](/guides/verifying-domains).
+
 ### Sender domain verification
 
 The `from` address must be on a verified domain. Creating or updating a template with an unverified `from` returns `403`. See [Verifying domains](/guides/verifying-domains).
