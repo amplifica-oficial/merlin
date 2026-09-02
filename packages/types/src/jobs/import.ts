@@ -6,10 +6,12 @@
  * Options for contact CSV import jobs
  */
 export interface ContactImportOptions {
-  /** When true, new contacts are created unsubscribed and trigger confirmation workflows */
+  /** When true, new contacts are created unsubscribed and receive a confirmation email */
   doubleOptIn?: boolean;
   /** Event name emitted for each newly imported contact (default: contact.imported) */
   confirmationEventName?: string;
+  /** Transactional template used for the confirmation email */
+  confirmationTemplateId?: string;
 }
 
 /**

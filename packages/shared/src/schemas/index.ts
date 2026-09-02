@@ -106,6 +106,8 @@ export const ContactSchemas = {
     email,
     subscribed: z.boolean().default(true),
     data: jsonSchema.optional(),
+    doubleOptIn: z.boolean().optional(),
+    confirmationTemplateId: uuid.optional(),
   }),
   bulkAction: z.discriminatedUnion('mode', [
     z.object({
