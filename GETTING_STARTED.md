@@ -191,6 +191,54 @@ For watch mode during development:
 yarn test:watch
 ```
 
+### Generate import CSV for smoke tests
+
+For production or staging email checks, use the repo script to build a contact-import CSV with **plus addressing** (e.g. `diego+123@gmail.com`). Merlin treats each plus address as a separate contact; Gmail (and most providers) deliver them to the same inbox — useful for tracing a specific send without polluting real user data.
+
+```bash
+# Single test contact
+yarn generate:import-csv --email diego@gmail.com --suffix 123
+# → contacts-import-123.csv with diego+123@gmail.com
+
+# Auto suffix (test-<unix timestamp>)
+yarn generate:import-csv --email diego@gmail.com
+
+# Multiple contacts: diego+batch-1@gmail.com, diego+batch-2@gmail.com, …
+yarn generate:import-csv --email diego@gmail.com --suffix batch --count 3
+
+# Custom output path and unsubscribed contact
+yarn generate:import-csv \
+  --email diego@gmail.com \
+  --suffix qa-unsub \
+  --subscribed false \
+  --first-name Diego \
+  --output /tmp/prod-smoke.csv
+```
+
+**Options**
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--email` | *(required)* | Base inbox without `+` (e.g. `diego@gmail.com`) |
+| `--suffix` | `test-<timestamp>` | Plus-tag label → `local+suffix@domain` |
+| `--count` | `1` | Rows to generate; adds `-1`, `-2`, … when &gt; 1 |
+| `--subscribed` | `true` | `true` or `false` |
+| `--first-name` | `Test` | Value for the `firstName` column |
+| `--output` | `contacts-import-<suffix>.csv` | Output file path |
+
+Generated files match the [CSV import format](https://docs.merlin.example/guides/importing-contacts) (`email`, optional `firstName`, optional `subscribed`). Upload via **Contacts → Import** in the dashboard or the import API.
+
+**Workflow**
+
+1. Generate the CSV locally.
+2. Import into the target project (prod/staging).
+3. Send a campaign or workflow to that contact.
+4. Confirm delivery in your base inbox (`diego@gmail.com`).
+
+Generated `contacts-*.csv` files are gitignored — do not commit them.
+
+Script source: [`scripts/generate-import-csv.sh`](./scripts/generate-import-csv.sh). Run `yarn generate:import-csv --help` for usage.
+
 ## 9. Pull request workflow
 
 ### Branch from `next`
@@ -248,6 +296,7 @@ See [.github/pull_request_template.md](./.github/pull_request_template.md) for t
 | `yarn build` | Build all packages and apps |
 | `yarn lint` | Lint all packages |
 | `yarn test:run` | Run test suite once |
+| `yarn generate:import-csv` | Generate a contacts import CSV for prod/staging smoke tests (plus addressing) |
 | `yarn workspace @merlin/db migrate:dev` | Apply database migrations (dev) |
 | `yarn workspace @merlin/db db:generate` | Regenerate Prisma client |
 | `yarn build --filter="api..."` | Build API and all workspace dependencies (required before first `yarn dev`) |
