@@ -1,12 +1,18 @@
 import {Controller, Delete, Get, Middleware, Patch, Post} from '@overnightjs/core';
-import type {NextFunction, Request, Response} from 'express';
-import multer from 'multer';
+import type {Contact} from '@merlin/db';
 import {ContactSchemas} from '@merlin/shared';
 import type {BulkContactActionSelector} from '@merlin/types';
+import type {NextFunction, Request, Response} from 'express';
+import multer from 'multer';
 import signale from 'signale';
+import {z} from 'zod';
+
 import {requireAuth, requireEmailVerified} from '../middleware/auth.js';
 import {ContactService} from '../services/ContactService.js';
+import {EmailService} from '../services/EmailService.js';
+import {EventService} from '../services/EventService.js';
 import {QueueService} from '../services/QueueService.js';
+import {TemplateService} from '../services/TemplateService.js';
 import {CatchAsync} from '../utils/asyncHandler.js';
 
 // Configure multer for file uploads (memory storage)
@@ -143,23 +149,28 @@ export class Contacts {
   @CatchAsync
   public async create(req: Request, res: Response, _next: NextFunction) {
     const auth = res.locals.auth;
-    const {email, data, subscribed} = req.body;
+    const payload = ContactSchemas.create.parse({
+      ...req.body,
+      data: req.body?.data ?? undefined,
+    });
 
-    if (!email) {
-      return res.status(400).json({error: 'Email is required'});
-    }
-
-    // Check if contact exists before upserting
-    const existingContact = await ContactService.findByEmail(auth.projectId!, email);
-    const isUpdate = !!existingContact;
-
-    const contact = await ContactService.upsert(auth.projectId!, email, data, subscribed);
+    const {contact, isUpdate, confirmationSent} = await createOrUpdateContact(auth.projectId!, {
+      email: payload.email,
+      subscribed: payload.subscribed,
+      doubleOptIn: payload.doubleOptIn,
+      confirmationTemplateId: payload.confirmationTemplateId,
+      data:
+        payload.data && typeof payload.data === 'object' && !Array.isArray(payload.data)
+          ? (payload.data as Record<string, unknown>)
+          : undefined,
+    });
 
     return res.status(isUpdate ? 200 : 201).json({
       ...contact,
       _meta: {
         isNew: !isUpdate,
         isUpdate,
+        confirmationSent,
       },
     });
   }
@@ -333,9 +344,20 @@ export class Contacts {
         return res.status(400).json({error: 'doubleOptIn must be true, false, 1, 0, yes, or no'});
       }
 
+      const confirmationTemplateIdResult = parseConfirmationTemplateId(req.body?.confirmationTemplateId);
+
+      if (confirmationTemplateIdResult === 'invalid') {
+        return res.status(400).json({error: 'confirmationTemplateId must be a valid UUID'});
+      }
+
+      if (doubleOptInResult) {
+        await TemplateService.resolveConfirmationTemplate(auth.projectId!, confirmationTemplateIdResult);
+      }
+
       // Queue import job
       const job = await QueueService.queueImport(auth.projectId!, csvData, filename, {
         doubleOptIn: doubleOptInResult || undefined,
+        confirmationTemplateId: confirmationTemplateIdResult,
       });
 
       return res.status(202).json({
@@ -531,6 +553,64 @@ async function queueBulkAction(
       error: error instanceof Error ? error.message : `Failed to queue bulk ${operation}`,
     });
   }
+}
+
+export async function createOrUpdateContact(
+  projectId: string,
+  input: {
+    email: string;
+    data?: Record<string, unknown>;
+    subscribed?: boolean;
+    doubleOptIn?: boolean;
+    confirmationTemplateId?: string;
+  },
+): Promise<{contact: Contact; isUpdate: boolean; confirmationSent: boolean}> {
+  const {email, data, subscribed, doubleOptIn, confirmationTemplateId} = input;
+
+  const existingContact = await ContactService.findByEmail(projectId, email);
+  const isUpdate = !!existingContact;
+
+  if (!doubleOptIn) {
+    const contact = await ContactService.upsert(projectId, email, data, subscribed);
+    return {contact, isUpdate, confirmationSent: false};
+  }
+
+  const template = await TemplateService.resolveConfirmationTemplate(projectId, confirmationTemplateId);
+  const contact = await ContactService.upsert(projectId, email, data, undefined, false);
+
+  if (isUpdate) {
+    return {contact, isUpdate, confirmationSent: false};
+  }
+
+  await EventService.trackEvent(projectId, 'contact.created', contact.id, undefined, {source: 'manual'});
+
+  try {
+    await EmailService.sendTemplateEmail(projectId, contact.id, template);
+    return {contact, isUpdate, confirmationSent: true};
+  } catch (error) {
+    signale.error(`[CONTACTS] Failed to send confirmation email to ${contact.email}:`, error);
+    return {contact, isUpdate, confirmationSent: false};
+  }
+}
+
+const CONFIRMATION_TEMPLATE_ID = z.string().uuid();
+
+export function parseConfirmationTemplateId(value: unknown): string | undefined | 'invalid' {
+  if (value === undefined || value === null || value === '') {
+    return undefined;
+  }
+
+  if (typeof value !== 'string') {
+    return 'invalid';
+  }
+
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return undefined;
+  }
+
+  const parsed = CONFIRMATION_TEMPLATE_ID.safeParse(trimmed);
+  return parsed.success ? parsed.data : 'invalid';
 }
 
 const DOUBLE_OPT_IN_TRUE = new Set(['true', '1', 'yes']);

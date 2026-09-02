@@ -3,6 +3,7 @@
  * Processes CSV contact imports with validation and batch processing
  */
 
+import type {Template} from '@merlin/db';
 import type {ContactImportJobData} from '@merlin/types';
 import {type Job, Worker} from 'bullmq';
 import {parse} from 'csv-parse/sync';
@@ -10,9 +11,11 @@ import signale from 'signale';
 
 import {prisma} from '../database/prisma.js';
 import {ContactService} from '../services/ContactService.js';
+import {EmailService} from '../services/EmailService.js';
 import {EventService} from '../services/EventService.js';
 import {NtfyService} from '../services/NtfyService.js';
 import {importQueue} from '../services/QueueService.js';
+import {TemplateService} from '../services/TemplateService.js';
 
 const BATCH_SIZE = 100; // Process contacts in batches of 100
 
@@ -32,6 +35,9 @@ export function createImportWorker() {
       const {projectId, csvData, filename, options} = job.data;
       const doubleOptIn = options?.doubleOptIn === true;
       const confirmationEventName = options?.confirmationEventName ?? 'contact.imported';
+      const confirmationTemplate = doubleOptIn
+        ? await TemplateService.resolveConfirmationTemplate(projectId, options?.confirmationTemplateId)
+        : undefined;
 
       signale.info(`[IMPORT-PROCESSOR] Processing import for project ${projectId} (${filename})`);
 
@@ -97,6 +103,7 @@ export function createImportWorker() {
                 doubleOptIn,
                 confirmationEventName,
                 filename,
+                confirmationTemplate,
               });
 
               if (!rowResult.success) {
@@ -190,6 +197,7 @@ export interface ProcessImportContactRowParams {
   doubleOptIn: boolean;
   confirmationEventName: string;
   filename: string;
+  confirmationTemplate?: Pick<Template, 'id' | 'subject' | 'body' | 'from' | 'fromName' | 'replyTo'>;
 }
 
 export type ProcessImportContactRowResult =
@@ -202,7 +210,7 @@ export type ProcessImportContactRowResult =
 export async function processImportContactRow(
   params: ProcessImportContactRowParams,
 ): Promise<ProcessImportContactRowResult> {
-  const {projectId, record, doubleOptIn, confirmationEventName, filename} = params;
+  const {projectId, record, doubleOptIn, confirmationEventName, filename, confirmationTemplate} = params;
 
   const email = record.email?.trim();
   if (!email) {
@@ -242,6 +250,14 @@ export async function processImportContactRow(
       source: 'import',
       filename,
     });
+
+    if (confirmationTemplate) {
+      try {
+        await EmailService.sendTemplateEmail(projectId, contact.id, confirmationTemplate);
+      } catch (error) {
+        signale.error(`[IMPORT-PROCESSOR] Failed to send confirmation email to ${email}:`, error);
+      }
+    }
   }
 
   return {success: true, isUpdate};

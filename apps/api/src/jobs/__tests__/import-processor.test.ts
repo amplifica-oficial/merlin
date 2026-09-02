@@ -1,12 +1,20 @@
 import {beforeEach, describe, expect, it, vi} from 'vitest';
+import {TemplateType} from '@merlin/db';
 import {factories, getPrismaClient} from '../../../../../test/helpers';
 import {ContactService} from '../../services/ContactService.js';
+import {EmailService} from '../../services/EmailService.js';
 import {EventService} from '../../services/EventService.js';
 import {coerceCustomValue, processImportContactRow} from '../import-processor.js';
 
 vi.mock('../../services/EventService.js', () => ({
   EventService: {
     trackEvent: vi.fn().mockResolvedValue({}),
+  },
+}));
+
+vi.mock('../../services/EmailService.js', () => ({
+  EmailService: {
+    sendTemplateEmail: vi.fn().mockResolvedValue({id: 'email-1'}),
   },
 }));
 
@@ -292,9 +300,11 @@ describe('Contact Import - Double opt-in mode', () => {
   let projectId: string;
   const prisma = getPrismaClient();
   const trackEventMock = vi.mocked(EventService.trackEvent);
+  const sendTemplateEmailMock = vi.mocked(EmailService.sendTemplateEmail);
 
   beforeEach(async () => {
     trackEventMock.mockClear();
+    sendTemplateEmailMock.mockClear();
     const {project} = await factories.createUserWithProject();
     projectId = project.id;
   });
@@ -412,6 +422,72 @@ describe('Contact Import - Double opt-in mode', () => {
 
     expect(secondResult).toEqual({success: true, isUpdate: true});
     expect(trackEventMock).not.toHaveBeenCalled();
+  });
+
+  it('sends a confirmation email for newly imported contacts', async () => {
+    const template = await factories.createTemplate({
+      projectId,
+      name: 'Confirm your subscription',
+      type: TemplateType.TRANSACTIONAL,
+    });
+
+    const result = await processImportContactRow({
+      projectId,
+      record: {email: 'doi-email@example.com'},
+      doubleOptIn: true,
+      confirmationEventName: 'contact.imported',
+      filename: 'contacts.csv',
+      confirmationTemplate: template,
+    });
+
+    expect(result).toEqual({success: true, isUpdate: false});
+    expect(sendTemplateEmailMock).toHaveBeenCalledTimes(1);
+    expect(sendTemplateEmailMock).toHaveBeenCalledWith(
+      projectId,
+      expect.any(String),
+      expect.objectContaining({id: template.id}),
+    );
+  });
+
+  it('does not send a confirmation email for existing contacts', async () => {
+    const existing = await factories.createContact({
+      projectId,
+      subscribed: true,
+      email: 'already-here@example.com',
+    });
+    const template = await factories.createTemplate({
+      projectId,
+      type: TemplateType.TRANSACTIONAL,
+    });
+
+    await processImportContactRow({
+      projectId,
+      record: {email: existing.email},
+      doubleOptIn: true,
+      confirmationEventName: 'contact.imported',
+      filename: 'contacts.csv',
+      confirmationTemplate: template,
+    });
+
+    expect(sendTemplateEmailMock).not.toHaveBeenCalled();
+  });
+
+  it('does not send a confirmation email when double opt-in is off', async () => {
+    const template = await factories.createTemplate({
+      projectId,
+      type: TemplateType.TRANSACTIONAL,
+    });
+
+    await processImportContactRow({
+      projectId,
+      record: {email: 'standard@example.com'},
+      doubleOptIn: false,
+      confirmationEventName: 'contact.imported',
+      filename: 'contacts.csv',
+      confirmationTemplate: template,
+    });
+
+    expect(sendTemplateEmailMock).not.toHaveBeenCalled();
   });
 });
 

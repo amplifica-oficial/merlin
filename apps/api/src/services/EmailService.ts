@@ -1,4 +1,4 @@
-import type {Contact, Email, Prisma, Project} from '@merlin/db';
+import type {Contact, Email, Prisma, Project, Template} from '@merlin/db';
 import {EmailSourceType, EmailStatus, TrackingMode} from '@merlin/db';
 import {toPrismaJson} from '@merlin/types';
 import signale from 'signale';
@@ -112,6 +112,26 @@ export class EmailService {
     await this.queueEmail(email.id, EmailSourceType.TRANSACTIONAL);
 
     return email;
+  }
+
+  /**
+   * Send a transactional email using a stored template's subject/body/from.
+   */
+  public static async sendTemplateEmail(
+    projectId: string,
+    contactId: string,
+    template: Pick<Template, 'id' | 'subject' | 'body' | 'from' | 'fromName' | 'replyTo'>,
+  ): Promise<Email> {
+    return this.sendTransactionalEmail({
+      projectId,
+      contactId,
+      templateId: template.id,
+      subject: template.subject,
+      body: template.body,
+      from: template.from,
+      fromName: template.fromName ?? undefined,
+      replyTo: template.replyTo ?? undefined,
+    });
   }
 
   /**

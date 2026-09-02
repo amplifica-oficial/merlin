@@ -667,4 +667,72 @@ describe('TemplateService', () => {
       expect(template.body.length).toBeGreaterThan(10000);
     });
   });
+
+  describe('ensureDefaultTemplates', () => {
+    it('creates the default confirmation template', async () => {
+      const {confirmation} = await TemplateService.ensureDefaultTemplates(projectId);
+
+      expect(confirmation.name).toBe('Confirm your subscription');
+      expect(confirmation.type).toBe(TemplateType.TRANSACTIONAL);
+      expect(confirmation.body).toContain('{{subscribeUrl}}');
+      expect(confirmation.from).toBe('noreply@yourdomain.com');
+    });
+
+    it('is idempotent and does not duplicate the default template', async () => {
+      const first = await TemplateService.ensureDefaultTemplates(projectId);
+      const second = await TemplateService.ensureDefaultTemplates(projectId);
+
+      expect(second.confirmation.id).toBe(first.confirmation.id);
+
+      const count = await prisma.template.count({
+        where: {projectId, name: 'Confirm your subscription'},
+      });
+      expect(count).toBe(1);
+    });
+  });
+
+  describe('resolveConfirmationTemplate', () => {
+    it('seeds and returns the default template when no id is provided', async () => {
+      const template = await TemplateService.resolveConfirmationTemplate(projectId);
+
+      expect(template.name).toBe('Confirm your subscription');
+      expect(template.type).toBe(TemplateType.TRANSACTIONAL);
+    });
+
+    it('returns a transactional template by id', async () => {
+      const created = await factories.createTemplate({
+        projectId,
+        name: 'Custom confirmation',
+        type: TemplateType.TRANSACTIONAL,
+      });
+
+      const resolved = await TemplateService.resolveConfirmationTemplate(projectId, created.id);
+      expect(resolved.id).toBe(created.id);
+    });
+
+    it('rejects a marketing template', async () => {
+      const created = await factories.createTemplate({
+        projectId,
+        name: 'Marketing blast',
+        type: TemplateType.MARKETING,
+      });
+
+      await expect(TemplateService.resolveConfirmationTemplate(projectId, created.id)).rejects.toMatchObject({
+        code: 400,
+        message: 'Confirmation template must be transactional',
+      });
+    });
+
+    it('rejects a template from another project', async () => {
+      const {project: otherProject} = await factories.createUserWithProject();
+      const otherTemplate = await factories.createTemplate({
+        projectId: otherProject.id,
+        type: TemplateType.TRANSACTIONAL,
+      });
+
+      await expect(TemplateService.resolveConfirmationTemplate(projectId, otherTemplate.id)).rejects.toMatchObject({
+        code: 404,
+      });
+    });
+  });
 });
