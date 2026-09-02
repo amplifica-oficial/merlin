@@ -1,5 +1,6 @@
 import {beforeEach, describe, expect, it} from 'vitest';
 import {TemplateType} from '@merlin/db';
+import {PLACEHOLDER_DOMAIN} from '@merlin/shared';
 import {TemplateService} from '../TemplateService';
 import {factories, getPrismaClient} from '../../../../../test/helpers';
 
@@ -675,7 +676,7 @@ describe('TemplateService', () => {
       expect(confirmation.name).toBe('Confirm your subscription');
       expect(confirmation.type).toBe(TemplateType.TRANSACTIONAL);
       expect(confirmation.body).toContain('{{subscribeUrl}}');
-      expect(confirmation.from).toBe('noreply@yourdomain.com');
+      expect(confirmation.from).toBe(`noreply@${PLACEHOLDER_DOMAIN}`);
     });
 
     it('is idempotent and does not duplicate the default template', async () => {
@@ -688,6 +689,75 @@ describe('TemplateService', () => {
         where: {projectId, name: 'Confirm your subscription'},
       });
       expect(count).toBe(1);
+    });
+  });
+
+  describe('replacePlaceholderDomain', () => {
+    it('replaces the seeded placeholder from address with the verified domain', async () => {
+      await TemplateService.ensureDefaultTemplates(projectId);
+
+      const count = await TemplateService.replacePlaceholderDomain(projectId, 'acme.com');
+
+      expect(count).toBe(1);
+
+      const confirmation = await prisma.template.findFirst({
+        where: {projectId, name: 'Confirm your subscription'},
+      });
+      expect(confirmation?.from).toBe('noreply@acme.com');
+    });
+
+    it('is idempotent and returns 0 when no templates still use the placeholder', async () => {
+      await TemplateService.ensureDefaultTemplates(projectId);
+      await TemplateService.replacePlaceholderDomain(projectId, 'acme.com');
+
+      const count = await TemplateService.replacePlaceholderDomain(projectId, 'other.com');
+
+      expect(count).toBe(0);
+
+      const confirmation = await prisma.template.findFirst({
+        where: {projectId, name: 'Confirm your subscription'},
+      });
+      expect(confirmation?.from).toBe('noreply@acme.com');
+    });
+
+    it('leaves templates without the placeholder untouched', async () => {
+      const custom = await TemplateService.create(projectId, {
+        name: 'Already configured',
+        subject: 'Hello',
+        body: '<p>Hi</p>',
+        from: 'hello@already.com',
+        replyTo: 'support@already.com',
+      });
+
+      const count = await TemplateService.replacePlaceholderDomain(projectId, 'acme.com');
+
+      expect(count).toBe(0);
+
+      const unchanged = await prisma.template.findUnique({where: {id: custom.id}});
+      expect(unchanged?.from).toBe('hello@already.com');
+      expect(unchanged?.replyTo).toBe('support@already.com');
+      expect(unchanged?.subject).toBe('Hello');
+      expect(unchanged?.body).toBe('<p>Hi</p>');
+    });
+
+    it('replaces the placeholder in from, replyTo, subject, and body', async () => {
+      const template = await TemplateService.create(projectId, {
+        name: 'Placeholder everywhere',
+        subject: `Visit ${PLACEHOLDER_DOMAIN}`,
+        body: `<p>Contact us at hello@${PLACEHOLDER_DOMAIN}</p>`,
+        from: `hello@${PLACEHOLDER_DOMAIN}`,
+        replyTo: `support@${PLACEHOLDER_DOMAIN}`,
+      });
+
+      const count = await TemplateService.replacePlaceholderDomain(projectId, 'acme.com');
+
+      expect(count).toBe(1);
+
+      const updated = await prisma.template.findUnique({where: {id: template.id}});
+      expect(updated?.from).toBe('hello@acme.com');
+      expect(updated?.replyTo).toBe('support@acme.com');
+      expect(updated?.subject).toBe('Visit acme.com');
+      expect(updated?.body).toBe('<p>Contact us at hello@acme.com</p>');
     });
   });
 

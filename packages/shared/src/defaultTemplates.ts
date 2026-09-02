@@ -6,6 +6,9 @@ import type {Template} from '@merlin/db';
  */
 export const DEFAULT_CONFIRMATION_TEMPLATE_NAME = 'Confirm your subscription';
 
+/** Placeholder domain used in seeded templates until the first verified domain is added. */
+export const PLACEHOLDER_DOMAIN = 'yourdomain.com';
+
 export const DEFAULT_CONFIRMATION_TEMPLATE = {
   name: DEFAULT_CONFIRMATION_TEMPLATE_NAME,
   description: 'Sent when a contact must confirm their email (double opt-in).',
@@ -15,7 +18,7 @@ export const DEFAULT_CONFIRMATION_TEMPLATE = {
   <p><a href="{{subscribeUrl}}" style="display: inline-block; padding: 10px 16px; background: #171717; color: #ffffff; text-decoration: none; border-radius: 6px;">Confirm my email</a></p>
   <p style="color: #737373; font-size: 14px;">If you didn't request this, you can ignore this message.</p>
 </div>`,
-  from: 'noreply@yourdomain.com',
+  from: `noreply@${PLACEHOLDER_DOMAIN}`,
   type: 'TRANSACTIONAL' as Template['type'],
 } as const;
 

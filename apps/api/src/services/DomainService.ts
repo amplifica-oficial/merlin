@@ -14,6 +14,7 @@ import {
   getDomainVerificationAttributes,
   verifyDomain,
 } from './SESService.js';
+import {TemplateService} from './TemplateService.js';
 
 export class DomainService {
   /**
@@ -132,6 +133,15 @@ export class DomainService {
         signale.info(`[DOMAIN-SERVICE] Disabled feedback forwarding for ${domain.domain}`);
       } catch (error) {
         signale.error(`[DOMAIN-SERVICE] Error disabling feedback forwarding for ${domain.domain}:`, error);
+      }
+
+      try {
+        const count = await TemplateService.replacePlaceholderDomain(updatedDomain.project.id, domain.domain);
+        if (count > 0) {
+          signale.info(`[DOMAIN-SERVICE] Replaced placeholder domain in ${count} template(s)`);
+        }
+      } catch (error) {
+        signale.error('[DOMAIN-SERVICE] Failed to replace placeholder domain in templates:', error);
       }
 
       // Send notification about domain verified

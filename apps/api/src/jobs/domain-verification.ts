@@ -15,6 +15,7 @@ import {prisma} from '../database/prisma.js';
 import {redis} from '../database/redis.js';
 import {MembershipService} from '../services/MembershipService.js';
 import {disableFeedbackForwarding, getIdentities, verifyDomain} from '../services/SESService.js';
+import {TemplateService} from '../services/TemplateService.js';
 import {Keys} from '../services/keys.js';
 
 /**
@@ -118,6 +119,15 @@ export async function checkDomainVerifications() {
             signale.info(`[DOMAIN-VERIFICATION] Disabled feedback forwarding for ${sesIdentity.domain}`);
           } catch (error) {
             signale.error(`[DOMAIN-VERIFICATION] Error disabling feedback forwarding: ${error}`);
+          }
+
+          try {
+            const count = await TemplateService.replacePlaceholderDomain(dbDomain.projectId, sesIdentity.domain);
+            if (count > 0) {
+              signale.info(`[DOMAIN-VERIFICATION] Replaced placeholder domain in ${count} template(s)`);
+            }
+          } catch (error) {
+            signale.error('[DOMAIN-VERIFICATION] Failed to replace placeholder domain in templates:', error);
           }
 
           // Send email notification about domain verified

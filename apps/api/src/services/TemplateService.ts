@@ -1,6 +1,6 @@
 import type {Template} from '@merlin/db';
 import {Prisma} from '@merlin/db';
-import {DEFAULT_PROJECT_TEMPLATES} from '@merlin/shared';
+import {DEFAULT_PROJECT_TEMPLATES, PLACEHOLDER_DOMAIN} from '@merlin/shared';
 import type {PaginatedResponse} from '@merlin/types';
 
 import {prisma} from '../database/prisma.js';
@@ -336,6 +336,45 @@ export class TemplateService {
     }
 
     return {confirmation};
+  }
+
+  /**
+   * Replace the seeded `yourdomain.com` placeholder with a verified domain.
+   * Idempotent: templates without the placeholder are left untouched.
+   */
+  public static async replacePlaceholderDomain(projectId: string, newDomain: string): Promise<number> {
+    const placeholder = PLACEHOLDER_DOMAIN;
+    const templates = await prisma.template.findMany({
+      where: {
+        projectId,
+        OR: [
+          {from: {contains: placeholder}},
+          {replyTo: {contains: placeholder}},
+          {subject: {contains: placeholder}},
+          {body: {contains: placeholder}},
+        ],
+      },
+    });
+
+    if (templates.length === 0) {
+      return 0;
+    }
+
+    await prisma.$transaction(
+      templates.map(template =>
+        prisma.template.update({
+          where: {id: template.id},
+          data: {
+            from: template.from.replaceAll(placeholder, newDomain),
+            replyTo: template.replyTo?.replaceAll(placeholder, newDomain) ?? template.replyTo,
+            subject: template.subject.replaceAll(placeholder, newDomain),
+            body: template.body.replaceAll(placeholder, newDomain),
+          },
+        }),
+      ),
+    );
+
+    return templates.length;
   }
 
   /**
