@@ -402,6 +402,7 @@ describe('EmailService', () => {
         });
 
         expect(failed?.status).toBe(EmailStatus.FAILED);
+        expect(failed?.failedAt).toBeDefined();
         expect(failed?.error).toContain('rate limit');
       });
     });

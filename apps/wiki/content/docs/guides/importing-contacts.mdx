@@ -35,7 +35,8 @@ In this example, every imported contact ends up with `data.firstName`, `data.pla
 - **File size**: up to 5 MB per upload. For larger lists, split the file and run multiple imports.
 - **Encoding**: UTF-8. Non-UTF-8 files may produce garbled custom field values.
 - **Email column**: must be present and valid. Rows with missing or invalid emails are reported back as errors.
-- **Reserved column names**: `id`, `subscribed`, `createdAt`, `updatedAt`, and the auto-generated URL variables (`unsubscribeUrl`, etc.) are silently filtered out. Don't include them as columns.
+- **Reserved column names**: `id`, `createdAt`, `updatedAt`, and the auto-generated URL variables (`unsubscribeUrl`, etc.) are silently filtered out. Don't include them as columns.
+- **`subscribed` column**: optional. When double opt-in is off, use `true`/`false`/`yes`/`no` to set subscription status on import. When double opt-in is on, this column is ignored for all contacts (new contacts are always imported unsubscribed; existing contacts keep their current subscription status).
 - **Date columns**: use ISO 8601 (`2026-05-06T12:00:00Z`) so they're typed as dates and become usable with `within` / `olderThan` segment operators.
 - **Boolean columns**: `true`, `false`, `yes`, `no` (case-insensitive) are stored as booleans and get the boolean toggle in segment filters.
 - **Numeric columns**: plain integers and decimals (`42`, `3.14`) are stored as numbers and become usable with `gt` / `lt` segment operators. Leading-zero values (`01234`), `+`-prefixed numbers, and scientific notation stay strings so IDs, zip codes, and phone numbers aren't corrupted.
@@ -51,8 +52,9 @@ import {Tab, Tabs} from 'fumadocs-ui/components/tabs';
 
 1. Open **Contacts** and click **Import**.
 2. Pick your CSV file. Merlin validates the header and shows a preview of the first few rows.
-3. Confirm. The import is queued and runs in the background.
-4. The Imports page shows progress and any per-row errors when complete.
+3. Optionally enable **Send confirmation email (double opt-in)** and pick a transactional template if you need imported contacts to confirm before receiving marketing email. New contacts are imported as unsubscribed and receive the confirmation email immediately. Each newly created contact also emits `contact.imported`.
+4. Confirm. The import is queued and runs in the background.
+5. The Imports page shows progress and any per-row errors when complete.
 
 </Tab>
 
@@ -65,8 +67,13 @@ For automation, use the import API:
 ```bash
 curl -X POST {{API_URL}}/contacts/import \
   -H "Authorization: Bearer sk_..." \
-  -F "file=@contacts.csv"
+  -F "file=@contacts.csv" \
+  -F "doubleOptIn=true"
 ```
+
+When `doubleOptIn=true`, new contacts are created unsubscribed and Merlin sends a confirmation email from `confirmationTemplateId` (or the project default template). Each newly created contact also emits a `contact.imported` event. Existing contacts are not downgraded. See [Double opt-in](/recipes/double-opt-in).
+
+Accepted values for `doubleOptIn`: `true`, `false`, `1`, `0`, `yes`, `no` (case-insensitive). Unrecognized values return `400`.
 
 The response includes a `jobId`:
 
@@ -106,7 +113,8 @@ Poll every few seconds until `status` is `completed` or `failed`. The response i
 
 ## Tips
 
-- **Unsubscribed contacts**: imported contacts are created subscribed by default. If your CSV represents users who never opted in, set up a workflow that filters out anyone you shouldn't email — or import them and then bulk-unsubscribe them with `POST /contacts/bulk-unsubscribe` to keep them on file but unmailed.
+- **Double opt-in imports**: enable **Send confirmation email (double opt-in)** in the import dialog and pick a transactional template (or pass `doubleOptIn=true` and optional `confirmationTemplateId` via the API). New contacts are imported as unsubscribed and receive the confirmation email. Existing contacts keep their current subscription status.
+- **Unsubscribed contacts**: when double opt-in is off, imported contacts are created subscribed by default. If your CSV represents users who never opted in, use double opt-in mode or import them with `subscribed=false` in the CSV column.
 - **Custom fields appear in segments immediately**: as soon as the import finishes, you can build dynamic segments on any of the imported columns.
 - **Idempotent reruns**: re-running the same CSV updates contacts in place rather than creating duplicates. If you fix a column and re-upload, all matching rows get the corrected value.
 

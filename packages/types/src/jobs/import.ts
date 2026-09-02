@@ -3,6 +3,18 @@
  */
 
 /**
+ * Options for contact CSV import jobs
+ */
+export interface ContactImportOptions {
+  /** When true, new contacts are created unsubscribed and receive a confirmation email */
+  doubleOptIn?: boolean;
+  /** Event name emitted for each newly imported contact (default: contact.imported) */
+  confirmationEventName?: string;
+  /** Transactional template used for the confirmation email */
+  confirmationTemplateId?: string;
+}
+
+/**
  * Job data for importing contacts from CSV
  * Used by: importQueue worker
  */
@@ -10,6 +22,7 @@ export interface ContactImportJobData {
   projectId: string;
   csvData: string; // Base64 encoded CSV content
   filename: string;
+  options?: ContactImportOptions;
 }
 
 /**

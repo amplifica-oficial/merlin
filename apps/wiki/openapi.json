@@ -969,7 +969,7 @@
       "post": {
         "tags": ["Contacts"],
         "summary": "Create or update contact",
-        "description": "Create a new contact or update existing (upsert by email)",
+        "description": "Create a new contact or update existing (upsert by email). When `doubleOptIn` is true, new contacts are created unsubscribed and receive a confirmation email. `confirmationTemplateId` must point to a transactional template in the project (otherwise `400`); if omitted, Merlin uses or seeds the project default confirmation template.",
         "operationId": "createContact",
         "requestBody": {
           "required": true,
@@ -990,6 +990,15 @@
                   "data": {
                     "type": "object",
                     "additionalProperties": true
+                  },
+                  "doubleOptIn": {
+                    "type": "boolean",
+                    "description": "When true, create new contacts as unsubscribed and send a confirmation email. Existing contacts are not downgraded and do not receive another confirmation."
+                  },
+                  "confirmationTemplateId": {
+                    "type": "string",
+                    "format": "uuid",
+                    "description": "Transactional template used for the confirmation email. If omitted, Merlin uses (or creates) the project default confirmation template."
                   }
                 }
               },
@@ -1026,6 +1035,10 @@
                             },
                             "isUpdate": {
                               "type": "boolean"
+                            },
+                            "confirmationSent": {
+                              "type": "boolean",
+                              "description": "True when a double opt-in confirmation email was queued for this contact."
                             }
                           }
                         }
@@ -1056,6 +1069,10 @@
                             },
                             "isUpdate": {
                               "type": "boolean"
+                            },
+                            "confirmationSent": {
+                              "type": "boolean",
+                              "description": "True when a double opt-in confirmation email was queued for this contact."
                             }
                           }
                         }

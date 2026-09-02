@@ -3,6 +3,7 @@
  * Processes CSV contact imports with validation and batch processing
  */
 
+import type {Template} from '@merlin/db';
 import type {ContactImportJobData} from '@merlin/types';
 import {type Job, Worker} from 'bullmq';
 import {parse} from 'csv-parse/sync';
@@ -10,8 +11,11 @@ import signale from 'signale';
 
 import {prisma} from '../database/prisma.js';
 import {ContactService} from '../services/ContactService.js';
+import {EmailService} from '../services/EmailService.js';
+import {EventService} from '../services/EventService.js';
 import {NtfyService} from '../services/NtfyService.js';
 import {importQueue} from '../services/QueueService.js';
+import {TemplateService} from '../services/TemplateService.js';
 
 const BATCH_SIZE = 100; // Process contacts in batches of 100
 
@@ -28,7 +32,12 @@ export function createImportWorker() {
   const worker = new Worker<ContactImportJobData>(
     importQueue.name,
     async (job: Job<ContactImportJobData>) => {
-      const {projectId, csvData, filename} = job.data;
+      const {projectId, csvData, filename, options} = job.data;
+      const doubleOptIn = options?.doubleOptIn === true;
+      const confirmationEventName = options?.confirmationEventName ?? 'contact.imported';
+      const confirmationTemplate = doubleOptIn
+        ? await TemplateService.resolveConfirmationTemplate(projectId, options?.confirmationTemplateId)
+        : undefined;
 
       signale.info(`[IMPORT-PROCESSOR] Processing import for project ${projectId} (${filename})`);
 
@@ -88,58 +97,27 @@ export function createImportWorker() {
             const rowNumber = i + batchIndex + 2; // +2 for header row and 1-based index
 
             try {
-              // Validate email
-              const email = record.email?.trim();
-              if (!email) {
+              const rowResult = await processImportContactRow({
+                projectId,
+                record,
+                doubleOptIn,
+                confirmationEventName,
+                filename,
+                confirmationTemplate,
+              });
+
+              if (!rowResult.success) {
                 result.failureCount++;
                 result.errors.push({
                   row: rowNumber,
-                  email: '',
-                  error: 'Email is required',
+                  email: rowResult.email,
+                  error: rowResult.error,
                 });
                 continue;
               }
-
-              // Basic email validation
-              if (!isValidEmail(email)) {
-                result.failureCount++;
-                result.errors.push({
-                  row: rowNumber,
-                  email,
-                  error: 'Invalid email format',
-                });
-                continue;
-              }
-
-              // Extract subscribed field if present (case-insensitive)
-              const subscribedValue = record.subscribed;
-              let subscribed: boolean | undefined;
-
-              if (subscribedValue !== undefined && subscribedValue !== '') {
-                // Handle various truthy/falsy values
-                const lowerValue = subscribedValue.toLowerCase().trim();
-                subscribed = lowerValue === 'true' || lowerValue === '1' || lowerValue === 'yes';
-              }
-
-              // Extract custom data (all fields except email and subscribed)
-              const {email: _, subscribed: __, ...customData} = record;
-              const customEntries = Object.entries(customData);
-              const data =
-                customEntries.length > 0
-                  ? Object.fromEntries(customEntries.map(([k, v]) => [k, coerceCustomValue(v)]))
-                  : undefined;
-
-              // Check if contact exists before upserting
-              const existingContact = await ContactService.findByEmail(projectId, email);
-              const isUpdate = !!existingContact;
-
-              // Upsert contact with subscribed value from CSV if provided
-              // For new contacts, ContactService.upsert defaults to true
-              // For existing contacts, only update if explicitly provided in CSV
-              await ContactService.upsert(projectId, email, data, subscribed);
 
               result.successCount++;
-              if (isUpdate) {
+              if (rowResult.isUpdate) {
                 result.updatedCount++;
               } else {
                 result.createdCount++;
@@ -211,6 +189,78 @@ export function createImportWorker() {
   });
 
   return worker;
+}
+
+export interface ProcessImportContactRowParams {
+  projectId: string;
+  record: Record<string, string>;
+  doubleOptIn: boolean;
+  confirmationEventName: string;
+  filename: string;
+  confirmationTemplate?: Pick<Template, 'id' | 'subject' | 'body' | 'from' | 'fromName' | 'replyTo'>;
+}
+
+export type ProcessImportContactRowResult =
+  | {success: true; isUpdate: boolean}
+  | {success: false; email: string; error: string};
+
+/**
+ * Process a single CSV row during contact import.
+ */
+export async function processImportContactRow(
+  params: ProcessImportContactRowParams,
+): Promise<ProcessImportContactRowResult> {
+  const {projectId, record, doubleOptIn, confirmationEventName, filename, confirmationTemplate} = params;
+
+  const email = record.email?.trim();
+  if (!email) {
+    return {success: false, email: '', error: 'Email is required'};
+  }
+
+  if (!isValidEmail(email)) {
+    return {success: false, email, error: 'Invalid email format'};
+  }
+
+  const subscribedValue = record.subscribed;
+  let subscribed: boolean | undefined;
+
+  if (!doubleOptIn) {
+    if (subscribedValue !== undefined && subscribedValue !== '') {
+      const lowerValue = subscribedValue.toLowerCase().trim();
+      subscribed = lowerValue === 'true' || lowerValue === '1' || lowerValue === 'yes';
+    }
+  }
+
+  const {email: _, subscribed: __, ...customData} = record;
+  const customEntries = Object.entries(customData);
+  const data =
+    customEntries.length > 0
+      ? Object.fromEntries(customEntries.map(([k, v]) => [k, coerceCustomValue(v)]))
+      : undefined;
+
+  const existingContact = await ContactService.findByEmail(projectId, email);
+  const isUpdate = !!existingContact;
+
+  const contact = doubleOptIn
+    ? await ContactService.upsert(projectId, email, data, undefined, false)
+    : await ContactService.upsert(projectId, email, data, subscribed);
+
+  if (doubleOptIn && !isUpdate) {
+    await EventService.trackEvent(projectId, confirmationEventName, contact.id, undefined, {
+      source: 'import',
+      filename,
+    });
+
+    if (confirmationTemplate) {
+      try {
+        await EmailService.sendTemplateEmail(projectId, contact.id, confirmationTemplate);
+      } catch (error) {
+        signale.error(`[IMPORT-PROCESSOR] Failed to send confirmation email to ${email}:`, error);
+      }
+    }
+  }
+
+  return {success: true, isUpdate};
 }
 
 /**

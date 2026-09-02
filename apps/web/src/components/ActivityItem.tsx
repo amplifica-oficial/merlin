@@ -4,6 +4,7 @@ import {memo, useState} from 'react';
 import {EmailPreviewModal} from './EmailPreviewModal';
 import {
   AlertCircle,
+  Ban,
   Calendar,
   CheckCheck,
   CheckCircle,
@@ -105,6 +106,8 @@ function isEmailActivity(type: string): boolean {
     'email.clicked',
     'email.bounced',
     'email.complaint',
+    'email.failed',
+    'email.skipped',
   ].includes(type);
 }
 
@@ -263,6 +266,32 @@ function getActivityConfig(activity: Activity): ActivityConfig {
         badge: {
           label: 'Complaint',
           variant: 'destructive',
+        },
+      };
+
+    case 'email.failed':
+      return {
+        icon: XCircle,
+        color: 'text-red-700',
+        bgColor: 'bg-red-50',
+        title: (typeof metadata.subject === 'string' ? metadata.subject : undefined) || 'Email failed to send',
+        description: (typeof metadata.error === 'string' ? metadata.error : undefined) || 'Email failed to send',
+        badge: {
+          label: 'Failed',
+          variant: 'destructive',
+        },
+      };
+
+    case 'email.skipped':
+      return {
+        icon: Ban,
+        color: 'text-neutral-600',
+        bgColor: 'bg-neutral-100',
+        title: (typeof metadata.subject === 'string' ? metadata.subject : undefined) || 'Email skipped',
+        description: 'Recipient unsubscribed',
+        badge: {
+          label: 'Skipped',
+          variant: 'secondary',
         },
       };
 

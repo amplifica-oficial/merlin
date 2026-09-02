@@ -16,7 +16,8 @@
     "test:watch": "vitest --watch",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --coverage",
-    "test:run": "vitest run"
+    "test:run": "vitest run",
+    "generate:import-csv": "./scripts/generate-import-csv.sh"
   },
   "resolutions": {
     "fumadocs-core": "16.0.8"

@@ -653,6 +653,7 @@ model Email {
   clickedAt    DateTime? // First click
   bouncedAt    DateTime?
   complainedAt DateTime?
+  failedAt     DateTime?
 
   // Event counts
   opens  Int @default(0)
@@ -684,6 +685,7 @@ model Email {
   @@index([contactId, clickedAt]) // For email activity segment queries
   @@index([contactId, bouncedAt]) // For email activity segment queries
   @@index([contactId, complainedAt]) // For email activity segment queries
+  @@index([contactId, failedAt]) // For email activity segment queries
   @@map("emails")
 }
 

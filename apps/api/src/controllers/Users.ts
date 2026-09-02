@@ -21,6 +21,7 @@ import {AllowlistService} from '../services/AllowlistService.js';
 import {MembershipService} from '../services/MembershipService.js';
 import {NtfyService} from '../services/NtfyService.js';
 import {SecurityService} from '../services/SecurityService.js';
+import {TemplateService} from '../services/TemplateService.js';
 import {UserService} from '../services/UserService.js';
 import {CatchAsync} from '../utils/asyncHandler.js';
 import signale from 'signale';
@@ -122,6 +123,12 @@ export class Users {
         },
       },
     });
+
+    try {
+      await TemplateService.ensureDefaultTemplates(project.id);
+    } catch (error) {
+      signale.error(`[USERS] Failed to seed default templates for project ${project.id}:`, error);
+    }
 
     // Send notification about project creation
     await NtfyService.notifyProjectCreated(project.name, project.id, auth.userId);

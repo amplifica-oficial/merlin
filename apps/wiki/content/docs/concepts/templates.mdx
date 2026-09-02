@@ -28,6 +28,8 @@ import {TypeTable} from 'fumadocs-ui/components/type-table';
 
 When a template is used by `/v1/send`, the request can override any of `subject`, `body`, `from`, `fromName`, `replyTo` — the template's values act as defaults.
 
+New projects already include a transactional **Confirm your subscription** template with `{{subscribeUrl}}`, seeded for [double opt-in](/recipes/double-opt-in). Its `from` address starts as a placeholder (`noreply@yourdomain.com`). When you [verify the first domain](/guides/verifying-domains), Merlin replaces `yourdomain.com` in every template that still uses the placeholder (including `from`, `replyTo`, subject, and body).
+
 ### Sender domain verification
 
 The `from` address must be on a verified domain. Creating or updating a template with an unverified `from` returns `403`. See [Verifying domains](/guides/verifying-domains).

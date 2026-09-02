@@ -1,5 +1,6 @@
 import {beforeEach, describe, expect, it} from 'vitest';
 import {TemplateType} from '@merlin/db';
+import {PLACEHOLDER_DOMAIN} from '@merlin/shared';
 import {TemplateService} from '../TemplateService';
 import {factories, getPrismaClient} from '../../../../../test/helpers';
 
@@ -665,6 +666,143 @@ describe('TemplateService', () => {
       });
 
       expect(template.body.length).toBeGreaterThan(10000);
+    });
+  });
+
+  describe('ensureDefaultTemplates', () => {
+    it('creates the default confirmation template', async () => {
+      const {confirmation} = await TemplateService.ensureDefaultTemplates(projectId);
+
+      expect(confirmation.name).toBe('Confirm your subscription');
+      expect(confirmation.type).toBe(TemplateType.TRANSACTIONAL);
+      expect(confirmation.body).toContain('{{subscribeUrl}}');
+      expect(confirmation.from).toBe(`noreply@${PLACEHOLDER_DOMAIN}`);
+    });
+
+    it('is idempotent and does not duplicate the default template', async () => {
+      const first = await TemplateService.ensureDefaultTemplates(projectId);
+      const second = await TemplateService.ensureDefaultTemplates(projectId);
+
+      expect(second.confirmation.id).toBe(first.confirmation.id);
+
+      const count = await prisma.template.count({
+        where: {projectId, name: 'Confirm your subscription'},
+      });
+      expect(count).toBe(1);
+    });
+  });
+
+  describe('replacePlaceholderDomain', () => {
+    it('replaces the seeded placeholder from address with the verified domain', async () => {
+      await TemplateService.ensureDefaultTemplates(projectId);
+
+      const count = await TemplateService.replacePlaceholderDomain(projectId, 'acme.com');
+
+      expect(count).toBe(1);
+
+      const confirmation = await prisma.template.findFirst({
+        where: {projectId, name: 'Confirm your subscription'},
+      });
+      expect(confirmation?.from).toBe('noreply@acme.com');
+    });
+
+    it('is idempotent and returns 0 when no templates still use the placeholder', async () => {
+      await TemplateService.ensureDefaultTemplates(projectId);
+      await TemplateService.replacePlaceholderDomain(projectId, 'acme.com');
+
+      const count = await TemplateService.replacePlaceholderDomain(projectId, 'other.com');
+
+      expect(count).toBe(0);
+
+      const confirmation = await prisma.template.findFirst({
+        where: {projectId, name: 'Confirm your subscription'},
+      });
+      expect(confirmation?.from).toBe('noreply@acme.com');
+    });
+
+    it('leaves templates without the placeholder untouched', async () => {
+      const custom = await TemplateService.create(projectId, {
+        name: 'Already configured',
+        subject: 'Hello',
+        body: '<p>Hi</p>',
+        from: 'hello@already.com',
+        replyTo: 'support@already.com',
+      });
+
+      const count = await TemplateService.replacePlaceholderDomain(projectId, 'acme.com');
+
+      expect(count).toBe(0);
+
+      const unchanged = await prisma.template.findUnique({where: {id: custom.id}});
+      expect(unchanged?.from).toBe('hello@already.com');
+      expect(unchanged?.replyTo).toBe('support@already.com');
+      expect(unchanged?.subject).toBe('Hello');
+      expect(unchanged?.body).toBe('<p>Hi</p>');
+    });
+
+    it('replaces the placeholder in from, replyTo, subject, and body', async () => {
+      const template = await TemplateService.create(projectId, {
+        name: 'Placeholder everywhere',
+        subject: `Visit ${PLACEHOLDER_DOMAIN}`,
+        body: `<p>Contact us at hello@${PLACEHOLDER_DOMAIN}</p>`,
+        from: `hello@${PLACEHOLDER_DOMAIN}`,
+        replyTo: `support@${PLACEHOLDER_DOMAIN}`,
+      });
+
+      const count = await TemplateService.replacePlaceholderDomain(projectId, 'acme.com');
+
+      expect(count).toBe(1);
+
+      const updated = await prisma.template.findUnique({where: {id: template.id}});
+      expect(updated?.from).toBe('hello@acme.com');
+      expect(updated?.replyTo).toBe('support@acme.com');
+      expect(updated?.subject).toBe('Visit acme.com');
+      expect(updated?.body).toBe('<p>Contact us at hello@acme.com</p>');
+    });
+  });
+
+  describe('resolveConfirmationTemplate', () => {
+    it('seeds and returns the default template when no id is provided', async () => {
+      const template = await TemplateService.resolveConfirmationTemplate(projectId);
+
+      expect(template.name).toBe('Confirm your subscription');
+      expect(template.type).toBe(TemplateType.TRANSACTIONAL);
+    });
+
+    it('returns a transactional template by id', async () => {
+      const created = await factories.createTemplate({
+        projectId,
+        name: 'Custom confirmation',
+        type: TemplateType.TRANSACTIONAL,
+      });
+
+      const resolved = await TemplateService.resolveConfirmationTemplate(projectId, created.id);
+      expect(resolved.id).toBe(created.id);
+    });
+
+    it('rejects a marketing template', async () => {
+      const created = await factories.createTemplate({
+        projectId,
+        name: 'Marketing blast',
+        type: TemplateType.MARKETING,
+      });
+
+      await expect(TemplateService.resolveConfirmationTemplate(projectId, created.id)).rejects.toMatchObject({
+        code: 400,
+        message: 'Confirmation template must be transactional',
+      });
+    });
+
+    it('rejects a template from another project', async () => {
+      const {project: otherProject} = await factories.createUserWithProject();
+      const otherTemplate = await factories.createTemplate({
+        projectId: otherProject.id,
+        type: TemplateType.TRANSACTIONAL,
+      });
+
+      await expect(TemplateService.resolveConfirmationTemplate(projectId, otherTemplate.id)).rejects.toMatchObject({
+        code: 404,
+      });
     });
   });
 });

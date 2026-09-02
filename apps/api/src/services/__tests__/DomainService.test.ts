@@ -1,8 +1,9 @@
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {factories, getPrismaClient} from '../../../../../test/helpers';
-import {DomainService} from '../DomainService.js';
 import {HttpException} from '../../exceptions/index.js';
+import {DomainService} from '../DomainService.js';
 import * as SESService from '../SESService.js';
+import {TemplateService} from '../TemplateService.js';
 
 /**
  * Unit tests for DomainService
@@ -326,6 +327,19 @@ describe('DomainService', () => {
 
       const updated = await prisma.domain.findUnique({where: {id: domain.id}});
       expect(updated?.verified).toBe(true);
+    });
+
+    it('replaces placeholder domain in templates when a domain is first verified', async () => {
+      const {project} = await factories.createUserWithProject();
+      await TemplateService.ensureDefaultTemplates(project.id);
+
+      const domain = await DomainService.addDomain(project.id, 'acme.com');
+      await DomainService.checkVerification(domain.id);
+
+      const confirmation = await prisma.template.findFirst({
+        where: {projectId: project.id, name: 'Confirm your subscription'},
+      });
+      expect(confirmation?.from).toBe('noreply@acme.com');
     });
 
     it('should update domain to unverified when SES returns Pending', async () => {

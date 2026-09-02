@@ -42,6 +42,10 @@ import {
   type DataTableView,
   type FacetedFilterOption,
 } from '../../components/data-table';
+import {
+  ConfirmationTemplatePicker,
+  useConfirmationTemplate,
+} from '../../components/ConfirmationTemplatePicker';
 import {KeyValueEditor} from '../../components/KeyValueEditor';
 import {network} from '../../lib/network';
 import {formatRelativeTime} from '../../lib/dateUtils';
@@ -813,8 +817,10 @@ interface CreateContactDialogProps {
 function CreateContactDialog({open, onOpenChange, onSuccess}: CreateContactDialogProps) {
   const [email, setEmail] = useState('');
   const [subscribed, setSubscribed] = useState(true);
+  const [doubleOptIn, setDoubleOptIn] = useState(false);
   const [customData, setCustomData] = useState<Record<string, string | number | boolean> | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const confirmation = useConfirmationTemplate(open);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -823,21 +829,38 @@ function CreateContactDialog({open, onOpenChange, onSuccess}: CreateContactDialo
     try {
       const response = await network.fetch<
         {
-          _meta?: {isNew: boolean; isUpdate: boolean};
+          _meta?: {isNew: boolean; isUpdate: boolean; confirmationSent?: boolean};
           email: string;
         },
         typeof ContactSchemas.create
-      >('POST', '/contacts', {email, subscribed, data: customData});
+      >(
+        'POST',
+        '/contacts',
+        doubleOptIn
+          ? {
+              email,
+              subscribed: false,
+              data: customData ?? undefined,
+              doubleOptIn: true,
+              confirmationTemplateId: confirmation.templateId || undefined,
+            }
+          : {email, subscribed, data: customData ?? undefined},
+      );
 
       // Show appropriate message based on whether contact was new or updated
       if (response._meta?.isUpdate) {
         toast.success(`Contact ${response.email} already existed and was updated with new data`);
+      } else if (doubleOptIn && response._meta?.confirmationSent) {
+        toast.success('Contact created. Confirmation email sent.');
+      } else if (doubleOptIn) {
+        toast.success('Contact created as unsubscribed. Confirmation email could not be sent.');
       } else {
         toast.success('Contact created successfully');
       }
 
       setEmail('');
       setSubscribed(true);
+      setDoubleOptIn(false);
       setCustomData(null);
       onOpenChange(false);
       onSuccess();
@@ -867,7 +890,7 @@ function CreateContactDialog({open, onOpenChange, onSuccess}: CreateContactDialo
             />
           </div>
 
-          <div className="flex items-center justify-between gap-4">
+          <div className={`flex items-center justify-between gap-4 ${doubleOptIn ? 'opacity-50' : ''}`}>
             <div>
               <Label htmlFor="subscribed" className="font-medium cursor-pointer">
                 Subscribed
@@ -876,8 +899,39 @@ function CreateContactDialog({open, onOpenChange, onSuccess}: CreateContactDialo
                 Receive emails from campaigns and workflows.
               </p>
             </div>
-            <Switch id="subscribed" checked={subscribed} onCheckedChange={setSubscribed} />
+            <Switch
+              id="subscribed"
+              checked={doubleOptIn ? false : subscribed}
+              onCheckedChange={setSubscribed}
+              disabled={doubleOptIn}
+            />
           </div>
+
+          <label className="flex items-start gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={doubleOptIn}
+              onChange={e => setDoubleOptIn(e.target.checked)}
+              className="rounded mt-0.5"
+            />
+            <span>
+              <span className="font-medium">Send confirmation email (double opt-in)</span>
+              <span className="block text-neutral-500">
+                Creates the contact as unsubscribed and sends a transactional confirmation with{' '}
+                <code className="bg-neutral-100 px-1 rounded">{'{{subscribeUrl}}'}</code>.
+              </span>
+            </span>
+          </label>
+
+          {doubleOptIn ? (
+            <ConfirmationTemplatePicker
+              templateId={confirmation.templateId}
+              onTemplateIdChange={confirmation.setTemplateId}
+              templates={confirmation.templates}
+              selected={confirmation.selected}
+              isLoading={confirmation.isLoading}
+            />
+          ) : null}
 
           <KeyValueEditor key={open ? 'create' : 'closed'} initialData={customData} onChange={setCustomData} />
 
@@ -912,6 +966,8 @@ interface ImportResult {
 
 function ImportContactsDialog({open, onOpenChange, onSuccess}: ImportContactsDialogProps) {
   const [file, setFile] = useState<File | null>(null);
+  const [doubleOptIn, setDoubleOptIn] = useState(false);
+  const confirmation = useConfirmationTemplate(open);
   const [, setJobId] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -945,6 +1001,7 @@ function ImportContactsDialog({open, onOpenChange, onSuccess}: ImportContactsDia
       // Reset state when dialog closes
       setTimeout(() => {
         setFile(null);
+        setDoubleOptIn(false);
         setJobId(null);
         setProgress(0);
         setStatus('idle');
@@ -1042,6 +1099,12 @@ function ImportContactsDialog({open, onOpenChange, onSuccess}: ImportContactsDia
     try {
       const formData = new FormData();
       formData.append('file', file);
+      if (doubleOptIn) {
+        formData.append('doubleOptIn', 'true');
+        if (confirmation.templateId) {
+          formData.append('confirmationTemplateId', confirmation.templateId);
+        }
+      }
 
       const data = await network.upload<{jobId: string; message: string}>('POST', '/contacts/import', formData);
 
@@ -1090,27 +1153,56 @@ function ImportContactsDialog({open, onOpenChange, onSuccess}: ImportContactsDia
 
             {/* File Upload */}
             {status === 'idle' || status === 'failed' ? (
-              <div>
-                <Label htmlFor="csv-file">Select CSV File</Label>
-                <div className="mt-2">
-                  <input
-                    ref={fileInputRef}
-                    id="csv-file"
-                    type="file"
-                    accept=".csv"
-                    onChange={handleFileChange}
-                    className="hidden"
-                  />
-                  <Button
-                    variant="outline"
-                    className="w-full"
-                    onClick={() => fileInputRef.current?.click()}
-                    type="button"
-                  >
-                    <FileUp className="h-4 w-4 mr-2" />
-                    {file ? truncateFileName(file.name) : 'Choose CSV File'}
-                  </Button>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="csv-file">Select CSV File</Label>
+                  <div className="mt-2">
+                    <input
+                      ref={fileInputRef}
+                      id="csv-file"
+                      type="file"
+                      accept=".csv"
+                      onChange={handleFileChange}
+                      className="hidden"
+                    />
+                    <Button
+                      variant="outline"
+                      className="w-full"
+                      onClick={() => fileInputRef.current?.click()}
+                      type="button"
+                    >
+                      <FileUp className="h-4 w-4 mr-2" />
+                      {file ? truncateFileName(file.name) : 'Choose CSV File'}
+                    </Button>
+                  </div>
                 </div>
+
+                <label className="flex items-start gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={doubleOptIn}
+                    onChange={e => setDoubleOptIn(e.target.checked)}
+                    className="rounded mt-0.5"
+                  />
+                  <span>
+                    <span className="font-medium">Send confirmation email (double opt-in)</span>
+                    <span className="block text-neutral-500">
+                      New contacts are imported as unsubscribed and receive a confirmation email with{' '}
+                      <code className="bg-neutral-100 px-1 rounded">{'{{subscribeUrl}}'}</code>. Existing contacts
+                      are not changed.
+                    </span>
+                  </span>
+                </label>
+
+                {doubleOptIn ? (
+                  <ConfirmationTemplatePicker
+                    templateId={confirmation.templateId}
+                    onTemplateIdChange={confirmation.setTemplateId}
+                    templates={confirmation.templates}
+                    selected={confirmation.selected}
+                    isLoading={confirmation.isLoading}
+                  />
+                ) : null}
               </div>
             ) : null}
 

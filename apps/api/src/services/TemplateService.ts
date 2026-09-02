@@ -1,5 +1,6 @@
 import type {Template} from '@merlin/db';
 import {Prisma} from '@merlin/db';
+import {DEFAULT_PROJECT_TEMPLATES, PLACEHOLDER_DOMAIN} from '@merlin/shared';
 import type {PaginatedResponse} from '@merlin/types';
 
 import {prisma} from '../database/prisma.js';
@@ -289,5 +290,114 @@ export class TemplateService {
       workflowSteps: workflowStepsCount,
       emailsSent: emailsCount,
     };
+  }
+
+  /**
+   * Find-or-create the built-in templates every project needs (confirmation, …).
+   * Idempotent: existing templates are matched by name and left untouched.
+   */
+  public static async ensureDefaultTemplates(projectId: string): Promise<{confirmation: Template}> {
+    const project = await prisma.project.findUnique({
+      where: {id: projectId},
+      select: {name: true},
+    });
+
+    const created: Template[] = [];
+
+    for (const spec of DEFAULT_PROJECT_TEMPLATES) {
+      const existing = await prisma.template.findFirst({
+        where: {projectId, name: spec.name},
+      });
+
+      if (existing) {
+        created.push(existing);
+        continue;
+      }
+
+      created.push(
+        await prisma.template.create({
+          data: {
+            projectId,
+            name: spec.name,
+            description: spec.description,
+            subject: spec.subject,
+            body: spec.body,
+            from: spec.from,
+            fromName: project?.name ?? null,
+            type: spec.type,
+          },
+        }),
+      );
+    }
+
+    const confirmation = created[0];
+    if (!confirmation) {
+      throw new HttpException(500, 'Failed to ensure default confirmation template');
+    }
+
+    return {confirmation};
+  }
+
+  /**
+   * Replace the seeded `yourdomain.com` placeholder with a verified domain.
+   * Idempotent: templates without the placeholder are left untouched.
+   */
+  public static async replacePlaceholderDomain(projectId: string, newDomain: string): Promise<number> {
+    const placeholder = PLACEHOLDER_DOMAIN;
+    const templates = await prisma.template.findMany({
+      where: {
+        projectId,
+        OR: [
+          {from: {contains: placeholder}},
+          {replyTo: {contains: placeholder}},
+          {subject: {contains: placeholder}},
+          {body: {contains: placeholder}},
+        ],
+      },
+    });
+
+    if (templates.length === 0) {
+      return 0;
+    }
+
+    await prisma.$transaction(
+      templates.map(template =>
+        prisma.template.update({
+          where: {id: template.id},
+          data: {
+            from: template.from.replaceAll(placeholder, newDomain),
+            replyTo: template.replyTo?.replaceAll(placeholder, newDomain) ?? template.replyTo,
+            subject: template.subject.replaceAll(placeholder, newDomain),
+            body: template.body.replaceAll(placeholder, newDomain),
+          },
+        }),
+      ),
+    );
+
+    return templates.length;
+  }
+
+  /**
+   * Resolve the transactional template used for double opt-in confirmation.
+   * When `templateId` is omitted, seeds (or reuses) the project default.
+   */
+  public static async resolveConfirmationTemplate(projectId: string, templateId?: string): Promise<Template> {
+    if (templateId) {
+      const template = await this.get(projectId, templateId);
+
+      if (template.type !== 'TRANSACTIONAL') {
+        throw new HttpException(400, 'Confirmation template must be transactional');
+      }
+
+      return template;
+    }
+
+    const {confirmation} = await this.ensureDefaultTemplates(projectId);
+
+    if (confirmation.type !== 'TRANSACTIONAL') {
+      throw new HttpException(400, 'Confirmation template must be transactional');
+    }
+
+    return confirmation;
   }
 }

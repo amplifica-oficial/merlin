@@ -9,6 +9,7 @@ import type {
   BulkContactActionSelector,
   CampaignBatchJobData,
   ContactImportJobData,
+  ContactImportOptions,
   DomainVerificationJobData,
   EmailBodyCleanupJobData,
   MeterEventJobData,
@@ -337,10 +338,11 @@ export class QueueService {
     projectId: string,
     csvData: string,
     filename: string,
+    options?: ContactImportOptions,
   ): Promise<Job<ContactImportJobData>> {
     return importQueue.add(
       'import-contacts',
-      {projectId, csvData, filename},
+      {projectId, csvData, filename, options},
       {
         jobId: `import-${projectId}-${Date.now()}`,
       },
@@ -639,7 +641,7 @@ export class QueueService {
     // campaign waiting on them would stay stuck in SENDING.
     const failed = await prisma.email.updateMany({
       where: {projectId, status: EmailStatus.PENDING},
-      data: {status: EmailStatus.FAILED, error: 'Project is disabled'},
+      data: {status: EmailStatus.FAILED, failedAt: new Date(), error: 'Project is disabled'},
     });
 
     if (failed.count > 0) {
