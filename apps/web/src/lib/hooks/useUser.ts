@@ -6,6 +6,7 @@ export interface CurrentUser {
   type?: 'PASSWORD' | 'GOOGLE_OAUTH' | 'GITHUB_OAUTH';
   emailVerified?: boolean;
   canManageAllowlist?: boolean;
+  trustedDomain?: boolean;
 }
 
 /**

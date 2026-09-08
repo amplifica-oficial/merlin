@@ -382,15 +382,17 @@ export default function FilesPage() {
                                   </Button>
                                 </>
                               ) : null}
-                              <Button
-                                type="button"
-                                variant="destructiveGhost"
-                                size="icon"
-                                aria-label="Delete"
-                                onClick={() => setDeleteTarget(row)}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
+                              {row.canDelete ? (
+                                <Button
+                                  type="button"
+                                  variant="destructiveGhost"
+                                  size="icon"
+                                  aria-label="Delete"
+                                  onClick={() => setDeleteTarget(row)}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              ) : null}
                             </div>
                           </TableCell>
                         </TableRow>

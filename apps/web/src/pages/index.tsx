@@ -672,12 +672,18 @@ export default function Index() {
                     value={activeProject.public}
                     description="Use this key for client-side integrations"
                   />
-                  <ApiKeyDisplay
-                    label="Secret Key"
-                    value={activeProject.secret}
-                    description="Keep this key secure and never expose it publicly"
-                    isSecret
-                  />
+                  {activeProject.secret ? (
+                    <ApiKeyDisplay
+                      label="Secret Key"
+                      value={activeProject.secret}
+                      description="Keep this key secure and never expose it publicly"
+                      isSecret
+                    />
+                  ) : (
+                    <p className="text-sm text-neutral-500">
+                      The secret API key is only visible to users from an authorized domain.
+                    </p>
+                  )}
                 </div>
               ) : (
                 <p className="text-sm text-neutral-500">No project selected</p>

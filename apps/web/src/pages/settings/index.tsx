@@ -523,9 +523,11 @@ export default function Settings() {
                       <CardTitle>API Credentials</CardTitle>
                       <CardDescription>Use these keys to integrate with the Merlin API</CardDescription>
                     </div>
-                    <Button type="button" variant="outline" size="sm" onClick={promptRegenerateKeys}>
-                      Regenerate Keys
-                    </Button>
+                    {activeProject.secret ? (
+                      <Button type="button" variant="outline" size="sm" onClick={promptRegenerateKeys}>
+                        Regenerate Keys
+                      </Button>
+                    ) : null}
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -534,12 +536,18 @@ export default function Settings() {
                     value={activeProject.public}
                     description="Use this key for client-side integrations"
                   />
-                  <ApiKeyDisplay
-                    label="Secret API Key"
-                    value={activeProject.secret}
-                    description="Keep this key secure and never expose it publicly"
-                    isSecret
-                  />
+                  {activeProject.secret ? (
+                    <ApiKeyDisplay
+                      label="Secret API Key"
+                      value={activeProject.secret}
+                      description="Keep this key secure and never expose it publicly"
+                      isSecret
+                    />
+                  ) : (
+                    <p className="text-sm text-neutral-500">
+                      The secret API key is only visible to users from an authorized domain.
+                    </p>
+                  )}
                 </CardContent>
               </Card>
 

@@ -1,14 +1,13 @@
-import type {Project} from '@merlin/db';
 import {createContext, type ReactNode, use, useEffect, useState} from 'react';
 import {useSWRConfig} from 'swr';
 
-import {useProjects} from '../hooks/useProject';
+import {type DashboardProject, useProjects} from '../hooks/useProject';
 
 interface ActiveProjectContextValue {
-  activeProject: Project | null;
-  setActiveProject: (project: Project) => void;
-  updateActiveProject: (project: Project) => void;
-  availableProjects: Project[];
+  activeProject: DashboardProject | null;
+  setActiveProject: (project: DashboardProject) => void;
+  updateActiveProject: (project: DashboardProject) => void;
+  availableProjects: DashboardProject[];
   isLoading: boolean;
 }
 
@@ -20,7 +19,7 @@ export function ActiveProjectProvider({children}: {children: ReactNode}) {
 
   // State is null until projects load, but localStorage is read synchronously by network.ts
   // This ensures consistent behavior: either all calls use stored ID, or all fall back to projects[0]
-  const [activeProject, setActiveProjectState] = useState<Project | null>(null);
+  const [activeProject, setActiveProjectState] = useState<DashboardProject | null>(null);
 
   // Initialize active project from localStorage or use first project
   useEffect(() => {
@@ -48,7 +47,7 @@ export function ActiveProjectProvider({children}: {children: ReactNode}) {
     }
   }, [projects]);
 
-  const setActiveProject = (project: Project) => {
+  const setActiveProject = (project: DashboardProject) => {
     setActiveProjectState(project);
     localStorage.setItem('activeProjectId', project.id);
 
@@ -58,7 +57,7 @@ export function ActiveProjectProvider({children}: {children: ReactNode}) {
 
   // Updates the active project's data in-place without invalidating the SWR cache.
   // Use this when saving settings for the current project, not when switching projects.
-  const updateActiveProject = (project: Project) => {
+  const updateActiveProject = (project: DashboardProject) => {
     setActiveProjectState(project);
   };
 
