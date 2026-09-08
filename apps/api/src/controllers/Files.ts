@@ -3,6 +3,7 @@ import type {SystemFolderKey} from '@merlin/types';
 import type {NextFunction, Request, Response} from 'express';
 
 import {requireAuth, requireEmailVerified} from '../middleware/auth.js';
+import {resolveFileDeleteActor} from '../services/fileDeleteAuth.js';
 import {FileService, SYSTEM_FOLDER_NAMES} from '../services/FileService.js';
 import * as S3Service from '../services/S3Service.js';
 import {CatchAsync} from '../utils/asyncHandler.js';
@@ -43,7 +44,8 @@ export class Files {
     const cursor = parseOptionalId(req.query.cursor);
     const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : undefined;
 
-    const result = await FileService.list(auth.projectId!, {folderId, search, cursor, limit});
+    const actor = await resolveFileDeleteActor(auth);
+    const result = await FileService.list(auth.projectId!, {folderId, search, cursor, limit}, actor);
     return res.status(200).json(result);
   }
 
@@ -69,6 +71,7 @@ export class Files {
     const folder = await FileService.createFolder(auth.projectId!, {
       name,
       parentId: parseOptionalId(parentId),
+      createdById: auth.userId ?? null,
     });
 
     return res.status(201).json(folder);
@@ -114,6 +117,7 @@ export class Files {
       sizeBytes,
       parentId: parseOptionalId(parentId),
       systemFolder,
+      createdById: auth.userId ?? null,
     });
 
     return res.status(201).json(result);
@@ -138,7 +142,8 @@ export class Files {
       return res.status(400).json({error: 'File ID is required.'});
     }
 
-    const file = await FileService.confirmUpload(auth.projectId!, fileId);
+    const actor = await resolveFileDeleteActor(auth);
+    const file = await FileService.confirmUpload(auth.projectId!, fileId, actor);
     return res.status(200).json(file);
   }
 
@@ -184,7 +189,8 @@ export class Files {
       return res.status(400).json({error: 'File ID is required.'});
     }
 
-    await FileService.delete(auth.projectId!, fileId);
+    const actor = await resolveFileDeleteActor(auth);
+    await FileService.delete(auth.projectId!, fileId, actor);
     return res.status(204).send();
   }
 }

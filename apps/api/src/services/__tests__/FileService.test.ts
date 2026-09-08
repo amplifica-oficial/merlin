@@ -1,10 +1,21 @@
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {ProjectFileKind, ProjectFileStatus} from '@merlin/db';
 
-import {BadRequest, ConflictError, NotFound} from '../../exceptions/index.js';
+import {BadRequest, ConflictError, NotAllowed, NotFound} from '../../exceptions/index.js';
+import {AllowlistService} from '../AllowlistService.js';
 import {FileService} from '../FileService';
+import {S3_MAX_UPLOAD_BYTES} from '../fileUploadValidation';
 import * as S3Service from '../S3Service.js';
 import {factories, getPrismaClient} from '../../../../../test/helpers';
+
+vi.mock('../AllowlistService.js', () => ({
+  AllowlistService: {
+    hasTrustedDomains: vi.fn(() => false),
+    isTrustedDomain: vi.fn(() => false),
+  },
+}));
+
+const apiKeyActor = {type: 'apiKey' as const};
 
 vi.mock('../S3Service.js', () => ({
   isS3Enabled: vi.fn(() => true),
@@ -25,6 +36,8 @@ describe('FileService', () => {
     vi.mocked(S3Service.getPresignedPutUrl).mockResolvedValue('https://s3.example/presigned');
     vi.mocked(S3Service.headObject).mockResolvedValue({contentLength: 1024, contentType: 'image/png'});
     vi.mocked(S3Service.deleteObjects).mockResolvedValue(undefined);
+    vi.mocked(AllowlistService.hasTrustedDomains).mockReturnValue(false);
+    vi.mocked(AllowlistService.isTrustedDomain).mockReturnValue(false);
   });
 
   describe('createFolder', () => {
@@ -75,7 +88,29 @@ describe('FileService', () => {
       expect(result.items[0]?.kind).toBe('FOLDER');
       expect(result.items[1]?.kind).toBe('FILE');
       expect(result.items[1]?.publicUrl).toMatch(/^https:\/\/cdn\.example\//);
+      expect(result.items[0]?.canDelete).toBe(false);
       expect(result.nextCursor).toBeNull();
+    });
+
+    it('sets canDelete from the requester actor', async () => {
+      const {user} = await factories.createUserWithProject();
+      await FileService.createFolder(projectId, {name: 'Images', createdById: user.id});
+
+      const allowed = await FileService.list(projectId, {}, {
+        type: 'jwt',
+        userId: user.id,
+        email: user.email,
+        role: 'OWNER',
+      });
+      const denied = await FileService.list(projectId, {}, {
+        type: 'jwt',
+        userId: 'other-user',
+        email: 'guest@example.com',
+        role: 'MEMBER',
+      });
+
+      expect(allowed.items[0]?.canDelete).toBe(true);
+      expect(denied.items[0]?.canDelete).toBe(false);
     });
 
     it('filters by name in the current folder', async () => {
@@ -130,6 +165,19 @@ describe('FileService', () => {
       expect(row?.status).toBe(ProjectFileStatus.PENDING);
       expect(row?.storageKey).toContain(`${projectId}/files/${result.fileId}/`);
       expect(S3Service.getPresignedPutUrl).toHaveBeenCalled();
+    });
+
+    it('stores createdById when provided', async () => {
+      const {user} = await factories.createUserWithProject();
+      const result = await FileService.requestUpload(projectId, {
+        fileName: 'banner.png',
+        contentType: 'image/png',
+        sizeBytes: 2048,
+        createdById: user.id,
+      });
+
+      const row = await prisma.projectFile.findUnique({where: {id: result.fileId}});
+      expect(row?.createdById).toBe(user.id);
     });
 
     it('rejects blocked file types', async () => {
@@ -187,6 +235,62 @@ describe('FileService', () => {
       const row = await prisma.projectFile.findUnique({where: {id: fileId}});
       expect(row?.status).toBe(ProjectFileStatus.FAILED);
     });
+
+    it('rejects objects larger than the upload limit and deletes them from storage', async () => {
+      const {fileId} = await FileService.requestUpload(projectId, {
+        fileName: 'banner.png',
+        contentType: 'image/png',
+        sizeBytes: 2048,
+      });
+      const pending = await prisma.projectFile.findUnique({where: {id: fileId}});
+      vi.mocked(S3Service.headObject).mockResolvedValue({
+        contentLength: S3_MAX_UPLOAD_BYTES + 1,
+        contentType: 'image/png',
+      });
+
+      await expect(FileService.confirmUpload(projectId, fileId)).rejects.toBeInstanceOf(BadRequest);
+
+      const row = await prisma.projectFile.findUnique({where: {id: fileId}});
+      expect(row?.status).toBe(ProjectFileStatus.FAILED);
+      expect(S3Service.deleteObjects).toHaveBeenCalledWith([pending?.storageKey]);
+    });
+
+    it('still rejects an oversized object when storage cleanup fails', async () => {
+      const {fileId} = await FileService.requestUpload(projectId, {
+        fileName: 'banner.png',
+        contentType: 'image/png',
+        sizeBytes: 2048,
+      });
+      vi.mocked(S3Service.headObject).mockResolvedValue({
+        contentLength: S3_MAX_UPLOAD_BYTES + 1,
+        contentType: 'image/png',
+      });
+      vi.mocked(S3Service.deleteObjects).mockRejectedValueOnce(new Error('S3 down'));
+
+      await expect(FileService.confirmUpload(projectId, fileId)).rejects.toBeInstanceOf(BadRequest);
+
+      const row = await prisma.projectFile.findUnique({where: {id: fileId}});
+      expect(row?.status).toBe(ProjectFileStatus.FAILED);
+    });
+
+    it('sets canDelete when an actor is provided', async () => {
+      const {user} = await factories.createUserWithProject();
+      const {fileId} = await FileService.requestUpload(projectId, {
+        fileName: 'banner.png',
+        contentType: 'image/png',
+        sizeBytes: 2048,
+        createdById: user.id,
+      });
+
+      const item = await FileService.confirmUpload(projectId, fileId, {
+        type: 'jwt',
+        userId: user.id,
+        email: user.email,
+        role: 'OWNER',
+      });
+
+      expect(item.canDelete).toBe(true);
+    });
   });
 
   describe('delete', () => {
@@ -199,7 +303,7 @@ describe('FileService', () => {
       await FileService.confirmUpload(projectId, fileId);
       const row = await prisma.projectFile.findUnique({where: {id: fileId}});
 
-      await FileService.delete(projectId, fileId);
+      await FileService.delete(projectId, fileId, apiKeyActor);
 
       expect(S3Service.deleteObjects).toHaveBeenCalledWith([row?.storageKey]);
       expect(await prisma.projectFile.findUnique({where: {id: fileId}})).toBeNull();
@@ -217,10 +321,124 @@ describe('FileService', () => {
       await FileService.confirmUpload(projectId, fileId);
       const file = await prisma.projectFile.findUnique({where: {id: fileId}});
 
-      await FileService.delete(projectId, folder.id);
+      await FileService.delete(projectId, folder.id, apiKeyActor);
 
       expect(S3Service.deleteObjects).toHaveBeenCalledWith([file?.storageKey]);
       expect(await prisma.projectFile.count({where: {projectId}})).toBe(0);
+    });
+
+    it('keeps the database record when S3 deletion fails', async () => {
+      const {fileId} = await FileService.requestUpload(projectId, {
+        fileName: 'banner.png',
+        contentType: 'image/png',
+        sizeBytes: 2048,
+      });
+      await FileService.confirmUpload(projectId, fileId);
+      vi.mocked(S3Service.deleteObjects).mockRejectedValueOnce(new Error('Failed to delete objects: key'));
+
+      await expect(FileService.delete(projectId, fileId, apiKeyActor)).rejects.toThrow('Failed to delete objects');
+      expect(await prisma.projectFile.findUnique({where: {id: fileId}})).not.toBeNull();
+    });
+
+    it('allows the creator to delete when trusted domains are not configured', async () => {
+      const {user} = await factories.createUserWithProject();
+      const folder = await FileService.createFolder(projectId, {name: 'Mine', createdById: user.id});
+
+      await FileService.delete(projectId, folder.id, {
+        type: 'jwt',
+        userId: user.id,
+        email: user.email,
+        role: 'OWNER',
+      });
+
+      expect(await prisma.projectFile.findUnique({where: {id: folder.id}})).toBeNull();
+    });
+
+    it('blocks a non-creator when trusted domains are not configured', async () => {
+      const {user: creator} = await factories.createUserWithProject();
+      const {user: other} = await factories.createUserWithProject();
+      const folder = await FileService.createFolder(projectId, {name: 'Theirs', createdById: creator.id});
+
+      await expect(
+        FileService.delete(projectId, folder.id, {
+          type: 'jwt',
+          userId: other.id,
+          email: other.email,
+          role: 'MEMBER',
+        }),
+      ).rejects.toBeInstanceOf(NotAllowed);
+
+      expect(await prisma.projectFile.findUnique({where: {id: folder.id}})).not.toBeNull();
+    });
+
+    it('allows the creator to delete their own file when they are not on a trusted domain', async () => {
+      const {user} = await factories.createUserWithProject({email: 'guest@example.com'});
+      const folder = await FileService.createFolder(projectId, {name: 'Guest', createdById: user.id});
+      vi.mocked(AllowlistService.hasTrustedDomains).mockReturnValue(true);
+      vi.mocked(AllowlistService.isTrustedDomain).mockReturnValue(false);
+
+      await FileService.delete(projectId, folder.id, {
+        type: 'jwt',
+        userId: user.id,
+        email: user.email,
+        role: 'MEMBER',
+      });
+
+      expect(await prisma.projectFile.findUnique({where: {id: folder.id}})).toBeNull();
+    });
+
+    it('does not delete a folder that contains files created by another user', async () => {
+      const {user: owner} = await factories.createUserWithProject();
+      const {user: other} = await factories.createUserWithProject();
+      const folder = await FileService.createFolder(projectId, {name: 'Shared', createdById: owner.id});
+      const {fileId} = await FileService.requestUpload(projectId, {
+        parentId: folder.id,
+        fileName: 'theirs.png',
+        contentType: 'image/png',
+        sizeBytes: 1024,
+        createdById: other.id,
+      });
+      await FileService.confirmUpload(projectId, fileId);
+      vi.mocked(S3Service.deleteObjects).mockClear();
+
+      await expect(
+        FileService.delete(projectId, folder.id, {
+          type: 'jwt',
+          userId: owner.id,
+          email: owner.email,
+          role: 'OWNER',
+        }),
+      ).rejects.toBeInstanceOf(NotAllowed);
+
+      expect(S3Service.deleteObjects).not.toHaveBeenCalled();
+      expect(await prisma.projectFile.findUnique({where: {id: folder.id}})).not.toBeNull();
+      expect(await prisma.projectFile.findUnique({where: {id: fileId}})).not.toBeNull();
+    });
+
+    it('allows a trusted-domain user to delete a folder containing others files', async () => {
+      const {user: owner} = await factories.createUserWithProject({email: 'owner@company.com'});
+      const {user: other} = await factories.createUserWithProject();
+      const folder = await FileService.createFolder(projectId, {name: 'Shared', createdById: owner.id});
+      const {fileId} = await FileService.requestUpload(projectId, {
+        parentId: folder.id,
+        fileName: 'theirs.png',
+        contentType: 'image/png',
+        sizeBytes: 1024,
+        createdById: other.id,
+      });
+      await FileService.confirmUpload(projectId, fileId);
+      vi.mocked(AllowlistService.hasTrustedDomains).mockReturnValue(true);
+      vi.mocked(AllowlistService.isTrustedDomain).mockReturnValue(true);
+
+      await FileService.delete(projectId, folder.id, {
+        type: 'jwt',
+        userId: owner.id,
+        email: owner.email,
+        role: 'OWNER',
+      });
+
+      expect(await prisma.projectFile.findUnique({where: {id: folder.id}})).toBeNull();
+      expect(await prisma.projectFile.findUnique({where: {id: fileId}})).toBeNull();
     });
   });
 
@@ -266,6 +484,31 @@ describe('FileService', () => {
       expect(second.name).toBe('logo (2).png');
       expect(second.publicUrl).toBe(`https://cdn.example/${projectId}/legacy/logo-2.png`);
       expect(second.sizeBytes).toBe(1024);
+    });
+
+    it('sets canDelete when an actor is provided', async () => {
+      const {user} = await factories.createUserWithProject();
+      const folder = await FileService.getOrCreateSystemFolder(projectId, 'Email images');
+
+      const item = await FileService.registerUploadedObject(
+        projectId,
+        {
+          name: 'logo.png',
+          storageKey: `${projectId}/legacy/logo.png`,
+          contentType: 'image/png',
+          sizeBytes: 512,
+          folderId: folder.id,
+          createdById: user.id,
+        },
+        {
+          type: 'jwt',
+          userId: user.id,
+          email: user.email,
+          role: 'MEMBER',
+        },
+      );
+
+      expect(item.canDelete).toBe(true);
     });
   });
 

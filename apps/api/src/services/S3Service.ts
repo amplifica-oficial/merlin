@@ -222,10 +222,13 @@ export async function deleteObjects(keys: string[]): Promise<void> {
     return;
   }
 
+  const ignorableCodes = new Set(['NoSuchKey', 'NotFound']);
+  const failedKeys: string[] = [];
+
   for (let i = 0; i < normalizedKeys.length; i += DELETE_BATCH_SIZE) {
     const batch = normalizedKeys.slice(i, i + DELETE_BATCH_SIZE);
     try {
-      await client.send(
+      const response = await client.send(
         new DeleteObjectsCommand({
           Bucket: S3_BUCKET,
           Delete: {
@@ -234,9 +237,21 @@ export async function deleteObjects(keys: string[]): Promise<void> {
           },
         }),
       );
+
+      for (const error of response.Errors ?? []) {
+        if (error.Code && ignorableCodes.has(error.Code)) {
+          continue;
+        }
+        failedKeys.push(error.Key ?? 'unknown');
+      }
     } catch (error) {
-      signale.error('[S3] Failed to delete objects:', error);
+      signale.error('[S3] Failed to delete object batch:', error);
+      failedKeys.push(...batch);
     }
+  }
+
+  if (failedKeys.length > 0) {
+    throw new Error(`Failed to delete objects: ${[...new Set(failedKeys)].join(', ')}`);
   }
 }
 

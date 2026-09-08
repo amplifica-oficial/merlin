@@ -6,9 +6,11 @@ import type {
   ProjectFileItem,
   SystemFolderKey,
 } from '@merlin/types';
+import signale from 'signale';
 
 import {prisma} from '../database/prisma.js';
 import {BadRequest, ConflictError, NotFound} from '../exceptions/index.js';
+import {assertCanDeleteProjectFile, canDeleteProjectFile, type FileDeleteActor} from './fileDeleteAuth.js';
 import {buildProjectFileStorageKey, S3_MAX_UPLOAD_BYTES, validateUploadFile} from './fileUploadValidation.js';
 import * as S3Service from './S3Service.js';
 
@@ -21,15 +23,19 @@ export const SYSTEM_FOLDER_NAMES = {
   'email-images': 'Email images',
 } as const satisfies Record<SystemFolderKey, string>;
 
-function toItem(row: {
-  id: string;
-  kind: ProjectFileKind;
-  name: string;
-  contentType: string | null;
-  sizeBytes: number | null;
-  storageKey: string | null;
-  createdAt: Date;
-}): ProjectFileItem {
+function toItem(
+  row: {
+    id: string;
+    kind: ProjectFileKind;
+    name: string;
+    contentType: string | null;
+    sizeBytes: number | null;
+    storageKey: string | null;
+    createdAt: Date;
+    createdById?: string | null;
+  },
+  actor?: FileDeleteActor,
+): ProjectFileItem {
   return {
     id: row.id,
     kind: row.kind,
@@ -39,6 +45,7 @@ function toItem(row: {
     publicUrl:
       row.kind === ProjectFileKind.FILE && row.storageKey ? S3Service.getPublicObjectUrl(row.storageKey) : null,
     createdAt: row.createdAt.toISOString(),
+    canDelete: actor ? canDeleteProjectFile(actor, {createdById: row.createdById ?? null}) : false,
   };
 }
 
@@ -181,7 +188,11 @@ async function nextAvailableSiblingName(projectId: string, parentId: string | nu
   throw new ConflictError('Could not find an available file name in this folder.');
 }
 
-async function collectDescendantStorageKeys(projectId: string, rootId: string): Promise<string[]> {
+async function collectAuthorizedStorageKeys(
+  projectId: string,
+  rootId: string,
+  actor: FileDeleteActor,
+): Promise<string[]> {
   const keys: string[] = [];
   const queue = [rootId];
 
@@ -189,10 +200,11 @@ async function collectDescendantStorageKeys(projectId: string, rootId: string): 
     const batch = queue.splice(0, TREE_WALK_BATCH);
     const nodes = await prisma.projectFile.findMany({
       where: {projectId, id: {in: batch}},
-      select: {id: true, kind: true, storageKey: true},
+      select: {id: true, kind: true, storageKey: true, createdById: true},
     });
 
     for (const node of nodes) {
+      assertCanDeleteProjectFile(actor, {createdById: node.createdById});
       if (node.kind === ProjectFileKind.FILE && node.storageKey) {
         keys.push(node.storageKey);
       }
@@ -255,7 +267,9 @@ export class FileService {
       contentType: string;
       sizeBytes: number;
       folderId: string;
+      createdById?: string | null;
     },
+    actor?: FileDeleteActor,
   ): Promise<ProjectFileItem> {
     await assertParentInProject(projectId, input.folderId);
 
@@ -276,10 +290,11 @@ export class FileService {
         contentType: input.contentType,
         sizeBytes: input.sizeBytes,
         status: ProjectFileStatus.READY,
+        createdById: input.createdById ?? null,
       },
     });
 
-    return toItem(created);
+    return toItem(created, actor);
   }
 
   public static async list(
@@ -290,6 +305,7 @@ export class FileService {
       cursor?: string | null;
       limit?: number;
     } = {},
+    actor?: FileDeleteActor,
   ): Promise<FilesListResponse> {
     const folderId = options.folderId ?? null;
     await assertParentInProject(projectId, folderId);
@@ -313,7 +329,7 @@ export class FileService {
     const page = hasMore ? rows.slice(0, limit) : rows;
 
     return {
-      items: page.map(toItem),
+      items: page.map(row => toItem(row, actor)),
       breadcrumb: await getBreadcrumb(projectId, folderId),
       nextCursor: hasMore ? (page[page.length - 1]?.id ?? null) : null,
     };
@@ -321,7 +337,7 @@ export class FileService {
 
   public static async createFolder(
     projectId: string,
-    input: {name: string; parentId?: string | null},
+    input: {name: string; parentId?: string | null; createdById?: string | null},
   ): Promise<ProjectFile> {
     const name = input.name.trim();
     if (!name) {
@@ -339,6 +355,7 @@ export class FileService {
         kind: ProjectFileKind.FOLDER,
         name,
         status: ProjectFileStatus.READY,
+        createdById: input.createdById ?? null,
       },
     });
   }
@@ -351,6 +368,7 @@ export class FileService {
       sizeBytes: number;
       parentId?: string | null;
       systemFolder?: SystemFolderKey;
+      createdById?: string | null;
     },
   ): Promise<{fileId: string; presignedUrl: string; publicUrl: string}> {
     if (!S3Service.isS3Enabled()) {
@@ -388,6 +406,7 @@ export class FileService {
         contentType: input.contentType,
         sizeBytes: input.sizeBytes,
         status: ProjectFileStatus.PENDING,
+        createdById: input.createdById ?? null,
       },
       select: {id: true},
     });
@@ -400,7 +419,11 @@ export class FileService {
     }
   }
 
-  public static async confirmUpload(projectId: string, fileId: string): Promise<ProjectFileItem> {
+  public static async confirmUpload(
+    projectId: string,
+    fileId: string,
+    actor?: FileDeleteActor,
+  ): Promise<ProjectFileItem> {
     if (!S3Service.isS3Enabled()) {
       throw new BadRequest('File storage is not enabled.');
     }
@@ -414,7 +437,7 @@ export class FileService {
     }
 
     if (file.status === ProjectFileStatus.READY) {
-      return toItem(file);
+      return toItem(file, actor);
     }
 
     if (!file.storageKey) {
@@ -430,6 +453,19 @@ export class FileService {
       throw new BadRequest('File was not found in storage. Please try uploading again.');
     }
 
+    if (meta.contentLength > S3_MAX_UPLOAD_BYTES) {
+      await prisma.projectFile.update({
+        where: {id: fileId},
+        data: {status: ProjectFileStatus.FAILED},
+      });
+      try {
+        await S3Service.deleteObjects([file.storageKey]);
+      } catch (error) {
+        signale.error('[FILES] Failed to delete oversized upload from storage:', error);
+      }
+      throw new BadRequest(`File exceeds the ${Math.round(S3_MAX_UPLOAD_BYTES / (1024 * 1024))} MB limit.`);
+    }
+
     const updated = await prisma.projectFile.update({
       where: {id: fileId},
       data: {
@@ -439,10 +475,10 @@ export class FileService {
       },
     });
 
-    return toItem(updated);
+    return toItem(updated, actor);
   }
 
-  public static async delete(projectId: string, fileId: string): Promise<void> {
+  public static async delete(projectId: string, fileId: string, actor: FileDeleteActor): Promise<void> {
     const file = await prisma.projectFile.findFirst({
       where: {id: fileId, projectId},
       select: {id: true},
@@ -452,7 +488,7 @@ export class FileService {
       throw new NotFound('file', fileId);
     }
 
-    const storageKeys = await collectDescendantStorageKeys(projectId, fileId);
+    const storageKeys = await collectAuthorizedStorageKeys(projectId, fileId, actor);
     if (storageKeys.length > 0 && S3Service.isS3Enabled()) {
       await S3Service.deleteObjects(storageKeys);
     }

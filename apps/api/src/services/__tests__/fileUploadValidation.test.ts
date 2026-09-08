@@ -34,6 +34,31 @@ describe('validateUploadFile', () => {
       error: 'This content type is not allowed.',
     });
   });
+
+  it('rejects SVG content type', () => {
+    expect(validateUploadFile('logo.png', 'image/svg+xml', 100, S3_MAX_UPLOAD_BYTES)).toEqual({
+      ok: false,
+      error: 'This content type is not allowed.',
+    });
+  });
+
+  it('rejects SVG extension even with an allowed image type', () => {
+    expect(validateUploadFile('logo.svg', 'image/png', 100, S3_MAX_UPLOAD_BYTES)).toEqual({
+      ok: false,
+      error: 'This file type is not allowed.',
+    });
+  });
+
+  it('rejects HTML content type and extension', () => {
+    expect(validateUploadFile('page.html', 'text/html', 100, S3_MAX_UPLOAD_BYTES)).toEqual({
+      ok: false,
+      error: 'This file type is not allowed.',
+    });
+    expect(validateUploadFile('page.txt', 'text/html', 100, S3_MAX_UPLOAD_BYTES)).toEqual({
+      ok: false,
+      error: 'This content type is not allowed.',
+    });
+  });
 });
 
 describe('sanitizeFileName', () => {

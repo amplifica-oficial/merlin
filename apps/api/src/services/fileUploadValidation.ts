@@ -1,4 +1,26 @@
-const BLOCKED_EXTENSIONS = new Set(['.exe', '.bat', '.cmd', '.com', '.msi', '.scr', '.ps1', '.sh', '.dll']);
+const BLOCKED_EXTENSIONS = new Set([
+  '.exe',
+  '.bat',
+  '.cmd',
+  '.com',
+  '.msi',
+  '.scr',
+  '.ps1',
+  '.sh',
+  '.dll',
+  '.svg',
+  '.html',
+  '.htm',
+  '.xhtml',
+]);
+
+const BLOCKED_CONTENT_TYPES = new Set([
+  'image/svg+xml',
+  'text/html',
+  'application/xhtml+xml',
+  'text/xml',
+  'application/xml',
+]);
 
 const ALLOWED_PREFIXES = [
   'image/',
@@ -45,6 +67,9 @@ export function validateUploadFile(
   }
 
   const type = contentType.toLowerCase().split(';')[0]?.trim() ?? '';
+  if (BLOCKED_CONTENT_TYPES.has(type)) {
+    return {ok: false, error: 'This content type is not allowed.'};
+  }
   if (!ALLOWED_PREFIXES.some(prefix => type === prefix || type.startsWith(prefix))) {
     return {ok: false, error: 'This content type is not allowed.'};
   }

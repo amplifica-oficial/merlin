@@ -4,6 +4,7 @@ import multer from 'multer';
 import signale from 'signale';
 
 import {requireAuth, requireEmailVerified} from '../middleware/auth.js';
+import {resolveFileDeleteActor} from '../services/fileDeleteAuth.js';
 import {FileService, SYSTEM_FOLDER_NAMES} from '../services/FileService.js';
 import * as S3Service from '../services/S3Service.js';
 import {CatchAsync} from '../utils/asyncHandler.js';
@@ -82,15 +83,25 @@ export class Uploads {
           auth.projectId!,
           SYSTEM_FOLDER_NAMES['email-images'],
         );
-        await FileService.registerUploadedObject(auth.projectId!, {
-          name: req.file.originalname,
-          storageKey: result.key,
-          contentType: req.file.mimetype,
-          sizeBytes: req.file.size,
-          folderId: folder.id,
-        });
+        const actor = await resolveFileDeleteActor(auth);
+        await FileService.registerUploadedObject(
+          auth.projectId!,
+          {
+            name: req.file.originalname,
+            storageKey: result.key,
+            contentType: req.file.mimetype,
+            sizeBytes: req.file.size,
+            folderId: folder.id,
+            createdById: auth.userId ?? null,
+          },
+          actor,
+        );
       } catch (registerError) {
-        await S3Service.deleteObjects([result.key]);
+        try {
+          await S3Service.deleteObjects([result.key]);
+        } catch (cleanupError) {
+          signale.error('[UPLOADS] Failed to clean up uploaded object after register error:', cleanupError);
+        }
         throw registerError;
       }
 
