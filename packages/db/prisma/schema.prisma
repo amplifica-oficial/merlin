@@ -122,6 +122,7 @@ model Project {
   apiRequests ApiRequest[]
   forms        Form[]
   landingPages LandingPage[]
+  files        ProjectFile[]
 
   idempotencyKeys IdempotencyKey[]
 
@@ -755,6 +756,27 @@ model IdempotencyKey {
   @@map("idempotency_keys")
 }
 
+model ProjectFile {
+  id          String            @id @default(uuid())
+  projectId   String
+  parentId    String?
+  kind        ProjectFileKind
+  name        String
+  storageKey  String?
+  contentType String?
+  sizeBytes   Int?
+  status      ProjectFileStatus @default(READY)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  project  Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  parent   ProjectFile?  @relation("FileTree", fields: [parentId], references: [id], onDelete: Cascade)
+  children ProjectFile[] @relation("FileTree")
+
+  @@index([projectId, parentId, kind, name])
+  @@map("project_files")
+}
+
 // ============================================
 // ENUMS
 // ============================================
@@ -911,4 +933,15 @@ enum EmailStatus {
   BOUNCED // Bounced (hard or soft)
   COMPLAINED // Marked as spam
   FAILED // Failed to send
+}
+
+enum ProjectFileKind {
+  FOLDER
+  FILE
+}
+
+enum ProjectFileStatus {
+  PENDING
+  READY
+  FAILED
 }
