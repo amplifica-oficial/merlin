@@ -41,6 +41,8 @@ Set your subdomains here. The application automatically derives all internal and
 
 The bundled Docker setup includes Minio with defaults that work out of the box. Only change these when connecting to an external S3-compatible bucket.
 
+Browser file uploads use a presigned `PUT` to the bucket. Configure CORS on the bucket in AWS (or Minio) — the app does not write bucket CORS. Allow the dashboard origin (`http://localhost:3000` in development and `DASHBOARD_URI` in production), methods `GET`, `PUT`, `HEAD`, and header `content-type`. If the same bucket is shared with another app, keep that app's origins too.
+
 | Variable               | Required | Description                                                        | Default             |
 | ---------------------- | -------- | ------------------------------------------------------------------ | ------------------- |
 | `MINIO_ROOT_USER`      | No       | Minio root username (Docker Compose only).                         | `merlin`             |
@@ -48,11 +50,12 @@ The bundled Docker setup includes Minio with defaults that work out of the box. 
 | `MINIO_API_PORT`       | No       | Port for the Minio API (Docker Compose only).                      | `9000`              |
 | `MINIO_CONSOLE_PORT`   | No       | Port for the Minio console UI (Docker Compose only).               | `9001`              |
 | `S3_ENDPOINT`          | No       | S3 or Minio endpoint URL.                                          | `http://minio:9000` |
+| `S3_REGION`            | No       | AWS/Minio region. Must match the bucket region (AWS HeadBucket returns 400 if this is wrong). | `us-east-1` |
 | `S3_ACCESS_KEY_ID`     | No       | S3 or Minio access key.                                            | —                   |
 | `S3_ACCESS_KEY_SECRET` | No       | S3 or Minio secret key.                                            | —                   |
 | `S3_BUCKET`            | No       | Bucket name for file uploads.                                      | `uploads`           |
-| `S3_PUBLIC_URL`        | No       | Publicly accessible base URL for stored files.                     | —                   |
-| `S3_FORCE_PATH_STYLE`  | No       | Use path-style URLs instead of virtual-hosted. Required for Minio. | `true`              |
+| `S3_PUBLIC_URL`        | No       | Publicly accessible base URL for stored files. `S3_BEAUTIFUL_DOMAIN` is accepted as an alias. | — |
+| `S3_FORCE_PATH_STYLE`  | No       | Use path-style URLs instead of virtual-hosted. Required for Minio. Set `false` for AWS S3. | `true`              |
 
 ## Attachments
 
