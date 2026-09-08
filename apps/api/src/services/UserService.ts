@@ -4,6 +4,7 @@ import {API_URI, NODE_ENV} from '../app/constants.js';
 import {prisma} from '../database/prisma.js';
 import {wrapRedis} from '../database/redis.js';
 
+import {AllowlistService} from './AllowlistService.js';
 import {Keys} from './keys.js';
 
 /**
@@ -74,13 +75,38 @@ export class UserService {
   }
 
   public static async projects(userId: string) {
-    const memberships = await prisma.user.findUnique({where: {id: userId}}).memberships({
-      include: {
-        project: true,
+    const user = await prisma.user.findUnique({
+      where: {id: userId},
+      select: {
+        email: true,
+        memberships: {
+          include: {
+            project: true,
+          },
+        },
       },
     });
 
-    return memberships ? memberships.map(({project}) => project) : [];
+    if (!user) {
+      return [];
+    }
+
+    return user.memberships.map(({project}) => UserService.redactProjectSecret(project, user.email));
+  }
+
+  public static shouldRedactSecret(email: string): boolean {
+    return AllowlistService.hasTrustedDomains() && !AllowlistService.isTrustedDomain(email);
+  }
+
+  public static redactProjectSecret<T extends {secret: string | null}>(
+    project: T,
+    email: string,
+  ): T & {secret: string | null} {
+    if (!UserService.shouldRedactSecret(email)) {
+      return project;
+    }
+
+    return {...project, secret: null};
   }
 
   /**

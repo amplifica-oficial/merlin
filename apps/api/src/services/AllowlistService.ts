@@ -16,9 +16,13 @@ function extractDomain(email: string): string {
 }
 
 export class AllowlistService {
+  public static hasTrustedDomains(): boolean {
+    return ALLOWLIST_TRUSTED_DOMAINS.length > 0;
+  }
+
   public static isTrustedDomain(email: string): boolean {
     const domain = extractDomain(normalizeEmail(email));
-    if (!domain || ALLOWLIST_TRUSTED_DOMAINS.length === 0) {
+    if (!domain || !AllowlistService.hasTrustedDomains()) {
       return false;
     }
 
