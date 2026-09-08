@@ -54,6 +54,7 @@ const NAV_ACTIONS: Action[] = [
   {label: 'Templates', href: '/templates', icon: FileText, keywords: 'email design', shortcut: ['G', 'T']},
   {label: 'Workflows', href: '/workflows', icon: WorkflowIcon, keywords: 'automation trigger', shortcut: ['G', 'W']},
   {label: 'Campaigns', href: '/campaigns', icon: Megaphone, keywords: 'broadcast newsletter', shortcut: ['G', 'M']},
+  {label: 'Files', href: '/files', icon: FolderOpen, keywords: 'media library upload s3 storage', shortcut: ['G', 'F']},
   {label: 'Settings', href: '/settings', icon: Settings, keywords: 'config account billing', shortcut: ['G', ',']},
 ];
 

@@ -11,6 +11,7 @@ import {
   ChevronDown,
   FileText,
   FileInput,
+  FolderOpen,
   Layers,
   Layout,
   LayoutDashboard,
@@ -231,6 +232,21 @@ export function DashboardLayout({children}: DashboardLayoutProps) {
 
       {/* Settings & User Menu */}
       <div className="border-t border-neutral-200 p-3 space-y-1">
+        {config?.features.storage.s3Enabled && (
+          <Link
+            href="/files"
+            onClick={() => setShowMobileMenu(false)}
+            className={`flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
+              router.pathname.startsWith('/files')
+                ? 'bg-neutral-100 text-neutral-900'
+                : 'text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900'
+            }`}
+          >
+            <FolderOpen className="h-5 w-5" />
+            Files
+          </Link>
+        )}
+
         <a
           href={WIKI_URI}
           target="_blank"
