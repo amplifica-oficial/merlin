@@ -33,6 +33,7 @@ import {Campaigns} from './controllers/Campaigns.js';
 import {Contacts} from './controllers/Contacts.js';
 import {Domains} from './controllers/Domains.js';
 import {Events} from './controllers/Events.js';
+import {Files} from './controllers/Files.js';
 import {Forms} from './controllers/Forms.js';
 import {LandingPages} from './controllers/LandingPages.js';
 import {Oauth} from './controllers/Oauth/index.js';
@@ -169,6 +170,7 @@ const server = new (class extends Server {
       new Contacts(),
       new Domains(),
       new Forms(),
+      new Files(),
       new LandingPages(),
       new Projects(),
       new Segments(),
