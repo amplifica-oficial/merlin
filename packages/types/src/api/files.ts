@@ -31,15 +31,33 @@ export interface CreateFolderRequest {
   parentId?: string | null;
 }
 
+export type SystemFolderKey = 'quick-uploads' | 'email-images';
+
 export interface RequestUploadRequest {
   fileName: string;
   contentType: string;
   sizeBytes: number;
   parentId?: string | null;
+  systemFolder?: SystemFolderKey;
 }
 
 export interface RequestUploadResponse {
   fileId: string;
   presignedUrl: string;
   publicUrl: string;
+}
+
+export interface FolderDeletePreviewFile {
+  id: string;
+  name: string;
+  sizeBytes: number | null;
+}
+
+export interface FolderDeletePreviewResponse {
+  name: string;
+  kind: ProjectFileKind;
+  totalFiles: number;
+  totalFolders: number;
+  files: FolderDeletePreviewFile[];
+  truncated: boolean;
 }
