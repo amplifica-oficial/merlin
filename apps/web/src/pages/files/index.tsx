@@ -1,3 +1,4 @@
+import type {ProjectFileItem} from '@merlin/types';
 import {
   Alert,
   AlertDescription,
@@ -20,12 +21,6 @@ import {
   TableHeader,
   TableRow,
 } from '@merlin/ui';
-import type {FilesListResponse, ProjectFileItem, RequestUploadResponse} from '@merlin/types';
-import {DashboardLayout} from '../../components/DashboardLayout';
-import {useConfig} from '../../lib/hooks/useConfig';
-import {network} from '../../lib/network';
-import {formatRelativeTime} from '../../lib/dateUtils';
-import {uploadViaPresignedUrl} from '../../lib/uploadViaPresignedUrl';
 import {
   AlertTriangle,
   ChevronRight,
@@ -45,18 +40,14 @@ import Link from 'next/link';
 import {useRouter} from 'next/router';
 import {Fragment, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {toast} from 'sonner';
-import useSWR from 'swr';
 
-function formatBytes(bytes: number | null): string {
-  if (bytes == null || bytes <= 0) return '—';
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
-
-function folderHref(folderId: string | null): string {
-  return folderId ? `/files?folder=${encodeURIComponent(folderId)}` : '/files';
-}
+import {DashboardLayout} from '../../components/DashboardLayout';
+import {FolderDeleteDialog} from '../../components/files/FolderDeleteDialog';
+import {formatRelativeTime} from '../../lib/dateUtils';
+import {copyToClipboard, folderHref, formatBytes} from '../../lib/files';
+import {useConfig} from '../../lib/hooks/useConfig';
+import {useFileBrowser} from '../../lib/hooks/useFileBrowser';
+import {network} from '../../lib/network';
 
 export default function FilesPage() {
   const router = useRouter();
@@ -69,71 +60,29 @@ export default function FilesPage() {
     return typeof value === 'string' && value.length > 0 ? value : null;
   }, [router.isReady, router.query.folder]);
 
-  const [search, setSearch] = useState('');
-  const [searchInput, setSearchInput] = useState('');
-  const [extraItems, setExtraItems] = useState<ProjectFileItem[]>([]);
-  const [extraCursor, setExtraCursor] = useState<string | null>(null);
-  const [loadingMore, setLoadingMore] = useState(false);
+  const {
+    search,
+    searchInput,
+    setSearchInput,
+    items,
+    nextCursor,
+    breadcrumb,
+    isLoading,
+    loadingMore,
+    uploading,
+    mutate,
+    handleLoadMore,
+    handleFilesSelected,
+  } = useFileBrowser({enabled: s3Enabled && router.isReady, folderId});
+
   const [folderDialogOpen, setFolderDialogOpen] = useState(false);
   const [newFolderName, setNewFolderName] = useState('');
   const [creatingFolder, setCreatingFolder] = useState(false);
-  const [uploading, setUploading] = useState(false);
   const [isDragOver, setIsDragOver] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<ProjectFileItem | null>(null);
   const [deleting, setDeleting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dragDepthRef = useRef(0);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setSearch(searchInput), 300);
-    return () => clearTimeout(timer);
-  }, [searchInput]);
-
-  useEffect(() => {
-    setSearch('');
-    setSearchInput('');
-    setExtraItems([]);
-    setExtraCursor(null);
-  }, [folderId]);
-
-  const listPath = useMemo(() => {
-    const params = new URLSearchParams();
-    if (folderId) params.set('folder', folderId);
-    if (search) params.set('search', search);
-    const query = params.toString();
-    return query ? `/files?${query}` : '/files';
-  }, [folderId, search]);
-
-  const {data, mutate, isLoading} = useSWR<FilesListResponse>(s3Enabled ? listPath : null, {
-    revalidateOnFocus: false,
-  });
-
-  useEffect(() => {
-    setExtraItems([]);
-    setExtraCursor(null);
-  }, [listPath]);
-
-  const items = useMemo(() => [...(data?.items ?? []), ...extraItems], [data?.items, extraItems]);
-  const nextCursor = extraItems.length > 0 ? extraCursor : (data?.nextCursor ?? null);
-  const breadcrumb = data?.breadcrumb ?? [];
-
-  const handleLoadMore = async () => {
-    if (!nextCursor) return;
-    setLoadingMore(true);
-    try {
-      const params = new URLSearchParams();
-      if (folderId) params.set('folder', folderId);
-      if (search) params.set('search', search);
-      params.set('cursor', nextCursor);
-      const page = await network.fetch<FilesListResponse>('GET', `/files?${params.toString()}`);
-      setExtraItems(prev => [...prev, ...page.items]);
-      setExtraCursor(page.nextCursor);
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Failed to load more files');
-    } finally {
-      setLoadingMore(false);
-    }
-  };
 
   const handleCreateFolder = async () => {
     const name = newFolderName.trim();
@@ -158,53 +107,12 @@ export default function FilesPage() {
     }
   };
 
-  const handleFilesSelected = useCallback(
-    async (files: FileList | File[] | null) => {
-      const fileArray = files ? Array.from(files) : [];
-      if (!fileArray.length) return;
-      dragDepthRef.current = 0;
-      setIsDragOver(false);
-      setUploading(true);
-      let successCount = 0;
-
-      for (const file of fileArray) {
-        let pendingFileId: string | null = null;
-        try {
-          const prep = await network.fetch<RequestUploadResponse, never>('POST', '/files/uploads', {
-            fileName: file.name,
-            contentType: file.type || 'application/octet-stream',
-            sizeBytes: file.size,
-            parentId: folderId,
-          } as never);
-          pendingFileId = prep.fileId;
-          await uploadViaPresignedUrl(file, prep.presignedUrl, file.type || 'application/octet-stream');
-          await network.fetch('POST', `/files/uploads/${prep.fileId}/confirm`);
-          pendingFileId = null;
-          successCount += 1;
-        } catch (error) {
-          if (pendingFileId) {
-            await network.fetch('DELETE', `/files/${pendingFileId}`).catch(() => undefined);
-          }
-          toast.error(`${file.name}: ${error instanceof Error ? error.message : 'Upload failed'}`);
-        }
-      }
-
-      setUploading(false);
-      if (successCount > 0) {
-        toast.success(successCount === 1 ? 'File uploaded' : `${successCount} files uploaded`);
-        void mutate();
-      }
-      if (fileInputRef.current) fileInputRef.current.value = '';
-    },
-    [folderId, mutate],
-  );
-
-  const dragDropEnabled = s3Enabled && !uploading;
-
   const resetDragState = useCallback(() => {
     dragDepthRef.current = 0;
     setIsDragOver(false);
   }, []);
+
+  const dragDropEnabled = s3Enabled && !uploading;
 
   const handleDragEnter = useCallback(
     (e: React.DragEvent) => {
@@ -268,13 +176,19 @@ export default function FilesPage() {
   };
 
   const copyPublicUrl = async (url: string) => {
-    try {
-      await navigator.clipboard.writeText(url);
+    const ok = await copyToClipboard(url);
+    if (ok) {
       toast.success('URL copied');
-    } catch {
+    } else {
       toast.error('Could not copy URL');
     }
   };
+
+  useEffect(() => {
+    if (fileInputRef.current && !uploading) {
+      fileInputRef.current.value = '';
+    }
+  }, [uploading]);
 
   return (
     <>
@@ -380,7 +294,7 @@ export default function FilesPage() {
                 />
               </div>
 
-              {isLoading && !data ? (
+              {isLoading && items.length === 0 ? (
                 <div className="flex justify-center py-16">
                   <IconSpinner />
                 </div>
@@ -528,20 +442,26 @@ export default function FilesPage() {
         </Dialog>
 
         <ConfirmDialog
-          open={deleteTarget != null}
+          open={deleteTarget?.kind === 'FILE'}
           onOpenChange={open => {
             if (!open) setDeleteTarget(null);
           }}
           onConfirm={handleDelete}
-          title={deleteTarget?.kind === 'FOLDER' ? 'Delete folder?' : 'Delete file?'}
-          description={
-            deleteTarget?.kind === 'FOLDER'
-              ? `“${deleteTarget.name}” and everything inside it will be permanently deleted.`
-              : `“${deleteTarget?.name ?? ''}” will be permanently deleted.`
-          }
+          title="Delete file?"
+          description={`“${deleteTarget?.name ?? ''}” will be permanently deleted.`}
           confirmText="Delete"
           variant="destructive"
           status={deleting ? 'loading' : 'idle'}
+        />
+
+        <FolderDeleteDialog
+          target={deleteTarget?.kind === 'FOLDER' ? deleteTarget : null}
+          open={deleteTarget?.kind === 'FOLDER'}
+          onOpenChange={open => {
+            if (!open) setDeleteTarget(null);
+          }}
+          onConfirm={handleDelete}
+          deleting={deleting}
         />
       </DashboardLayout>
     </>

@@ -1,4 +1,5 @@
 import {useActiveProject} from '../lib/contexts/ActiveProjectProvider';
+import {useFilesOverlay} from '../lib/contexts/FilesOverlayProvider';
 import {useConfig} from '../lib/hooks/useConfig';
 import {useUser} from '../lib/hooks/useUser';
 import {WIKI_URI} from '../lib/constants';
@@ -21,6 +22,7 @@ import {
   Plus,
   Settings,
   ShieldCheck,
+  Upload,
   Users,
   Workflow,
 } from 'lucide-react';
@@ -98,6 +100,7 @@ export function DashboardLayout({children}: DashboardLayoutProps) {
   const {data: user, mutate: mutateUser} = useUser();
   const {data: config} = useConfig();
   const {activeProject, availableProjects, setActiveProject} = useActiveProject();
+  const {openUploadDialog} = useFilesOverlay();
   const [showMobileMenu, setShowMobileMenu] = useState(false);
 
   const allowlistRestricted = config?.features.signup.allowlistRestricted ?? false;
@@ -233,18 +236,31 @@ export function DashboardLayout({children}: DashboardLayoutProps) {
       {/* Settings & User Menu */}
       <div className="border-t border-neutral-200 p-3 space-y-1">
         {config?.features.storage.s3Enabled && (
-          <Link
-            href="/files"
-            onClick={() => setShowMobileMenu(false)}
-            className={`flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
-              router.pathname.startsWith('/files')
-                ? 'bg-neutral-100 text-neutral-900'
-                : 'text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900'
-            }`}
-          >
-            <FolderOpen className="h-5 w-5" />
-            Files
-          </Link>
+          <div className="flex items-center gap-1">
+            <Link
+              href="/files"
+              onClick={() => setShowMobileMenu(false)}
+              className={`flex flex-1 items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
+                router.pathname.startsWith('/files')
+                  ? 'bg-neutral-100 text-neutral-900'
+                  : 'text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900'
+              }`}
+            >
+              <FolderOpen className="h-5 w-5" />
+              Files
+            </Link>
+            <button
+              type="button"
+              onClick={() => {
+                setShowMobileMenu(false);
+                openUploadDialog();
+              }}
+              className="rounded-lg p-2 text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              aria-label="Upload files"
+            >
+              <Upload className="h-5 w-5" />
+            </button>
+          </div>
         )}
 
         <a
