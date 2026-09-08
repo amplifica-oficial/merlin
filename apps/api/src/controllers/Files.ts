@@ -1,10 +1,15 @@
 import {Controller, Delete, Get, Middleware, Post} from '@overnightjs/core';
+import type {SystemFolderKey} from '@merlin/types';
 import type {NextFunction, Request, Response} from 'express';
 
 import {requireAuth, requireEmailVerified} from '../middleware/auth.js';
-import {FileService} from '../services/FileService.js';
+import {FileService, SYSTEM_FOLDER_NAMES} from '../services/FileService.js';
 import * as S3Service from '../services/S3Service.js';
 import {CatchAsync} from '../utils/asyncHandler.js';
+
+function isSystemFolderKey(value: unknown): value is SystemFolderKey {
+  return typeof value === 'string' && value in SYSTEM_FOLDER_NAMES;
+}
 
 function parseOptionalId(value: unknown): string | null {
   if (typeof value !== 'string') return null;
@@ -82,11 +87,12 @@ export class Files {
     }
 
     const auth = res.locals.auth;
-    const {fileName, contentType, sizeBytes, parentId} = req.body as {
+    const {fileName, contentType, sizeBytes, parentId, systemFolder} = req.body as {
       fileName?: string;
       contentType?: string;
       sizeBytes?: number;
       parentId?: string | null;
+      systemFolder?: string;
     };
 
     if (!fileName || typeof fileName !== 'string') {
@@ -98,12 +104,16 @@ export class Files {
     if (typeof sizeBytes !== 'number' || !Number.isFinite(sizeBytes)) {
       return res.status(400).json({error: 'File size is required.'});
     }
+    if (systemFolder != null && !isSystemFolderKey(systemFolder)) {
+      return res.status(400).json({error: 'Invalid system folder.'});
+    }
 
     const result = await FileService.requestUpload(auth.projectId!, {
       fileName,
       contentType,
       sizeBytes,
       parentId: parseOptionalId(parentId),
+      systemFolder,
     });
 
     return res.status(201).json(result);
@@ -130,6 +140,29 @@ export class Files {
 
     const file = await FileService.confirmUpload(auth.projectId!, fileId);
     return res.status(200).json(file);
+  }
+
+  /**
+   * GET /files/:id/delete-preview
+   * Count descendants and return a capped file list before deleting a folder.
+   */
+  @Get(':id/delete-preview')
+  @Middleware([requireAuth, requireEmailVerified])
+  @CatchAsync
+  public async deletePreview(req: Request, res: Response, _next: NextFunction) {
+    if (!S3Service.isS3Enabled()) {
+      return res.status(400).json({error: 'File storage is not enabled.'});
+    }
+
+    const auth = res.locals.auth;
+    const fileId = req.params.id;
+
+    if (!fileId) {
+      return res.status(400).json({error: 'File ID is required.'});
+    }
+
+    const preview = await FileService.deletePreview(auth.projectId!, fileId);
+    return res.status(200).json(preview);
   }
 
   /**

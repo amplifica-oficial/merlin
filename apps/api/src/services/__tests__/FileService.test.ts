@@ -223,4 +223,141 @@ describe('FileService', () => {
       expect(await prisma.projectFile.count({where: {projectId}})).toBe(0);
     });
   });
+
+  describe('getOrCreateSystemFolder and registerUploadedObject', () => {
+    it('creates a system folder once and reuses it', async () => {
+      const first = await FileService.getOrCreateSystemFolder(projectId, 'Email images');
+      const second = await FileService.getOrCreateSystemFolder(projectId, 'email images');
+
+      expect(first.id).toBe(second.id);
+      expect(first.name).toBe('Email images');
+      expect(await prisma.projectFile.count({where: {projectId, kind: ProjectFileKind.FOLDER}})).toBe(1);
+    });
+
+    it('creates only one folder when called concurrently', async () => {
+      const folders = await Promise.all(
+        Array.from({length: 8}, () => FileService.getOrCreateSystemFolder(projectId, 'Quick uploads')),
+      );
+
+      const ids = new Set(folders.map(folder => folder.id));
+      expect(ids.size).toBe(1);
+      expect(await prisma.projectFile.count({where: {projectId, kind: ProjectFileKind.FOLDER}})).toBe(1);
+    });
+
+    it('registers an uploaded object and deduplicates sibling names', async () => {
+      const folder = await FileService.getOrCreateSystemFolder(projectId, 'Email images');
+
+      const first = await FileService.registerUploadedObject(projectId, {
+        name: 'logo.png',
+        storageKey: `${projectId}/legacy/logo.png`,
+        contentType: 'image/png',
+        sizeBytes: 512,
+        folderId: folder.id,
+      });
+      const second = await FileService.registerUploadedObject(projectId, {
+        name: 'logo.png',
+        storageKey: `${projectId}/legacy/logo-2.png`,
+        contentType: 'image/png',
+        sizeBytes: 1024,
+        folderId: folder.id,
+      });
+
+      expect(first.name).toBe('logo.png');
+      expect(second.name).toBe('logo (2).png');
+      expect(second.publicUrl).toBe(`https://cdn.example/${projectId}/legacy/logo-2.png`);
+      expect(second.sizeBytes).toBe(1024);
+    });
+  });
+
+  describe('requestUpload systemFolder', () => {
+    it('creates the Quick uploads folder and uses it as parent', async () => {
+      const result = await FileService.requestUpload(projectId, {
+        fileName: 'shot.png',
+        contentType: 'image/png',
+        sizeBytes: 2048,
+        systemFolder: 'quick-uploads',
+      });
+
+      const file = await prisma.projectFile.findUnique({where: {id: result.fileId}});
+      const folder = await prisma.projectFile.findFirst({
+        where: {projectId, name: 'Quick uploads', kind: ProjectFileKind.FOLDER},
+      });
+
+      expect(folder).toBeTruthy();
+      expect(file?.parentId).toBe(folder?.id);
+    });
+
+    it('deduplicates names inside a system folder', async () => {
+      await FileService.requestUpload(projectId, {
+        fileName: 'shot.png',
+        contentType: 'image/png',
+        sizeBytes: 1024,
+        systemFolder: 'quick-uploads',
+      });
+      const second = await FileService.requestUpload(projectId, {
+        fileName: 'shot.png',
+        contentType: 'image/png',
+        sizeBytes: 2048,
+        systemFolder: 'quick-uploads',
+      });
+
+      const row = await prisma.projectFile.findUnique({where: {id: second.fileId}});
+      expect(row?.name).toBe('shot (2).png');
+    });
+  });
+
+  describe('deletePreview', () => {
+    it('returns exact counts for a nested folder tree', async () => {
+      const folder = await FileService.createFolder(projectId, {name: 'Assets'});
+      const nested = await FileService.createFolder(projectId, {name: 'Nested', parentId: folder.id});
+      const {fileId} = await FileService.requestUpload(projectId, {
+        parentId: nested.id,
+        fileName: 'logo.png',
+        contentType: 'image/png',
+        sizeBytes: 1024,
+      });
+      await FileService.confirmUpload(projectId, fileId);
+      const extra = await FileService.requestUpload(projectId, {
+        parentId: folder.id,
+        fileName: 'banner.png',
+        contentType: 'image/png',
+        sizeBytes: 2048,
+      });
+      await FileService.confirmUpload(projectId, extra.fileId);
+
+      const preview = await FileService.deletePreview(projectId, folder.id);
+
+      expect(preview.kind).toBe('FOLDER');
+      expect(preview.totalFiles).toBe(2);
+      expect(preview.totalFolders).toBe(1);
+      expect(preview.files.map(file => file.name).sort()).toEqual(['banner.png', 'logo.png']);
+      expect(preview.truncated).toBe(false);
+    });
+
+    it('truncates the listed files while keeping exact totals', async () => {
+      const folder = await FileService.createFolder(projectId, {name: 'Many'});
+      for (const name of ['a.png', 'b.png', 'c.png']) {
+        const upload = await FileService.requestUpload(projectId, {
+          parentId: folder.id,
+          fileName: name,
+          contentType: 'image/png',
+          sizeBytes: 100,
+        });
+        await FileService.confirmUpload(projectId, upload.fileId);
+      }
+
+      const preview = await FileService.deletePreview(projectId, folder.id, {listLimit: 2});
+
+      expect(preview.totalFiles).toBe(3);
+      expect(preview.files).toHaveLength(2);
+      expect(preview.truncated).toBe(true);
+    });
+
+    it('rejects a file from another project', async () => {
+      const {project: other} = await factories.createUserWithProject();
+      const folder = await FileService.createFolder(projectId, {name: 'Assets'});
+
+      await expect(FileService.deletePreview(other.id, folder.id)).rejects.toBeInstanceOf(NotFound);
+    });
+  });
 });

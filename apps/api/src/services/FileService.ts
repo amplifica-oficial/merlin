@@ -1,5 +1,11 @@
 import {ProjectFileKind, ProjectFileStatus, type ProjectFile} from '@merlin/db';
-import type {FileBreadcrumbItem, FilesListResponse, ProjectFileItem} from '@merlin/types';
+import type {
+  FileBreadcrumbItem,
+  FilesListResponse,
+  FolderDeletePreviewResponse,
+  ProjectFileItem,
+  SystemFolderKey,
+} from '@merlin/types';
 
 import {prisma} from '../database/prisma.js';
 import {BadRequest, ConflictError, NotFound} from '../exceptions/index.js';
@@ -8,6 +14,12 @@ import * as S3Service from './S3Service.js';
 
 const FILES_PAGE_SIZE = 50;
 const TREE_WALK_BATCH = 100;
+export const DELETE_PREVIEW_LIST_CAP = 500;
+
+export const SYSTEM_FOLDER_NAMES = {
+  'quick-uploads': 'Quick uploads',
+  'email-images': 'Email images',
+} as const satisfies Record<SystemFolderKey, string>;
 
 function toItem(row: {
   id: string;
@@ -124,6 +136,51 @@ async function getBreadcrumb(projectId: string, folderId: string | null): Promis
   return crumbs;
 }
 
+function splitFileName(name: string): {stem: string; ext: string} {
+  const lastDot = name.lastIndexOf('.');
+  if (lastDot <= 0 || lastDot === name.length - 1) {
+    return {stem: name, ext: ''};
+  }
+  return {stem: name.slice(0, lastDot), ext: name.slice(lastDot)};
+}
+
+async function nextAvailableSiblingName(projectId: string, parentId: string | null, desired: string): Promise<string> {
+  const taken = await prisma.projectFile.findFirst({
+    where: {
+      projectId,
+      parentId,
+      name: {equals: desired, mode: 'insensitive'},
+      status: {not: ProjectFileStatus.FAILED},
+    },
+    select: {id: true},
+  });
+
+  if (!taken) {
+    return desired;
+  }
+
+  const {stem, ext} = splitFileName(desired);
+  let n = 2;
+  while (n < 10_000) {
+    const candidate = `${stem} (${n})${ext}`;
+    const existing = await prisma.projectFile.findFirst({
+      where: {
+        projectId,
+        parentId,
+        name: {equals: candidate, mode: 'insensitive'},
+        status: {not: ProjectFileStatus.FAILED},
+      },
+      select: {id: true},
+    });
+    if (!existing) {
+      return candidate;
+    }
+    n += 1;
+  }
+
+  throw new ConflictError('Could not find an available file name in this folder.');
+}
+
 async function collectDescendantStorageKeys(projectId: string, rootId: string): Promise<string[]> {
   const keys: string[] = [];
   const queue = [rootId];
@@ -154,6 +211,77 @@ async function collectDescendantStorageKeys(projectId: string, rootId: string): 
 }
 
 export class FileService {
+  public static async getOrCreateSystemFolder(projectId: string, name: string): Promise<ProjectFile> {
+    const folderName = name.trim();
+    if (!folderName) {
+      throw new BadRequest('Folder name is required.');
+    }
+
+    return prisma.$transaction(async tx => {
+      const lockKey = `${projectId}:${folderName}`;
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${lockKey}))`;
+
+      const existing = await tx.projectFile.findFirst({
+        where: {
+          projectId,
+          parentId: null,
+          kind: ProjectFileKind.FOLDER,
+          status: ProjectFileStatus.READY,
+          name: {equals: folderName, mode: 'insensitive'},
+        },
+      });
+
+      if (existing) {
+        return existing;
+      }
+
+      return tx.projectFile.create({
+        data: {
+          projectId,
+          parentId: null,
+          kind: ProjectFileKind.FOLDER,
+          name: folderName,
+          status: ProjectFileStatus.READY,
+        },
+      });
+    });
+  }
+
+  public static async registerUploadedObject(
+    projectId: string,
+    input: {
+      name: string;
+      storageKey: string;
+      contentType: string;
+      sizeBytes: number;
+      folderId: string;
+    },
+  ): Promise<ProjectFileItem> {
+    await assertParentInProject(projectId, input.folderId);
+
+    const rawName = input.name.trim();
+    if (!rawName) {
+      throw new BadRequest('A valid file name is required.');
+    }
+
+    const name = await nextAvailableSiblingName(projectId, input.folderId, rawName);
+
+    const created = await prisma.projectFile.create({
+      data: {
+        projectId,
+        parentId: input.folderId,
+        kind: ProjectFileKind.FILE,
+        name,
+        storageKey: input.storageKey,
+        contentType: input.contentType,
+        sizeBytes: input.sizeBytes,
+        status: ProjectFileStatus.READY,
+      },
+    });
+
+    return toItem(created);
+  }
+
   public static async list(
     projectId: string,
     options: {
@@ -222,6 +350,7 @@ export class FileService {
       contentType: string;
       sizeBytes: number;
       parentId?: string | null;
+      systemFolder?: SystemFolderKey;
     },
   ): Promise<{fileId: string; presignedUrl: string; publicUrl: string}> {
     if (!S3Service.isS3Enabled()) {
@@ -233,14 +362,22 @@ export class FileService {
       throw new BadRequest(validation.error);
     }
 
-    const name = input.fileName.trim();
-    if (!name) {
+    const rawName = input.fileName.trim();
+    if (!rawName) {
       throw new BadRequest('A valid file name is required.');
     }
 
-    const parentId = input.parentId ?? null;
-    await assertParentInProject(projectId, parentId);
-    await assertSiblingNameAvailable(projectId, parentId, name);
+    let parentId = input.parentId ?? null;
+    let name = rawName;
+
+    if (input.systemFolder) {
+      const folder = await FileService.getOrCreateSystemFolder(projectId, SYSTEM_FOLDER_NAMES[input.systemFolder]);
+      parentId = folder.id;
+      name = await nextAvailableSiblingName(projectId, parentId, rawName);
+    } else {
+      await assertParentInProject(projectId, parentId);
+      await assertSiblingNameAvailable(projectId, parentId, name);
+    }
 
     const file = await prisma.projectFile.create({
       data: {
@@ -323,5 +460,72 @@ export class FileService {
     await prisma.projectFile.delete({
       where: {id: fileId},
     });
+  }
+
+  public static async deletePreview(
+    projectId: string,
+    fileId: string,
+    options: {listLimit?: number} = {},
+  ): Promise<FolderDeletePreviewResponse> {
+    const listLimit = options.listLimit ?? DELETE_PREVIEW_LIST_CAP;
+
+    const root = await prisma.projectFile.findFirst({
+      where: {id: fileId, projectId},
+      select: {id: true, kind: true, name: true, sizeBytes: true},
+    });
+
+    if (!root) {
+      throw new NotFound('file', fileId);
+    }
+
+    if (root.kind === ProjectFileKind.FILE) {
+      return {
+        name: root.name,
+        kind: 'FILE',
+        totalFiles: 1,
+        totalFolders: 0,
+        files: [{id: root.id, name: root.name, sizeBytes: root.sizeBytes}],
+        truncated: false,
+      };
+    }
+
+    let totalFiles = 0;
+    let totalFolders = 0;
+    const files: FolderDeletePreviewResponse['files'] = [];
+    let truncated = false;
+    const queue = [root.id];
+
+    while (queue.length > 0) {
+      const batch = queue.splice(0, TREE_WALK_BATCH);
+      const children = await prisma.projectFile.findMany({
+        where: {projectId, parentId: {in: batch}},
+        select: {id: true, kind: true, name: true, sizeBytes: true},
+        orderBy: [{kind: 'asc'}, {name: 'asc'}, {id: 'asc'}],
+      });
+
+      for (const child of children) {
+        if (child.kind === ProjectFileKind.FOLDER) {
+          totalFolders += 1;
+          queue.push(child.id);
+          continue;
+        }
+
+        totalFiles += 1;
+        if (files.length < listLimit) {
+          files.push({id: child.id, name: child.name, sizeBytes: child.sizeBytes});
+        } else {
+          truncated = true;
+        }
+      }
+    }
+
+    return {
+      name: root.name,
+      kind: 'FOLDER',
+      totalFiles,
+      totalFolders,
+      files,
+      truncated,
+    };
   }
 }
