@@ -13,6 +13,7 @@ export interface ProjectFileItem {
   sizeBytes: number | null;
   publicUrl: string | null;
   createdAt: string;
+  canDelete: boolean;
 }
 
 export interface FileBreadcrumbItem {
