@@ -41,6 +41,8 @@ Set your subdomains here. The application automatically derives all internal and
 
 The bundled Docker setup includes Minio with defaults that work out of the box. Only change these when connecting to an external S3-compatible bucket.
 
+When S3 is configured, the dashboard [Files](/concepts/files) library is enabled — not only template-editor image uploads.
+
 Browser file uploads use a presigned `PUT` to the bucket. Configure CORS on the bucket in AWS (or Minio) — the app does not write bucket CORS. Allow the dashboard origin (`http://localhost:3000` in development and `DASHBOARD_URI` in production), methods `GET`, `PUT`, `HEAD`, and header `content-type`. If the same bucket is shared with another app, keep that app's origins too.
 
 | Variable               | Required | Description                                                        | Default             |
