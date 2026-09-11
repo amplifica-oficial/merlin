@@ -647,6 +647,7 @@ const formSettingsSchema = z.object({
   fieldOrder: z.array(z.string().min(1).max(50)).max(21).optional(),
   doubleOptIn: z.boolean().default(false),
   defaultSubscribed: z.boolean().optional(),
+  confirmationTemplateId: uuid.optional(),
   tags: z.record(z.union([z.string(), z.boolean(), z.number()])).optional(),
   eventName: z.string().min(1).max(100).optional(),
   verifyEmail: z.boolean().default(false),
