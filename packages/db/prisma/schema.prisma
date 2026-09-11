@@ -331,7 +331,7 @@ model LandingPage {
   projectId String
   project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
   publicId  String  @unique
-  slug      String
+  slug      String  @unique
   name      String
   data      Json
   settings  Json
@@ -340,7 +340,6 @@ model LandingPage {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([projectId, slug])
   @@index([projectId])
   @@map("landing_pages")
 }

@@ -20,6 +20,8 @@ const TRUNCATE_TABLES = [
   'contacts',
   'domains',
   'memberships',
+  'landing_pages',
+  'forms',
   'projects',
   'users',
 ];
