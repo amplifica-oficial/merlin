@@ -1,5 +1,5 @@
 import {IconSpinner} from '@merlin/ui';
-import {createTranslator, FormSchemas, type Translator} from '@merlin/shared';
+import {createTranslator, DEFAULT_LANGUAGE, FormSchemas, type Translator} from '@merlin/shared';
 import type {FormField, FormSettings, FormSubmitResult, PublicFormConfig} from '@merlin/types';
 import React, {useEffect, useState} from 'react';
 
@@ -35,12 +35,12 @@ export function PuckFormBlock({formPublicId, disabled = false}: PuckFormBlockPro
         setError(null);
         const data = await network.fetch<PublicFormConfig>('GET', `/forms/public/${formPublicId}`);
         setConfig(data);
-        const t = await createTranslator(data.language || 'en');
+        const t = await createTranslator(data.language || DEFAULT_LANGUAGE);
         setTranslator(t);
       } catch (err) {
         setConfig(null);
         setError(err instanceof Error ? err.message : 'Failed to load form');
-        const t = await createTranslator('en');
+        const t = await createTranslator(DEFAULT_LANGUAGE);
         setTranslator(t);
       } finally {
         setLoading(false);

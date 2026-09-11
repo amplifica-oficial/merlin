@@ -23,7 +23,7 @@ export const SUPPORTED_LANGUAGES: Language[] = [
   {code: 'ja', name: 'Japanese', nativeName: '日本語', flag: '🇯🇵'},
 ];
 
-export const DEFAULT_LANGUAGE = 'en';
+export const DEFAULT_LANGUAGE = 'pt';
 
 export function isValidLanguageCode(code: string): boolean {
   return SUPPORTED_LANGUAGES.some(lang => lang.code === code);

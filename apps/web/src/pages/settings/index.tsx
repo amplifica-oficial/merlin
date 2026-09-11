@@ -1,7 +1,7 @@
 import {useEffect, useState} from 'react';
 import {useForm} from 'react-hook-form';
 import {zodResolver} from '@hookform/resolvers/zod';
-import {ProjectSchemas, SUPPORTED_LANGUAGES} from '@merlin/shared';
+import {DEFAULT_LANGUAGE, ProjectSchemas, SUPPORTED_LANGUAGES} from '@merlin/shared';
 import {TrackingMode} from '@merlin/db';
 import {
   Alert,
@@ -162,7 +162,7 @@ export default function Settings() {
     defaultValues: {
       name: activeProject?.name || '',
       tracking: activeProject?.tracking ?? TrackingMode.ENABLED,
-      language: activeProject?.language || 'en',
+      language: activeProject?.language || DEFAULT_LANGUAGE,
     },
   });
 
@@ -172,7 +172,7 @@ export default function Settings() {
       form.reset({
         name: activeProject.name,
         tracking: activeProject.tracking ?? TrackingMode.ENABLED,
-        language: activeProject.language || 'en',
+        language: activeProject.language || DEFAULT_LANGUAGE,
       });
     }
   }, [activeProject, form]);
@@ -455,7 +455,7 @@ export default function Settings() {
                         render={({field}) => (
                           <FormItem>
                             <FormLabel>Customer Language</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value || 'en'}>
+                            <Select onValueChange={field.onChange} defaultValue={field.value || DEFAULT_LANGUAGE}>
                               <FormControl>
                                 <SelectTrigger>
                                   <SelectValue placeholder="Select language" />

@@ -2,7 +2,7 @@ import {randomUUID} from 'node:crypto';
 
 import type {Form} from '@merlin/db';
 import {Prisma} from '@merlin/db';
-import {FormSchemas} from '@merlin/shared';
+import {DEFAULT_LANGUAGE, FormSchemas} from '@merlin/shared';
 import type {FormField, FormSettings, FormSubmitResult, PublicFormConfig} from '@merlin/types';
 import {fromPrismaJson, toPrismaJson} from '@merlin/types';
 
@@ -199,7 +199,7 @@ export class FormService {
         emailPlaceholder: settings.emailPlaceholder,
         fieldOrder: settings.fieldOrder,
       },
-      language: form.project.language || 'en',
+      language: form.project.language || DEFAULT_LANGUAGE,
     };
   }
 
