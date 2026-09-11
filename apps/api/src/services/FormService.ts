@@ -12,6 +12,7 @@ import {redis} from '../database/redis.js';
 import {HttpException, RateLimitError} from '../exceptions/index.js';
 
 import {ContactService} from './ContactService.js';
+import {DoubleOptInService} from './DoubleOptInService.js';
 import {EmailVerificationService} from './EmailVerificationService.js';
 import {EventService} from './EventService.js';
 import {Keys} from './keys.js';
@@ -250,9 +251,22 @@ export class FormService {
 
     const customData = this.buildContactData(form.slug, settings, parsed.data ?? {});
 
-    const subscribed = settings.doubleOptIn ? false : (settings.defaultSubscribed ?? true);
-
-    const contact = await ContactService.upsert(form.projectId, parsed.email, customData, subscribed);
+    let contact;
+    if (settings.doubleOptIn) {
+      const result = await DoubleOptInService.apply(form.projectId, {
+        email: parsed.email,
+        data: customData,
+        confirmationTemplateId: settings.confirmationTemplateId,
+      });
+      contact = result.contact;
+    } else {
+      contact = await ContactService.upsert(
+        form.projectId,
+        parsed.email,
+        customData,
+        settings.defaultSubscribed ?? true,
+      );
+    }
 
     const eventName = settings.eventName || 'form.submitted';
     if (!EventService.isReservedEvent(eventName)) {
@@ -264,7 +278,13 @@ export class FormService {
     }
 
     if (form.segmentId) {
-      await SegmentService.addContacts(form.projectId, form.segmentId, [parsed.email], false, subscribed);
+      await SegmentService.addContacts(
+        form.projectId,
+        form.segmentId,
+        [parsed.email],
+        false,
+        contact.subscribed,
+      );
     }
 
     await prisma.form.update({
