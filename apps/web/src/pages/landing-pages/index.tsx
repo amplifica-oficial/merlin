@@ -26,6 +26,10 @@ import {toast} from 'sonner';
 import useSWR from 'swr';
 
 import {DashboardLayout} from '../../components/DashboardLayout';
+import {
+  isLandingPageSlugReady,
+  LandingPageSlugField,
+} from '../../components/landing-pages/LandingPageSlugField';
 import {LandingPageTemplatePicker} from '../../components/landing-pages/LandingPageTemplatePicker';
 import {DASHBOARD_URI} from '../../lib/constants';
 import {formatRelativeTime} from '../../lib/dateUtils';
@@ -34,17 +38,6 @@ import {
   LANDING_PAGE_TEMPLATES,
   type LandingPageTemplateId,
 } from '../../lib/puck/templates/front-centre';
-
-function slugify(name: string): string {
-  return name
-    .toLowerCase()
-    .trim()
-    .replace(/[^\w\s-]/g, '')
-    .replace(/\s+/g, '-')
-    .replace(/-+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .slice(0, 50);
-}
 
 export default function LandingPagesPage() {
   const router = useRouter();
@@ -57,6 +50,9 @@ export default function LandingPagesPage() {
   const [searchInput, setSearchInput] = useState('');
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [createName, setCreateName] = useState('');
+  const [createSlug, setCreateSlug] = useState('');
+  const [createSlugReady, setCreateSlugReady] = useState(false);
+  const [createSlugFieldKey, setCreateSlugFieldKey] = useState(0);
   const [createTemplate, setCreateTemplate] = useState<LandingPageTemplateId>('blank');
   const [creating, setCreating] = useState(false);
 
@@ -79,8 +75,16 @@ export default function LandingPagesPage() {
     }
   };
 
-  const copyLink = async (publicId: string) => {
-    const url = `${DASHBOARD_URI}/p/${publicId}`;
+  const resetCreateDialog = () => {
+    setCreateName('');
+    setCreateSlug('');
+    setCreateSlugReady(false);
+    setCreateTemplate('blank');
+    setCreateSlugFieldKey(key => key + 1);
+  };
+
+  const copyLink = async (slug: string) => {
+    const url = `${DASHBOARD_URI}/p/${slug}`;
     await navigator.clipboard.writeText(url);
     toast.success('Link copied to clipboard');
   };
@@ -91,13 +95,17 @@ export default function LandingPagesPage() {
       toast.error('Name is required');
       return;
     }
+    if (!createSlugReady) {
+      toast.error('Choose an available URL slug');
+      return;
+    }
 
     try {
       setCreating(true);
       const template = LANDING_PAGE_TEMPLATES.find(t => t.id === createTemplate);
       const payload = LandingPageSchemas.create.parse({
         name,
-        slug: slugify(name),
+        slug: createSlug,
         data: template?.data ?? EMPTY_PUCK_DATA,
         settings: {},
         published: false,
@@ -109,8 +117,7 @@ export default function LandingPagesPage() {
       );
       toast.success('Landing page created');
       setShowCreateDialog(false);
-      setCreateName('');
-      setCreateTemplate('blank');
+      resetCreateDialog();
       void router.push(`/landing-pages/edit/${page.id}`);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Failed to create landing page');
@@ -182,16 +189,16 @@ export default function LandingPagesPage() {
                             {page.published ? 'Published' : 'Draft'}
                           </Badge>
                         </div>
-                        <p className="text-sm text-neutral-500">/{page.slug}</p>
+                        <p className="text-sm text-neutral-500 truncate">/p/{page.slug}</p>
                         <p className="text-xs text-neutral-400">Created {formatRelativeTime(page.createdAt)}</p>
                       </div>
                       <div className="flex items-center gap-2 shrink-0 flex-wrap">
-                        <Button variant="outline" size="sm" onClick={() => void copyLink(page.publicId)}>
+                        <Button variant="outline" size="sm" onClick={() => void copyLink(page.slug)}>
                           <ClipboardCopy className="h-4 w-4 mr-1" />
                           Copy link
                         </Button>
                         <Button variant="outline" size="sm" asChild>
-                          <a href={`/p/${page.publicId}`} target="_blank" rel="noopener noreferrer">
+                          <a href={`/p/${page.slug}`} target="_blank" rel="noopener noreferrer">
                             <ExternalLink className="h-4 w-4" />
                           </a>
                         </Button>
@@ -225,7 +232,15 @@ export default function LandingPagesPage() {
           )}
         </div>
 
-        <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+        <Dialog
+          open={showCreateDialog}
+          onOpenChange={open => {
+            setShowCreateDialog(open);
+            if (!open) {
+              resetCreateDialog();
+            }
+          }}
+        >
           <DialogContent className="max-w-3xl">
             <DialogHeader>
               <DialogTitle>Create landing page</DialogTitle>
@@ -239,15 +254,24 @@ export default function LandingPagesPage() {
                 onChange={e => setCreateName(e.target.value)}
                 placeholder="Product launch"
                 onKeyDown={e => {
-                  if (e.key === 'Enter') void handleCreate();
+                  if (e.key === 'Enter' && createSlugReady) void handleCreate();
                 }}
               />
             </div>
+            <LandingPageSlugField
+              key={createSlugFieldKey}
+              id="landing-page-slug"
+              name={createName}
+              slug={createSlug}
+              onSlugChange={setCreateSlug}
+              syncFromName
+              onStatusChange={status => setCreateSlugReady(isLandingPageSlugReady(status))}
+            />
             <DialogFooter>
               <Button variant="outline" onClick={() => setShowCreateDialog(false)}>
                 Cancel
               </Button>
-              <Button disabled={creating} onClick={() => void handleCreate()}>
+              <Button disabled={creating || !createSlugReady || !createName.trim()} onClick={() => void handleCreate()}>
                 Create
               </Button>
             </DialogFooter>

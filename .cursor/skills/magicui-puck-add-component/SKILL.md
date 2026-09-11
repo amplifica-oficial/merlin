@@ -109,7 +109,7 @@ Three edits:
 cd apps/web && yarn tsc --noEmit
 ```
 
-Then check lints on the edited files. Manually confirm in the editor: add block, edit fields in sidebar, toggle visibility, verify preview matches `/p/<publicId>`.
+Then check lints on the edited files. Manually confirm in the editor: add block, edit fields in sidebar, toggle visibility, verify preview matches `/p/<slug>`.
 
 ## Puck fields cheat sheet
 

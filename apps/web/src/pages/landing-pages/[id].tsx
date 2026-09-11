@@ -24,19 +24,12 @@ import {toast} from 'sonner';
 import useSWR from 'swr';
 
 import {DashboardLayout} from '../../components/DashboardLayout';
+import {
+  isLandingPageSlugReady,
+  LandingPageSlugField,
+} from '../../components/landing-pages/LandingPageSlugField';
 import {DASHBOARD_URI} from '../../lib/constants';
 import {network} from '../../lib/network';
-
-function slugify(name: string): string {
-  return name
-    .toLowerCase()
-    .trim()
-    .replace(/[^\w\s-]/g, '')
-    .replace(/\s+/g, '-')
-    .replace(/-+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .slice(0, 50);
-}
 
 const EMPTY_SETTINGS: LandingPageSettings = {};
 
@@ -55,8 +48,8 @@ export default function LandingPageDetailPage() {
 
   const [name, setName] = useState('');
   const [slug, setSlug] = useState('');
+  const [slugReady, setSlugReady] = useState(true);
   const [published, setPublished] = useState(false);
-  const [slugTouched, setSlugTouched] = useState(false);
   const [saving, setSaving] = useState(false);
   const [settings, setSettings] = useState<LandingPageSettings>(EMPTY_SETTINGS);
 
@@ -68,12 +61,6 @@ export default function LandingPageDetailPage() {
     setSettings(parseSettings(page.settings));
   }, [page]);
 
-  useEffect(() => {
-    if (!slugTouched && name) {
-      setSlug(slugify(name));
-    }
-  }, [name, slugTouched]);
-
   const updateSetting = <K extends keyof LandingPageSettings>(
     key: K,
     value: LandingPageSettings[K] | undefined,
@@ -83,7 +70,7 @@ export default function LandingPageDetailPage() {
 
   const copyLink = async () => {
     if (!page) return;
-    const url = `${DASHBOARD_URI}/p/${page.publicId}`;
+    const url = `${DASHBOARD_URI}/p/${page.slug}`;
     await navigator.clipboard.writeText(url);
     toast.success('Link copied to clipboard');
   };
@@ -133,7 +120,7 @@ export default function LandingPageDetailPage() {
                   Copy link
                 </Button>
                 <Button variant="outline" size="sm" asChild>
-                  <a href={`/p/${page.publicId}`} target="_blank" rel="noopener noreferrer">
+                  <a href={`/p/${page.slug}`} target="_blank" rel="noopener noreferrer">
                     <ExternalLink className="h-4 w-4 mr-1" />
                     Preview
                   </a>
@@ -152,29 +139,20 @@ export default function LandingPageDetailPage() {
             <>
               <Card>
                 <CardContent className="p-4 space-y-4">
-                  <p className="text-sm text-neutral-600">
-                    Public URL:{' '}
-                    <code className="bg-neutral-100 px-2 py-1 rounded text-xs break-all">
-                      {DASHBOARD_URI}/p/{page.publicId}
-                    </code>
-                  </p>
-
                   <div className="space-y-2">
                     <Label htmlFor="landing-name">Name</Label>
                     <Input id="landing-name" value={name} onChange={e => setName(e.target.value)} />
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="landing-slug">Slug</Label>
-                    <Input
-                      id="landing-slug"
-                      value={slug}
-                      onChange={e => {
-                        setSlugTouched(true);
-                        setSlug(e.target.value);
-                      }}
-                    />
-                  </div>
+                  <LandingPageSlugField
+                    id="landing-page-slug"
+                    slug={slug}
+                    onSlugChange={setSlug}
+                    originalSlug={page.slug}
+                    excludeId={page.id}
+                    published={published}
+                    onStatusChange={status => setSlugReady(isLandingPageSlugReady(status))}
+                  />
 
                   <div className="flex items-center justify-between rounded-lg border p-4">
                     <div>
@@ -223,7 +201,7 @@ export default function LandingPageDetailPage() {
                       type="url"
                       value={settings.canonicalUrl ?? ''}
                       onChange={e => updateSetting('canonicalUrl', e.target.value || undefined)}
-                      placeholder={`${DASHBOARD_URI}/p/${page.publicId}`}
+                      placeholder={`${DASHBOARD_URI}/p/${page.slug}`}
                     />
                   </div>
 
@@ -346,7 +324,7 @@ export default function LandingPageDetailPage() {
                 </CardContent>
               </Card>
 
-              <Button disabled={saving} onClick={() => void handleSave()}>
+              <Button disabled={saving || !slugReady} onClick={() => void handleSave()}>
                 Save settings
               </Button>
             </>
