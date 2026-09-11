@@ -42,7 +42,7 @@ export default function FormDetailPage() {
               <CardContent className="p-4">
                 <p className="text-sm text-neutral-600">
                   Share this form by adding a <strong>Form</strong> block to a landing page, then publish and share the
-                  landing page link (<code className="bg-neutral-100 px-1 rounded text-xs">/p/&#123;publicId&#125;</code>
+                  landing page link (<code className="bg-neutral-100 px-1 rounded text-xs">/p/&#123;slug&#125;</code>
                   ).
                 </p>
                 <p className="text-sm text-neutral-500 mt-2">

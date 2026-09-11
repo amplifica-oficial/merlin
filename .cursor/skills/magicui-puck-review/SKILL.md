@@ -55,7 +55,7 @@ Read every file in the component folder plus its registration in `apps/web/src/l
 cd apps/web && yarn tsc --noEmit
 ```
 
-Also read lints on the component files. If a dev server is running, load the landing editor, add the block, toggle every field, and confirm the preview matches `/p/<publicId>`.
+Also read lints on the component files. If a dev server is running, load the landing editor, add the block, toggle every field, and confirm the preview matches `/p/<slug>`.
 
 ## Output format
 

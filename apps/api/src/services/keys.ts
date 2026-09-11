@@ -110,8 +110,11 @@ export const Keys = {
     },
   },
   LandingPage: {
-    public(publicId: string): string {
-      return `landing_page:public:${publicId}`;
+    public(identifier: string): string {
+      return `landing_page:public:${identifier}`;
+    },
+    slugCheckRateLimit(projectId: string): string {
+      return `landing_page:slug_check_rl:${projectId}`;
     },
   },
 } as const;

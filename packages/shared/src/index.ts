@@ -4,3 +4,4 @@ export * from './template.js';
 export * from './defaultTemplates.js';
 export * from './i18n/index.js';
 export * from './unsubscribe.js';
+export * from './slug.js';

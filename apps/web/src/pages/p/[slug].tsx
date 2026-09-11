@@ -2,6 +2,7 @@ import '@puckeditor/core/puck.css';
 
 import type {Data} from '@puckeditor/core';
 import {Render} from '@puckeditor/core';
+import {isLandingPageUuidShape} from '@merlin/shared';
 import type {PublicLandingPageConfig} from '@merlin/types';
 import type {GetServerSideProps} from 'next';
 
@@ -15,7 +16,7 @@ interface PublicLandingPageProps {
 }
 
 export default function PublicLandingPage({config}: PublicLandingPageProps) {
-  const pageUrl = `${DASHBOARD_URI}/p/${config.publicId}`;
+  const pageUrl = `${DASHBOARD_URI}/p/${config.slug}`;
 
   return (
     <>
@@ -31,13 +32,13 @@ export default function PublicLandingPage({config}: PublicLandingPageProps) {
 }
 
 export const getServerSideProps: GetServerSideProps<PublicLandingPageProps> = async ctx => {
-  const publicId = ctx.params?.publicId;
-  if (!publicId || typeof publicId !== 'string') {
+  const slug = ctx.params?.slug;
+  if (!slug || typeof slug !== 'string') {
     return {notFound: true};
   }
 
   try {
-    const response = await fetch(`${API_URI}/landing-pages/public/${encodeURIComponent(publicId)}`);
+    const response = await fetch(`${API_URI}/landing-pages/public/${encodeURIComponent(slug)}`);
 
     if (response.status === 404) {
       return {notFound: true};
@@ -48,6 +49,15 @@ export const getServerSideProps: GetServerSideProps<PublicLandingPageProps> = as
     }
 
     const config = (await response.json()) as PublicLandingPageConfig;
+
+    if (isLandingPageUuidShape(slug) && config.slug && slug !== config.slug) {
+      return {
+        redirect: {
+          destination: `/p/${encodeURIComponent(config.slug)}`,
+          permanent: false,
+        },
+      };
+    }
 
     ctx.res.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
 

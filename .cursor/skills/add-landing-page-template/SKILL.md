@@ -140,7 +140,7 @@ cd apps/web && yarn tsc --noEmit
 cd /Users/diegoazevedo/projects/merlin-fork && yarn lint --filter=web
 ```
 
-Manual smoke test: create a page with the template → click title/paragraph/button/image/video/card/faq item/keypoint/icon/avatar (each selects + opens its props); hover text → inline edit; drag/reorder/add inside slots; publish and compare `/p/<publicId>` vs preview.
+Manual smoke test: create a page with the template → click title/paragraph/button/image/video/card/faq item/keypoint/icon/avatar (each selects + opens its props); hover text → inline edit; drag/reorder/add inside slots; publish and compare `/p/<slug>` vs preview.
 
 ## Gotchas
 
