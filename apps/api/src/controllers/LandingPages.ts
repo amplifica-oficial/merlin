@@ -2,26 +2,34 @@ import {Controller, Delete, Get, Middleware, Patch, Post} from '@overnightjs/cor
 import {LandingPageSchemas} from '@merlin/shared';
 import type {LandingPageSettings, PuckData} from '@merlin/types';
 import type {NextFunction, Request, Response} from 'express';
+
+import {redis} from '../database/redis.js';
+import {RateLimitError} from '../exceptions/index.js';
 import {requireAuth, requireEmailVerified} from '../middleware/auth.js';
+import {Keys} from '../services/keys.js';
 import {LandingPageService} from '../services/LandingPageService.js';
 import {CatchAsync} from '../utils/asyncHandler.js';
+
+const SLUG_CHECK_RATE_LIMIT = 60;
+const SLUG_CHECK_RATE_WINDOW_SECONDS = 60;
 
 @Controller('landing-pages')
 export class LandingPages {
   /**
-   * GET /landing-pages/public/:publicId
-   * PUBLIC: Get landing page configuration for rendering (no auth required)
+   * GET /landing-pages/public/:slug
+   * PUBLIC: Get landing page configuration for rendering (no auth required).
+   * `slug` is the vanity slug; a UUID publicId still resolves for legacy links.
    */
-  @Get('public/:publicId')
+  @Get('public/:slug')
   @CatchAsync
   public async getPublic(req: Request, res: Response, _next: NextFunction) {
-    const publicId = req.params.publicId;
+    const slug = req.params.slug;
 
-    if (!publicId) {
-      return res.status(400).json({error: 'Landing page public ID is required'});
+    if (!slug) {
+      return res.status(400).json({error: 'Landing page slug is required'});
     }
 
-    const config = await LandingPageService.getPublicConfig(publicId);
+    const config = await LandingPageService.getPublicConfig(slug);
     return res.status(200).json(config);
   }
 
@@ -36,6 +44,33 @@ export class LandingPages {
     const auth = res.locals.auth;
     const pages = await LandingPageService.list(auth.projectId!);
     return res.status(200).json(pages);
+  }
+
+  /**
+   * GET /landing-pages/slug-available
+   * Check whether a vanity slug is free (global uniqueness)
+   */
+  @Get('slug-available')
+  @Middleware([requireAuth, requireEmailVerified])
+  @CatchAsync
+  public async slugAvailable(req: Request, res: Response, _next: NextFunction) {
+    const projectId = res.locals.auth.projectId!;
+    const key = Keys.LandingPage.slugCheckRateLimit(projectId);
+    const count = await redis.incr(key);
+
+    if (count === 1) {
+      await redis.expire(key, SLUG_CHECK_RATE_WINDOW_SECONDS);
+    }
+
+    if (count > SLUG_CHECK_RATE_LIMIT) {
+      throw new RateLimitError('Too many slug checks. Please try again later.');
+    }
+
+    const slug = typeof req.query.slug === 'string' ? req.query.slug : '';
+    const excludeId = typeof req.query.excludeId === 'string' ? req.query.excludeId : undefined;
+
+    const result = await LandingPageService.isSlugAvailable(slug, excludeId);
+    return res.status(200).json(result);
   }
 
   /**
