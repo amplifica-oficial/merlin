@@ -15,6 +15,7 @@ Forms let you collect signups without building your own backend integration. Cre
 5. **On submit**, Merlin:
    - Upserts the contact by email
    - Writes `data["form:<slug>"] = true` plus any tags you configured (e.g. `source: newsletter`)
+   - If double opt-in is on, creates new contacts unsubscribed and sends a confirmation email
    - Tracks `form.submitted` (or a custom event name) for workflows
    - Optionally adds the contact to a **static** segment
 
@@ -47,16 +48,19 @@ Email is always required. Optional text fields map to keys under `contact.data` 
 
 ## Workflows
 
-Every submit tracks `form.submitted` with event data `{ form: "<slug>", ...fieldValues }`. Trigger workflows on that event for welcome emails, double opt-in, or `UPDATE_CONTACT` steps.
+Every submit tracks `form.submitted` with event data `{ form: "<slug>", ...fieldValues }`. Trigger workflows on that event for welcome emails or `UPDATE_CONTACT` steps — not for the confirmation email itself.
 
 ### Double opt-in
 
-Enable **Double opt-in** on the form. Contacts are created with `subscribed: false`. Add a workflow on `form.submitted` that sends a **transactional** template containing `{{subscribeUrl}}`. See [Double opt-in](/recipes/double-opt-in).
+Enable **Send confirmation email (double opt-in)** on the form and pick a transactional template (or omit it to use the project default). New contacts are created with `subscribed: false` and Merlin sends the confirmation email automatically with `{{subscribeUrl}}`. Existing contacts keep their subscription status and do not receive another confirmation.
+
+Use a workflow on `contact.subscribed` for a welcome email after they confirm. Do **not** send another confirmation from `form.submitted` or they will get two emails. See [Double opt-in](/recipes/double-opt-in).
 
 ## Options
 
 | Option | Effect |
 | ------ | ------ |
+| **Double opt-in** | New contacts are created unsubscribed and receive a transactional confirmation email. Optional `confirmationTemplateId`. |
 | **Validate email** | Rejects disposable addresses, plus-addressing, and domains without MX records |
 | **Redirect URL** | Browser redirect after successful submit |
 | **Enabled** | Disabled forms return 404 when embedded on landing pages |

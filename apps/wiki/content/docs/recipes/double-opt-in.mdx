@@ -7,9 +7,9 @@ icon: MailCheck
 Double opt-in adds a confirmation step between "user signs up" and "user starts getting marketing email." It's the standard way to avoid mailing typoed addresses, role accounts, and anyone who didn't actually consent.
 
 <Callout title="No-code alternative" type="info">
-  Enable **Double opt-in** on a [Form](/concepts/forms). Contacts submit via the hosted page as unsubscribed; wire a workflow on `form.submitted` to send the confirmation email with `{{subscribeUrl}}`.
+  Enable **Send confirmation email (double opt-in)** on a [Form](/concepts/forms) and pick a transactional confirmation template. New contacts who submit via a landing page are created unsubscribed and Merlin sends the confirmation email immediately with `{{subscribeUrl}}`. Existing contacts keep their subscription status and do not receive another confirmation.
 
-  For CSV imports and **Add Contact**, enable **Send confirmation email (double opt-in)** and pick a transactional template. New contacts are created unsubscribed and Merlin sends the confirmation email immediately. The last template you used is remembered in the browser. The CSV `subscribed` column is ignored while double opt-in is enabled.
+  For CSV imports and **Add Contact**, enable the same option and pick a transactional template. New contacts are created unsubscribed and Merlin sends the confirmation email immediately. The last template you used in those dialogs is remembered in the browser. The CSV `subscribed` column is ignored while double opt-in is enabled.
 </Callout>
 
 The trick is `{{subscribeUrl}}`: a per-contact link Merlin auto-injects into every send. Clicking it flips `subscribed` to `true` and fires a `contact.subscribed` event.
