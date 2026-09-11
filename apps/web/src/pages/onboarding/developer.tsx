@@ -185,12 +185,18 @@ export default function OnboardingDeveloper() {
                   {step.id === 'key' && (
                     <div className="border-t border-neutral-100 pt-4">
                       {activeProject ? (
-                        <ApiKeyDisplay
-                          label="Secret key"
-                          value={activeProject.secret}
-                          description="Keep this server-side. Treat it like a password."
-                          isSecret
-                        />
+                        activeProject.secret ? (
+                          <ApiKeyDisplay
+                            label="Secret key"
+                            value={activeProject.secret}
+                            description="Keep this server-side. Treat it like a password."
+                            isSecret
+                          />
+                        ) : (
+                          <p className="text-sm text-neutral-500">
+                            The secret API key is only visible to users from an authorized domain.
+                          </p>
+                        )
                       ) : (
                         <Skeleton className="h-16 rounded-lg" />
                       )}

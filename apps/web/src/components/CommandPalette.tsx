@@ -25,6 +25,7 @@ import {
   Plus,
   Settings,
   ShieldCheck,
+  Upload,
   Users,
   Workflow as WorkflowIcon,
 } from 'lucide-react';
@@ -32,8 +33,10 @@ import {useRouter} from 'next/router';
 import {useEffect, useMemo, useRef, useState} from 'react';
 import {toast} from 'sonner';
 import useSWR from 'swr';
-import {useActiveProject} from '../lib/contexts/ActiveProjectProvider';
 import {WIKI_URI} from '../lib/constants';
+import {useActiveProject} from '../lib/contexts/ActiveProjectProvider';
+import {useFilesOverlay} from '../lib/contexts/FilesOverlayProvider';
+import {useConfig} from '../lib/hooks/useConfig';
 import {useUser} from '../lib/hooks/useUser';
 import {addRecentPage, getRecentPages} from '../lib/recentPages';
 
@@ -54,6 +57,7 @@ const NAV_ACTIONS: Action[] = [
   {label: 'Templates', href: '/templates', icon: FileText, keywords: 'email design', shortcut: ['G', 'T']},
   {label: 'Workflows', href: '/workflows', icon: WorkflowIcon, keywords: 'automation trigger', shortcut: ['G', 'W']},
   {label: 'Campaigns', href: '/campaigns', icon: Megaphone, keywords: 'broadcast newsletter', shortcut: ['G', 'M']},
+  {label: 'Files', href: '/files', icon: FolderOpen, keywords: 'media library upload s3 storage', shortcut: ['G', 'F']},
   {label: 'Settings', href: '/settings', icon: Settings, keywords: 'config account billing', shortcut: ['G', ',']},
 ];
 
@@ -90,7 +94,10 @@ function ShortcutHint({shortcut}: {shortcut: [string, string]}) {
 export function CommandPalette() {
   const router = useRouter();
   const {data: user} = useUser();
+  const {data: config} = useConfig();
+  const {openUploadDialog} = useFilesOverlay();
   const {activeProject, availableProjects, setActiveProject} = useActiveProject();
+  const s3Enabled = config?.features.storage.s3Enabled === true;
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
@@ -399,7 +406,8 @@ export function CommandPalette() {
           </CommandGroup>
         )}
 
-        {filteredCreateActions.length > 0 && (
+        {(filteredCreateActions.length > 0 ||
+          (s3Enabled && (!shouldSearch || matches('upload files image media library', query)))) && (
           <>
             <CommandSeparator />
             <CommandGroup heading="Create">
@@ -417,6 +425,18 @@ export function CommandPalette() {
                   </CommandItem>
                 );
               })}
+              {s3Enabled && (!shouldSearch || matches('upload files image media library', query)) && (
+                <CommandItem
+                  value="create-upload-files-image-media-library"
+                  onSelect={() => {
+                    openUploadDialog();
+                    setOpen(false);
+                  }}
+                >
+                  <Upload className="mr-3 h-4 w-4 text-neutral-400 shrink-0" />
+                  <span>Upload files</span>
+                </CommandItem>
+              )}
             </CommandGroup>
           </>
         )}

@@ -5,6 +5,7 @@ import {execSync} from 'child_process';
 // Order doesn't matter — TRUNCATE with CASCADE handles FK dependencies in one statement.
 const TRUNCATE_TABLES = [
   'idempotency_keys',
+  'project_files',
   'events',
   'workflow_step_executions',
   'emails',

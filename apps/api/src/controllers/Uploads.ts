@@ -2,7 +2,10 @@ import {Controller, Middleware, Post} from '@overnightjs/core';
 import type {NextFunction, Request, Response} from 'express';
 import multer from 'multer';
 import signale from 'signale';
+
 import {requireAuth, requireEmailVerified} from '../middleware/auth.js';
+import {resolveFileDeleteActor} from '../services/fileDeleteAuth.js';
+import {FileService, SYSTEM_FOLDER_NAMES} from '../services/FileService.js';
 import * as S3Service from '../services/S3Service.js';
 import {CatchAsync} from '../utils/asyncHandler.js';
 
@@ -68,13 +71,39 @@ export class Uploads {
         });
       }
 
-      // Upload file to S3/Minio
       const result = await S3Service.uploadFile({
         file: req.file.buffer,
         filename: req.file.originalname,
         contentType: req.file.mimetype,
         projectId: auth.projectId!,
       });
+
+      try {
+        const folder = await FileService.getOrCreateSystemFolder(
+          auth.projectId!,
+          SYSTEM_FOLDER_NAMES['email-images'],
+        );
+        const actor = await resolveFileDeleteActor(auth);
+        await FileService.registerUploadedObject(
+          auth.projectId!,
+          {
+            name: req.file.originalname,
+            storageKey: result.key,
+            contentType: req.file.mimetype,
+            sizeBytes: req.file.size,
+            folderId: folder.id,
+            createdById: auth.userId ?? null,
+          },
+          actor,
+        );
+      } catch (registerError) {
+        try {
+          await S3Service.deleteObjects([result.key]);
+        } catch (cleanupError) {
+          signale.error('[UPLOADS] Failed to clean up uploaded object after register error:', cleanupError);
+        }
+        throw registerError;
+      }
 
       return res.status(200).json({
         url: result.url,

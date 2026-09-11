@@ -3,6 +3,7 @@ import {randomBytes} from 'node:crypto';
 import {Controller, Delete, Get, Middleware, Patch, Post, Put} from '@overnightjs/core';
 import {BillingLimitSchemas, ProjectSchemas, UtilitySchemas} from '@merlin/shared';
 import type {NextFunction, Request, Response} from 'express';
+import signale from 'signale';
 
 import {
   ALLOWLIST_OPEN,
@@ -16,15 +17,14 @@ import {stripe} from '../app/stripe.js';
 import {prisma} from '../database/prisma.js';
 import {ErrorCode, HttpException, NotAuthenticated, NotFound} from '../exceptions/index.js';
 import {isAuthenticated, requireEmailVerified} from '../middleware/auth.js';
-import {BillingLimitService} from '../services/BillingLimitService.js';
 import {AllowlistService} from '../services/AllowlistService.js';
+import {BillingLimitService} from '../services/BillingLimitService.js';
 import {MembershipService} from '../services/MembershipService.js';
 import {NtfyService} from '../services/NtfyService.js';
 import {SecurityService} from '../services/SecurityService.js';
 import {TemplateService} from '../services/TemplateService.js';
 import {UserService} from '../services/UserService.js';
 import {CatchAsync} from '../utils/asyncHandler.js';
-import signale from 'signale';
 
 @Controller('users')
 export class Users {
@@ -44,13 +44,16 @@ export class Users {
       throw new NotAuthenticated();
     }
 
+    const trustedDomain = AllowlistService.isTrustedDomain(me.email);
+
     return res.status(200).json({
       id: me.id,
       email: me.email,
       type: me.type,
       emailVerified: me.emailVerified,
       emailVerificationEnabled: MERLIN_ENABLED,
-      canManageAllowlist: AllowlistService.isTrustedDomain(me.email),
+      canManageAllowlist: trustedDomain,
+      trustedDomain,
     });
   }
 
@@ -133,7 +136,7 @@ export class Users {
     // Send notification about project creation
     await NtfyService.notifyProjectCreated(project.name, project.id, auth.userId);
 
-    return res.status(201).json(project);
+    return res.status(201).json(UserService.redactProjectSecret(project, me.email));
   }
 
   @Patch('@me/projects/:id')
@@ -147,13 +150,18 @@ export class Users {
     // Verify user has admin/owner access to this project
     await MembershipService.requireAdminAccess(auth.userId!, id);
 
+    const user = await UserService.id(auth.userId!);
+    if (!user) {
+      throw new NotAuthenticated();
+    }
+
     // Update the project
     const project = await prisma.project.update({
       where: {id},
       data,
     });
 
-    return res.status(200).json(project);
+    return res.status(200).json(UserService.redactProjectSecret(project, user.email));
   }
 
   @Post('@me/projects/:id/regenerate-keys')
@@ -165,6 +173,11 @@ export class Users {
 
     // Verify user has admin/owner access to this project
     await MembershipService.requireAdminAccess(auth.userId!, id);
+
+    const user = await UserService.id(auth.userId!);
+    if (!user) {
+      throw new NotAuthenticated();
+    }
 
     // Generate new unique API keys
     const publicKey = `pk_${randomBytes(32).toString('hex')}`;
@@ -193,7 +206,7 @@ export class Users {
     // Send notification about API key regeneration
     await NtfyService.notifyApiKeysRegenerated(project.name!, id!, auth.userId!);
 
-    return res.status(200).json(project);
+    return res.status(200).json(UserService.redactProjectSecret(project, user.email));
   }
 
   @Post('@me/projects/:id/checkout')

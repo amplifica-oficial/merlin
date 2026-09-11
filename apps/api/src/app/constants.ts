@@ -30,12 +30,15 @@ export const API_URI = validateEnv('API_URI');
 export const DASHBOARD_URI = validateEnv('DASHBOARD_URI');
 export const WIKI_URI = validateEnv('WIKI_URI');
 
-// S3-compatible storage (Minio)
+// S3-compatible storage (Minio or AWS)
 export const S3_ENDPOINT = validateEnv('S3_ENDPOINT', 'http://minio:9000');
+export const S3_REGION = validateEnv('S3_REGION', 'us-east-1');
 export const S3_ACCESS_KEY_ID = validateEnv('S3_ACCESS_KEY_ID', '');
 export const S3_ACCESS_KEY_SECRET = validateEnv('S3_ACCESS_KEY_SECRET', '');
 export const S3_BUCKET = validateEnv('S3_BUCKET', 'uploads');
-export const S3_PUBLIC_URL = validateEnv('S3_PUBLIC_URL', '');
+export const S3_PUBLIC_URL = (
+  validateEnv('S3_PUBLIC_URL', '') || validateEnv('S3_BEAUTIFUL_DOMAIN', '')
+).replace(/\/$/, '');
 export const S3_FORCE_PATH_STYLE = validateEnv('S3_FORCE_PATH_STYLE', 'true') === 'true';
 export const S3_ENABLED = S3_ACCESS_KEY_ID !== '' && S3_ACCESS_KEY_SECRET !== '';
 

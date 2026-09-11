@@ -137,8 +137,8 @@ Required for builds and deployment (see turbo.json and .env.example):
 - Infrastructure: `REDIS_URL`
 - **Application URLs** (injected at runtime into Next.js apps): `API_URI`, `DASHBOARD_URI`, `WIKI_URI` (
   optional)
-- S3-compatible Storage (Minio): `S3_ENDPOINT`, `S3_ACCESS_KEY_ID`, `S3_ACCESS_KEY_SECRET`, `S3_BUCKET`,
-  `S3_PUBLIC_URL`, `S3_FORCE_PATH_STYLE`
+ - S3-compatible Storage (Minio): `S3_ENDPOINT`, `S3_REGION`, `S3_ACCESS_KEY_ID`, `S3_ACCESS_KEY_SECRET`, `S3_BUCKET`,
+ `S3_PUBLIC_URL` (alias: `S3_BEAUTIFUL_DOMAIN`), `S3_FORCE_PATH_STYLE`
 - AWS SES: `AWS_SES_REGION`, `AWS_SES_ACCESS_KEY_ID`, `AWS_SES_SECRET_ACCESS_KEY`, `SES_CONFIGURATION_SET`,
   `SES_CONFIGURATION_SET_NO_TRACKING`
 - OAuth (optional): `GITHUB_OAUTH_CLIENT`, `GITHUB_OAUTH_SECRET`, `GOOGLE_OAUTH_CLIENT`, `GOOGLE_OAUTH_SECRET`

@@ -339,7 +339,20 @@ Each workflow consists of a **workflow** record, a graph of **steps**, **transit
 
 | Method | Path             | Description                                                                                          |
 | ------ | ---------------- | ---------------------------------------------------------------------------------------------------- |
-| POST   | `/uploads/image` | Upload an image (multipart) for use inside template bodies. Returns a public URL.                    |
+| POST   | `/uploads/image` | Upload an image (multipart) for use inside template bodies. Returns a public URL and registers the file in the project's **Email images** folder. If the library record cannot be created, the S3 object is deleted. |
+
+### Files
+
+Project media library. Requires authentication (JWT with `X-Project-Id`, or a secret API key). Returns `400` when S3 storage is not configured. See [Files](/concepts/files).
+
+| Method | Path                          | Description                                                                                          |
+| ------ | ----------------------------- | ---------------------------------------------------------------------------------------------------- |
+| GET    | `/files`                      | List the current folder. Query: `folder` (omit for root), `search`, `cursor`, `limit` (default 50, max 100). |
+| POST   | `/files/folders`              | Create a folder in the current directory (`name`, optional `parentId`).                              |
+| POST   | `/files/uploads`              | Create a pending file and return a presigned PUT URL. Optional `systemFolder`: `quick-uploads` or `email-images`. |
+| POST   | `/files/uploads/:id/confirm`  | Mark the file ready after the object exists in storage.                                              |
+| GET    | `/files/:id/delete-preview`   | Exact file/folder counts plus a capped list of file names (max 500) before deleting a folder.        |
+| DELETE | `/files/:id`                  | Delete a file or folder (descendants and S3 objects).                                                |
 
 ### Authentication & user management
 

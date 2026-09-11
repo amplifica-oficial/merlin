@@ -8,6 +8,7 @@ import {DefaultSeo} from 'next-seo';
 import {NuqsAdapter} from 'nuqs/adapters/next/pages';
 import {Loader} from '@merlin/ui';
 import {ActiveProjectProvider} from '../lib/contexts/ActiveProjectProvider';
+import {FilesOverlayProvider} from '../lib/contexts/FilesOverlayProvider';
 import {CommandPalette} from '../components/CommandPalette';
 import {useProjects} from '../lib/hooks/useProject';
 import {useUser} from '../lib/hooks/useUser';
@@ -189,8 +190,10 @@ function Root(props: AppProps) {
             <App {...props} />
           ) : (
             <ProjectGuard>
-              <CommandPalette />
-              <App {...props} />
+              <FilesOverlayProvider>
+                <CommandPalette />
+                <App {...props} />
+              </FilesOverlayProvider>
             </ProjectGuard>
           )}
         </AuthGuard>

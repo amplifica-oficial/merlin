@@ -5,7 +5,7 @@ import {Button} from '@merlin/ui';
 
 interface ApiKeyDisplayProps {
   label: string;
-  value: string;
+  value: string | null;
   description?: string;
   isSecret?: boolean;
   onRegenerate?: () => Promise<void>;
@@ -21,6 +21,10 @@ export function ApiKeyDisplay({
   const [showKey, setShowKey] = useState(!isSecret);
   const [copied, setCopied] = useState(false);
   const [isRegenerating, setIsRegenerating] = useState(false);
+
+  if (!value) {
+    return null;
+  }
 
   const handleCopy = async () => {
     try {

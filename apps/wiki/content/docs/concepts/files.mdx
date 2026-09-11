@@ -1,0 +1,43 @@
+---
+title: Files
+description: Project media library for uploads from the dashboard, the template editor, and the API
+icon: FolderOpen
+---
+
+Files is the project's media library. Upload images and other allowed files, organize them in folders, and copy a public URL to use in templates or campaigns.
+
+The **Files** item in the dashboard sidebar only appears when [S3-compatible storage](/self-hosting/environment-variables#storage-minio) is configured.
+
+## How it works
+
+1. Open **Files** to browse the current project's library (root, then folders).
+2. Upload from that page, or from **any other dashboard screen** without leaving your draft:
+   - Command Palette → **Upload files**
+   - Upload icon next to **Files** in the sidebar
+3. The **Upload files** dialog saves into **Quick uploads**. After the upload finishes, copy the URL and click **Done**.
+4. **Browse library** opens a compact sheet (navigate, search, upload, copy URL). Open the full Files page in a new tab if you need the full manager.
+
+CSV contact imports (`POST /contacts/import`) are not stored in this library.
+
+## Automatic folders
+
+Merlin creates these folders at the project root the first time they are needed:
+
+| Folder | What lands here |
+| ------ | --------------- |
+| **Email images** | Images uploaded from the template editor (`POST /uploads/image`) |
+| **Quick uploads** | Files sent through the global **Upload files** dialog |
+
+You can create other folders yourself on the Files page.
+
+## Public URLs
+
+<Callout title="Public storage" type="warn">
+  Listing, uploading, and deleting require project membership. The file object itself is reachable by anyone who has the URL. Do not upload confidential documents or sensitive personal data.
+</Callout>
+
+## Deleting
+
+Deleting a file removes the library record and the object in storage.
+
+Deleting a folder permanently removes the folder and everything inside it. The Files page shows how many files (and nested folders) will be deleted, plus a scrollable list of those files. Destructive delete is only available on the full Files page — not in the compact sheet.
