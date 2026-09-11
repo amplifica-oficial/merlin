@@ -107,7 +107,7 @@ model Project {
   tracking TrackingMode @default(ENABLED) // Open and click tracking mode
 
   // Localization
-  language String @default("en") // Language code for customer-facing content (ISO 639-1)
+  language String @default("pt") // Language code for customer-facing content (ISO 639-1)
 
   // Relations
   members              Membership[]

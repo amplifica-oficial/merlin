@@ -1,5 +1,5 @@
 import {Button, Card, CardContent, IconSpinner} from '@merlin/ui';
-import {createTranslator, type Translator} from '@merlin/shared';
+import {createTranslator, DEFAULT_LANGUAGE, type Translator} from '@merlin/shared';
 import {AnimatePresence, motion} from 'framer-motion';
 import {useRouter} from 'next/router';
 import React, {useEffect, useState} from 'react';
@@ -34,7 +34,7 @@ export default function Unsubscribe() {
         setContact(data);
 
         // Load translations for the project's language
-        const t = await createTranslator(data.language || 'en');
+        const t = await createTranslator(data.language || DEFAULT_LANGUAGE);
         setTranslator(t);
 
         setError(null);

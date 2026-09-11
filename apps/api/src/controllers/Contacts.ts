@@ -1,6 +1,6 @@
 import {Controller, Delete, Get, Middleware, Patch, Post} from '@overnightjs/core';
 import type {Contact} from '@merlin/db';
-import {ContactSchemas} from '@merlin/shared';
+import {ContactSchemas, DEFAULT_LANGUAGE} from '@merlin/shared';
 import type {BulkContactActionSelector} from '@merlin/types';
 import type {NextFunction, Request, Response} from 'express';
 import multer from 'multer';
@@ -248,7 +248,7 @@ export class Contacts {
       id: contact.id,
       email: contact.email,
       subscribed: contact.subscribed,
-      language: contactLocale || project?.language || 'en',
+      language: contactLocale || project?.language || DEFAULT_LANGUAGE,
     });
   }
 

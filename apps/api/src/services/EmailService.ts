@@ -6,7 +6,7 @@ import signale from 'signale';
 import {DASHBOARD_URI, STRIPE_ENABLED} from '../app/constants.js';
 import {prisma} from '../database/prisma.js';
 import {HttpException} from '../exceptions/index.js';
-import {createTranslatorSync, renderTemplate} from '@merlin/shared';
+import {createTranslatorSync, DEFAULT_LANGUAGE, renderTemplate} from '@merlin/shared';
 
 import {BillingLimitService} from './BillingLimitService.js';
 import {DomainService} from './DomainService.js';
@@ -1104,7 +1104,7 @@ export class EmailService {
               : null;
 
           // Get translator for contact's locale or project's language
-          const translator = createTranslatorSync(contactLocale || project.language || 'en');
+          const translator = createTranslatorSync(contactLocale || project.language || DEFAULT_LANGUAGE);
           const unsubscribeText = translator.t('email.footer.unsubscribeText', {
             projectName: project.name,
           });
