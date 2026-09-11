@@ -32,6 +32,8 @@ export interface FormSettings {
   fieldOrder?: string[];
   doubleOptIn?: boolean;
   defaultSubscribed?: boolean;
+  /** Transactional template used when doubleOptIn is on; omitted → project default */
+  confirmationTemplateId?: string;
   /** Tags written to contact.data on submit (shared across forms for dynamic segments) */
   tags?: Record<string, string | boolean | number>;
   /** Custom event name (default: form.submitted) */

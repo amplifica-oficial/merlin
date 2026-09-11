@@ -9,7 +9,7 @@ import {z} from 'zod';
 
 import {requireAuth, requireEmailVerified} from '../middleware/auth.js';
 import {ContactService} from '../services/ContactService.js';
-import {EmailService} from '../services/EmailService.js';
+import {DoubleOptInService} from '../services/DoubleOptInService.js';
 import {EventService} from '../services/EventService.js';
 import {QueueService} from '../services/QueueService.js';
 import {TemplateService} from '../services/TemplateService.js';
@@ -567,30 +567,23 @@ export async function createOrUpdateContact(
 ): Promise<{contact: Contact; isUpdate: boolean; confirmationSent: boolean}> {
   const {email, data, subscribed, doubleOptIn, confirmationTemplateId} = input;
 
-  const existingContact = await ContactService.findByEmail(projectId, email);
-  const isUpdate = !!existingContact;
-
   if (!doubleOptIn) {
+    const existingContact = await ContactService.findByEmail(projectId, email);
     const contact = await ContactService.upsert(projectId, email, data, subscribed);
-    return {contact, isUpdate, confirmationSent: false};
+    return {contact, isUpdate: !!existingContact, confirmationSent: false};
   }
 
-  const template = await TemplateService.resolveConfirmationTemplate(projectId, confirmationTemplateId);
-  const contact = await ContactService.upsert(projectId, email, data, undefined, false);
+  const result = await DoubleOptInService.apply(projectId, {
+    email,
+    data,
+    confirmationTemplateId,
+  });
 
-  if (isUpdate) {
-    return {contact, isUpdate, confirmationSent: false};
+  if (!result.isUpdate) {
+    await EventService.trackEvent(projectId, 'contact.created', result.contact.id, undefined, {source: 'manual'});
   }
 
-  await EventService.trackEvent(projectId, 'contact.created', contact.id, undefined, {source: 'manual'});
-
-  try {
-    await EmailService.sendTemplateEmail(projectId, contact.id, template);
-    return {contact, isUpdate, confirmationSent: true};
-  } catch (error) {
-    signale.error(`[CONTACTS] Failed to send confirmation email to ${contact.email}:`, error);
-    return {contact, isUpdate, confirmationSent: false};
-  }
+  return result;
 }
 
 const CONFIRMATION_TEMPLATE_ID = z.string().uuid();

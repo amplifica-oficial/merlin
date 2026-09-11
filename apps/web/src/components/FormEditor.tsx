@@ -14,6 +14,7 @@ import type {FormField, FormFieldType, FormSettings} from '@merlin/types';
 import type {Segment} from '@merlin/db';
 import {FormSchemas} from '@merlin/shared';
 import {network} from '../lib/network';
+import {ConfirmationTemplatePicker, useConfirmationTemplate} from './ConfirmationTemplatePicker';
 import {FORM_EMAIL_FIELD_KEY, FORM_FIELD_TYPE_OPTIONS, FormPreview, reorderFieldsFromOrder, resolveFieldOrder} from './FormPreview';
 import {FormPreviewEditor} from './FormPreviewEditor';
 import {ChevronDown, ChevronUp, GripVertical, Plus, Save, Trash2, X} from 'lucide-react';
@@ -68,6 +69,7 @@ export function FormEditor({mode, formId}: FormEditorProps) {
   const [draggedFieldIndex, setDraggedFieldIndex] = useState<number | null>(null);
   const [dragOverFieldIndex, setDragOverFieldIndex] = useState<number | null>(null);
   const [previewMode, setPreviewMode] = useState<'edit' | 'preview'>('edit');
+  const confirmation = useConfirmationTemplate(settings.doubleOptIn ?? false);
 
   useEffect(() => {
     if (existingForm && mode === 'edit') {
@@ -101,6 +103,13 @@ export function FormEditor({mode, formId}: FormEditorProps) {
       setSlug(slugify(name));
     }
   }, [name, slugTouched]);
+
+  useEffect(() => {
+    if (!settings.doubleOptIn || settings.confirmationTemplateId || !confirmation.templateId) {
+      return;
+    }
+    setSettings(s => (s.confirmationTemplateId ? s : {...s, confirmationTemplateId: confirmation.templateId}));
+  }, [settings.doubleOptIn, settings.confirmationTemplateId, confirmation.templateId]);
 
   const addField = () => {
     const newKey = `field_${fields.length + 1}`;
@@ -653,11 +662,26 @@ export function FormEditor({mode, formId}: FormEditorProps) {
               className="rounded mt-0.5"
             />
             <span>
-              <span className="font-medium">Double opt-in</span>
-              <span className="block text-neutral-500">Create contacts as unsubscribed; use a workflow with{' '}
-                <code className="bg-neutral-100 px-1 rounded">{'{{subscribeUrl}}'}</code> to confirm.</span>
+              <span className="font-medium">Send confirmation email (double opt-in)</span>
+              <span className="block text-neutral-500">
+                Creates the contact as unsubscribed and sends a transactional confirmation with{' '}
+                <code className="bg-neutral-100 px-1 rounded">{'{{subscribeUrl}}'}</code>.
+              </span>
             </span>
           </label>
+          {settings.doubleOptIn ? (
+            <ConfirmationTemplatePicker
+              templateId={settings.confirmationTemplateId ?? confirmation.templateId}
+              onTemplateIdChange={id => setSettings(s => ({...s, confirmationTemplateId: id}))}
+              templates={confirmation.templates}
+              selected={
+                confirmation.templates.find(
+                  template => template.id === (settings.confirmationTemplateId ?? confirmation.templateId),
+                ) ?? confirmation.selected
+              }
+              isLoading={confirmation.isLoading}
+            />
+          ) : null}
           <label className="flex items-start gap-2 text-sm">
             <input
               type="checkbox"

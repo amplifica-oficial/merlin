@@ -29,6 +29,7 @@ Returns all forms for the project, including linked segment summary and submissi
     "successMessage": "Thanks for subscribing!",
     "tags": { "source": "newsletter" },
     "doubleOptIn": false,
+    "confirmationTemplateId": "uuid-of-transactional-template",
     "verifyEmail": true
   },
   "segmentId": "uuid-of-static-segment",
@@ -42,6 +43,8 @@ Returns all forms for the project, including linked segment summary and submissi
 | `slug` | Lowercase URL-safe id; writes `data["form:<slug>"] = true` on submit |
 | `fields` | Custom fields (email is always collected separately) |
 | `settings.tags` | Extra `contact.data` keys for dynamic segment filters |
+| `settings.doubleOptIn` | When `true`, new contacts are created unsubscribed and receive a confirmation email |
+| `settings.confirmationTemplateId` | Optional transactional template for DOI. If omitted, Merlin uses or seeds the project default |
 | `segmentId` | Optional static segment to add members to |
 | `createSegment` | If `true`, creates a new static segment named `Form — {name}` |
 
@@ -86,6 +89,7 @@ Rate limit: 10 submissions per IP per form per hour. Honeypot field `hp` — if 
 ## Submit side effects
 
 1. Contact upsert with `data["form:<slug>"]`, configured tags, and custom field values
-2. Event `form.submitted` (or `settings.eventName`) with `{ form, formId, ...data }`
-3. Static segment membership if configured
-4. Increments form `submissions` counter
+2. When `settings.doubleOptIn` is true: new contacts are unsubscribed and receive a transactional confirmation email (`confirmationTemplateId` or the project default). Existing contacts are not downgraded and are not emailed again. A marketing confirmation template returns `400` and the contact is not created.
+3. Event `form.submitted` (or `settings.eventName`) with `{ form, formId, ...data }`
+4. Static segment membership if configured (uses the contact's actual `subscribed` status)
+5. Increments form `submissions` counter
