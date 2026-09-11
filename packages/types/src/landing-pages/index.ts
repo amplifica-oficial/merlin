@@ -20,6 +20,7 @@ export interface LandingPageSettings {
 
 export interface PublicLandingPageConfig {
   publicId: string;
+  slug: string;
   name: string;
   data: PuckData;
   settings: LandingPageSettings;

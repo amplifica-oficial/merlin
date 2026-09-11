@@ -2,6 +2,8 @@ import {CampaignAudienceType, TemplateType, TrackingMode, WorkflowStepType, Work
 import type {FilterCondition, FilterGroup} from '@merlin/types';
 import {z} from 'zod';
 
+import {LANDING_PAGE_SLUG_REGEX, isLandingPageUuidShape} from '../slug.js';
+
 const literalSchema = z.union([z.string(), z.number(), z.boolean(), z.null(), z.date()]);
 type Literal = z.infer<typeof literalSchema>;
 type Json = Literal | {[key: string]: Json} | Json[];
@@ -608,6 +610,15 @@ const formSlug = z
   .max(50)
   .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Slug must be lowercase alphanumeric with hyphens');
 
+export const landingPageSlug = z
+  .string()
+  .min(1)
+  .max(50)
+  .regex(LANDING_PAGE_SLUG_REGEX, 'Slug must be lowercase alphanumeric with hyphens')
+  .refine(value => !isLandingPageUuidShape(value), {
+    message: 'Slug cannot be a UUID',
+  });
+
 const formFieldSchema = z
   .object({
     key: formFieldKey,
@@ -678,14 +689,14 @@ export const LandingPageSchemas = {
   settings: landingPageSettingsSchema,
   create: z.object({
     name: z.string().min(1).max(100),
-    slug: formSlug,
+    slug: landingPageSlug,
     data: puckDataSchema.default({root: {props: {}}, content: []}),
     settings: landingPageSettingsSchema.default({}),
     published: z.boolean().default(false),
   }),
   update: z.object({
     name: z.string().min(1).max(100).optional(),
-    slug: formSlug.optional(),
+    slug: landingPageSlug.optional(),
     data: puckDataSchema.optional(),
     settings: landingPageSettingsSchema.optional(),
     published: z.boolean().optional(),
