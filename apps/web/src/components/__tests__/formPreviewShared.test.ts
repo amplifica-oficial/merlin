@@ -3,11 +3,13 @@ import {describe, expect, it} from 'vitest';
 import {
   BRAZILIAN_STATES,
   FORM_EMAIL_FIELD_KEY,
+  FORM_REDIRECT_COUNTDOWN_SECONDS,
   FORM_SELECT_OPTIONS_MAX,
   hydrateEditorFieldOrder,
   insertPastedOptions,
   parsePastedOptions,
   sortOptionsAlphabetically,
+  tickRedirectCountdown,
   toPersistedFieldOrder,
   toPersistedFields,
   type EditorFormField,
@@ -103,5 +105,17 @@ describe('BRAZILIAN_STATES', () => {
     expect(new Set(BRAZILIAN_STATES).size).toBe(27);
     expect(BRAZILIAN_STATES.length).toBeLessThanOrEqual(FORM_SELECT_OPTIONS_MAX);
     expect([...BRAZILIAN_STATES]).toEqual(sortOptionsAlphabetically([...BRAZILIAN_STATES]));
+  });
+});
+
+describe('tickRedirectCountdown', () => {
+  it('counts down 3, 2, 1 then signals redirect', () => {
+    expect(tickRedirectCountdown(FORM_REDIRECT_COUNTDOWN_SECONDS)).toEqual({seconds: 2, shouldRedirect: false});
+    expect(tickRedirectCountdown(2)).toEqual({seconds: 1, shouldRedirect: false});
+    expect(tickRedirectCountdown(1)).toEqual({seconds: 0, shouldRedirect: true});
+  });
+
+  it('redirects when the countdown is already elapsed', () => {
+    expect(tickRedirectCountdown(0)).toEqual({seconds: 0, shouldRedirect: true});
   });
 });

@@ -1,5 +1,5 @@
 import {AnimatePresence, motion} from 'framer-motion';
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 
 import {
   FORM_EMAIL_FIELD_KEY,
@@ -10,7 +10,7 @@ import {
   FormPreviewSubmitButton,
 } from './formPreviewParts';
 import type {FormFieldValues} from './formPreviewShared';
-import {resolveFieldOrder} from './formPreviewShared';
+import {FORM_REDIRECT_COUNTDOWN_SECONDS, resolveFieldOrder, tickRedirectCountdown} from './formPreviewShared';
 import type {FormField, FormSettings} from '@merlin/types';
 
 export type {FormFieldValues};
@@ -50,6 +50,7 @@ export interface FormPreviewProps {
   hp?: string;
   onHpChange?: (hp: string) => void;
   compact?: boolean;
+  redirectUrl?: string;
 }
 
 export function FormPreview({
@@ -69,12 +70,34 @@ export function FormPreview({
   hp = '',
   onHpChange,
   compact = false,
+  redirectUrl,
 }: FormPreviewProps) {
   const successMessage = settings.successMessage || 'Thanks for signing up!';
   const isInteractive = !disabled && !!onSubmit;
   const fieldDisabled = disabled || !onFieldChange;
   const orderedKeys = resolveFieldOrder(settings.fieldOrder, fields);
   const fieldsByKey = new Map(fields.map(f => [f.key, f]));
+  const [redirectSeconds, setRedirectSeconds] = useState(FORM_REDIRECT_COUNTDOWN_SECONDS);
+
+  useEffect(() => {
+    if (!success || !redirectUrl) {
+      return;
+    }
+
+    setRedirectSeconds(FORM_REDIRECT_COUNTDOWN_SECONDS);
+    const interval = window.setInterval(() => {
+      setRedirectSeconds(prev => {
+        const next = tickRedirectCountdown(prev);
+        if (next.shouldRedirect) {
+          window.clearInterval(interval);
+          window.location.href = redirectUrl;
+        }
+        return next.seconds;
+      });
+    }, 1000);
+
+    return () => window.clearInterval(interval);
+  }, [success, redirectUrl]);
 
   if (success) {
     return (
@@ -91,6 +114,11 @@ export function FormPreview({
               </svg>
             </motion.div>
             <h2 className="text-xl font-bold text-neutral-900">{successMessage}</h2>
+            {redirectUrl ? (
+              <p className="mt-3 text-sm text-neutral-500">
+                {redirectSeconds > 0 ? `Redirecting in ${redirectSeconds}...` : 'Redirecting...'}
+              </p>
+            ) : null}
           </div>
         </FormPreviewShell>
       </div>
