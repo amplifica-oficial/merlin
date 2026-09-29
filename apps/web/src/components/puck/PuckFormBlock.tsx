@@ -18,6 +18,7 @@ export function PuckFormBlock({formPublicId, disabled = false}: PuckFormBlockPro
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [redirectUrl, setRedirectUrl] = useState<string | undefined>();
   const [email, setEmail] = useState('');
   const [fieldValues, setFieldValues] = useState<FormFieldValues>({});
   const [hp, setHp] = useState('');
@@ -96,11 +97,7 @@ export function PuckFormBlock({formPublicId, disabled = false}: PuckFormBlockPro
         },
       );
 
-      if (result.redirectUrl) {
-        window.location.href = result.redirectUrl;
-        return;
-      }
-
+      setRedirectUrl(result.redirectUrl);
       setSuccess(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to submit form');
@@ -123,6 +120,7 @@ export function PuckFormBlock({formPublicId, disabled = false}: PuckFormBlockPro
         submitting={submitting}
         error={error}
         success={success}
+        redirectUrl={redirectUrl}
         disabled={disabled}
         showHoneypot={!disabled}
         hp={hp}

@@ -126,6 +126,15 @@ export function reorderFieldsFromOrder(fields: FormField[], fieldOrder: string[]
 
 export const FORM_SELECT_OPTIONS_MAX = 42;
 
+export const FORM_REDIRECT_COUNTDOWN_SECONDS = 3;
+
+export function tickRedirectCountdown(seconds: number): {seconds: number; shouldRedirect: boolean} {
+  if (seconds <= 1) {
+    return {seconds: 0, shouldRedirect: true};
+  }
+  return {seconds: seconds - 1, shouldRedirect: false};
+}
+
 /** Official UF names, alphabetical, within the select options cap */
 export const BRAZILIAN_STATES = [
   'Acre',
