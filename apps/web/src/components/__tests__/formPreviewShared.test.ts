@@ -1,8 +1,13 @@
 import {describe, expect, it} from 'vitest';
 
 import {
+  BRAZILIAN_STATES,
   FORM_EMAIL_FIELD_KEY,
+  FORM_SELECT_OPTIONS_MAX,
   hydrateEditorFieldOrder,
+  insertPastedOptions,
+  parsePastedOptions,
+  sortOptionsAlphabetically,
   toPersistedFieldOrder,
   toPersistedFields,
   type EditorFormField,
@@ -49,5 +54,54 @@ describe('editor field identity helpers', () => {
       FORM_EMAIL_FIELD_KEY,
       'name',
     ]);
+  });
+});
+
+describe('parsePastedOptions', () => {
+  it('splits on newlines, trims, and drops empty lines', () => {
+    expect(parsePastedOptions('Acre\n Bahia \n\nCeará\r\nPiauí')).toEqual(['Acre', 'Bahia', 'Ceará', 'Piauí']);
+  });
+
+  it('strips list prefixes', () => {
+    expect(parsePastedOptions('- Acre\n* Bahia\n1. Ceará')).toEqual(['Acre', 'Bahia', 'Ceará']);
+  });
+});
+
+describe('insertPastedOptions', () => {
+  it('replaces the current option and inserts the rest below', () => {
+    expect(insertPastedOptions(['Option 1', 'Keep'], 0, ['Acre', 'Bahia', 'Ceará'])).toEqual({
+      options: ['Acre', 'Bahia', 'Ceará', 'Keep'],
+      truncated: false,
+    });
+  });
+
+  it('caps at the max and flags truncation', () => {
+    const existing = Array.from({length: 48}, (_, i) => `Keep ${i}`);
+    const pasted = ['A', 'B', 'C', 'D'];
+    const result = insertPastedOptions(existing, 0, pasted);
+
+    expect(result.truncated).toBe(true);
+    expect(result.options).toHaveLength(FORM_SELECT_OPTIONS_MAX);
+    expect(result.options.slice(0, 4)).toEqual(['A', 'B', 'C', 'D']);
+  });
+});
+
+describe('sortOptionsAlphabetically', () => {
+  it('sorts with Portuguese collation', () => {
+    expect(sortOptionsAlphabetically(['São Paulo', 'Acre', 'Ceará', 'Bahia'])).toEqual([
+      'Acre',
+      'Bahia',
+      'Ceará',
+      'São Paulo',
+    ]);
+  });
+});
+
+describe('BRAZILIAN_STATES', () => {
+  it('lists 27 unique states within the options cap', () => {
+    expect(BRAZILIAN_STATES).toHaveLength(27);
+    expect(new Set(BRAZILIAN_STATES).size).toBe(27);
+    expect(BRAZILIAN_STATES.length).toBeLessThanOrEqual(FORM_SELECT_OPTIONS_MAX);
+    expect([...BRAZILIAN_STATES]).toEqual(sortOptionsAlphabetically([...BRAZILIAN_STATES]));
   });
 });

@@ -16,21 +16,26 @@ import {FormSchemas} from '@merlin/shared';
 import {network} from '../lib/network';
 import {ConfirmationTemplatePicker, useConfirmationTemplate} from './ConfirmationTemplatePicker';
 import {
+  BRAZILIAN_STATES,
   FORM_EMAIL_FIELD_KEY,
   FORM_FIELD_TYPE_OPTIONS,
+  FORM_SELECT_OPTIONS_MAX,
   FormPreview,
   createEditorClientId,
   hydrateEditorFieldOrder,
+  insertPastedOptions,
+  parsePastedOptions,
   reorderFieldsFromOrder,
+  sortOptionsAlphabetically,
   toEditorFields,
   toPersistedFieldOrder,
   toPersistedFields,
   type EditorFormField,
 } from './FormPreview';
 import {FormPreviewEditor} from './FormPreviewEditor';
-import {ChevronDown, ChevronUp, GripVertical, Plus, Save, Trash2, X} from 'lucide-react';
+import {ArrowDownAZ, ChevronDown, ChevronUp, GripVertical, Plus, Save, Trash2, X} from 'lucide-react';
 import {useRouter} from 'next/router';
-import {useEffect, useState, type DragEvent} from 'react';
+import {useEffect, useState, type ClipboardEvent, type DragEvent} from 'react';
 import {toast} from 'sonner';
 import useSWR from 'swr';
 
@@ -190,6 +195,49 @@ export function FormEditor({mode, formId}: FormEditorProps) {
         return {...f, options};
       }),
     );
+  };
+
+  const moveFieldOption = (fieldIndex: number, fromIndex: number, toIndex: number) => {
+    setFields(prev =>
+      prev.map((f, i) => {
+        if (i !== fieldIndex) return f;
+        const options = [...(f.options ?? [])];
+        if (fromIndex === toIndex || toIndex < 0 || toIndex >= options.length) return f;
+        const [item] = options.splice(fromIndex, 1);
+        if (item === undefined) return f;
+        options.splice(toIndex, 0, item);
+        return {...f, options};
+      }),
+    );
+  };
+
+  const handleOptionPaste = (fieldIndex: number, optionIndex: number, event: ClipboardEvent<HTMLInputElement>) => {
+    const text = event.clipboardData.getData('text');
+    if (!text.includes('\n') && !text.includes('\r')) return;
+
+    event.preventDefault();
+    const pasted = parsePastedOptions(text);
+    if (pasted.length === 0) return;
+
+    const current = fields[fieldIndex]?.options ?? [];
+    const {options, truncated} = insertPastedOptions(current, optionIndex, pasted);
+    setFields(prev => prev.map((f, i) => (i === fieldIndex ? {...f, options} : f)));
+    if (truncated) {
+      toast.error(`Select fields support up to ${FORM_SELECT_OPTIONS_MAX} options`);
+    }
+  };
+
+  const sortFieldOptions = (fieldIndex: number) => {
+    setFields(prev =>
+      prev.map((f, i) => {
+        if (i !== fieldIndex) return f;
+        return {...f, options: sortOptionsAlphabetically(f.options ?? [])};
+      }),
+    );
+  };
+
+  const applyBrazilianStatesPreset = (fieldIndex: number) => {
+    setFields(prev => prev.map((f, i) => (i === fieldIndex ? {...f, options: [...BRAZILIAN_STATES]} : f)));
   };
 
   const removeField = (clientId: string) => {
@@ -519,14 +567,64 @@ export function FormEditor({mode, formId}: FormEditorProps) {
                 {field.type === 'select' && (
                   <div className="space-y-2 pl-1">
                     <Label className="text-xs text-neutral-500">Options</Label>
+                    <p className="text-xs text-neutral-400">Paste a list to add many options at once (one per line)</p>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        disabled={(field.options?.length ?? 0) < 2}
+                        onClick={() => sortFieldOptions(fieldIndex)}
+                      >
+                        <ArrowDownAZ className="h-4 w-4 mr-1" />
+                        Sort A–Z
+                      </Button>
+                      <select
+                        defaultValue=""
+                        onChange={e => {
+                          if (e.target.value === 'br-states') {
+                            applyBrazilianStatesPreset(fieldIndex);
+                          }
+                          e.target.value = '';
+                        }}
+                        className="border rounded-md px-3 py-2 text-sm h-9"
+                        aria-label="Insert option preset"
+                      >
+                        <option value="" disabled>
+                          Insert preset...
+                        </option>
+                        <option value="br-states">Brazilian states</option>
+                      </select>
+                    </div>
                     {(field.options ?? []).map((option, optionIndex) => (
                       <div key={optionIndex} className="flex gap-2">
                         <Input
                           value={option}
                           onChange={e => updateFieldOption(fieldIndex, optionIndex, e.target.value)}
+                          onPaste={e => handleOptionPaste(fieldIndex, optionIndex, e)}
                           placeholder={`Option ${optionIndex + 1}`}
                           className="flex-1"
                         />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          disabled={optionIndex === 0}
+                          onClick={() => moveFieldOption(fieldIndex, optionIndex, optionIndex - 1)}
+                          aria-label="Move option up"
+                        >
+                          <ChevronUp className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          disabled={optionIndex === (field.options?.length ?? 0) - 1}
+                          onClick={() => moveFieldOption(fieldIndex, optionIndex, optionIndex + 1)}
+                          aria-label="Move option down"
+                        >
+                          <ChevronDown className="h-4 w-4" />
+                        </Button>
                         <Button type="button" variant="outline" size="sm" onClick={() => removeFieldOption(fieldIndex, optionIndex)}>
                           <X className="h-4 w-4" />
                         </Button>

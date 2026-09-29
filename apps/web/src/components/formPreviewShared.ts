@@ -124,6 +124,69 @@ export function reorderFieldsFromOrder(fields: FormField[], fieldOrder: string[]
   return ordered;
 }
 
+export const FORM_SELECT_OPTIONS_MAX = 50;
+
+/** Official UF names, alphabetical, within the select options cap */
+export const BRAZILIAN_STATES = [
+  'Acre',
+  'Alagoas',
+  'Amapá',
+  'Amazonas',
+  'Bahia',
+  'Ceará',
+  'Distrito Federal',
+  'Espírito Santo',
+  'Goiás',
+  'Maranhão',
+  'Mato Grosso',
+  'Mato Grosso do Sul',
+  'Minas Gerais',
+  'Pará',
+  'Paraíba',
+  'Paraná',
+  'Pernambuco',
+  'Piauí',
+  'Rio de Janeiro',
+  'Rio Grande do Norte',
+  'Rio Grande do Sul',
+  'Rondônia',
+  'Roraima',
+  'Santa Catarina',
+  'São Paulo',
+  'Sergipe',
+  'Tocantins',
+] as const;
+
+export function sortOptionsAlphabetically(options: string[]): string[] {
+  return [...options].sort((a, b) => a.localeCompare(b, 'pt-BR', {sensitivity: 'base'}));
+}
+
+const PASTED_OPTION_PREFIX = /^(?:[-*]\s+|\d+\.\s+)/;
+
+export function parsePastedOptions(text: string): string[] {
+  return text
+    .split(/\r\n|\n|\r/)
+    .map(line => line.trim().replace(PASTED_OPTION_PREFIX, '').trim())
+    .filter(Boolean)
+    .map(line => line.slice(0, 100));
+}
+
+export function insertPastedOptions(
+  existing: string[],
+  index: number,
+  pasted: string[],
+  max = FORM_SELECT_OPTIONS_MAX,
+): {options: string[]; truncated: boolean} {
+  if (pasted.length === 0) {
+    return {options: existing, truncated: false};
+  }
+
+  const clampedIndex = Math.min(Math.max(index, 0), Math.max(existing.length - 1, 0));
+  const next = [...existing.slice(0, clampedIndex), ...pasted, ...existing.slice(clampedIndex + 1)];
+  const truncated = next.length > max;
+  return {options: truncated ? next.slice(0, max) : next, truncated};
+}
+
 export const FORM_FIELD_TYPE_OPTIONS: Array<{value: FormFieldType; label: string}> = [
   {value: 'text', label: 'Text'},
   {value: 'email', label: 'Email'},
