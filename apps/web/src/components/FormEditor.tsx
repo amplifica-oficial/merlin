@@ -15,7 +15,18 @@ import type {Segment} from '@merlin/db';
 import {FormSchemas} from '@merlin/shared';
 import {network} from '../lib/network';
 import {ConfirmationTemplatePicker, useConfirmationTemplate} from './ConfirmationTemplatePicker';
-import {FORM_EMAIL_FIELD_KEY, FORM_FIELD_TYPE_OPTIONS, FormPreview, reorderFieldsFromOrder, resolveFieldOrder} from './FormPreview';
+import {
+  FORM_EMAIL_FIELD_KEY,
+  FORM_FIELD_TYPE_OPTIONS,
+  FormPreview,
+  createEditorClientId,
+  hydrateEditorFieldOrder,
+  reorderFieldsFromOrder,
+  toEditorFields,
+  toPersistedFieldOrder,
+  toPersistedFields,
+  type EditorFormField,
+} from './FormPreview';
 import {FormPreviewEditor} from './FormPreviewEditor';
 import {ChevronDown, ChevronUp, GripVertical, Plus, Save, Trash2, X} from 'lucide-react';
 import {useRouter} from 'next/router';
@@ -51,7 +62,7 @@ export function FormEditor({mode, formId}: FormEditorProps) {
   const [name, setName] = useState('');
   const [slug, setSlug] = useState('');
   const [slugTouched, setSlugTouched] = useState(false);
-  const [fields, setFields] = useState<FormField[]>([]);
+  const [fields, setFields] = useState<EditorFormField[]>([]);
   const [fieldOrder, setFieldOrder] = useState<string[]>([FORM_EMAIL_FIELD_KEY]);
   const [destinationTab, setDestinationTab] = useState<'static' | 'dynamic'>('dynamic');
   const [segmentId, setSegmentId] = useState<string>('');
@@ -84,8 +95,9 @@ export function FormEditor({mode, formId}: FormEditorProps) {
       setName(form.name);
       setSlug(form.slug);
       setSlugTouched(true);
-      setFields(Array.isArray(form.fields) ? form.fields : []);
-      setFieldOrder(resolveFieldOrder(form.settings?.fieldOrder, Array.isArray(form.fields) ? form.fields : []));
+      const loadedFields = toEditorFields(Array.isArray(form.fields) ? form.fields : []);
+      setFields(loadedFields);
+      setFieldOrder(hydrateEditorFieldOrder(form.settings?.fieldOrder, loadedFields));
       setSettings(typeof form.settings === 'object' && form.settings ? form.settings : {});
       setSegmentId(form.segmentId ?? '');
       setCreateSegment(false);
@@ -112,10 +124,12 @@ export function FormEditor({mode, formId}: FormEditorProps) {
   }, [settings.doubleOptIn, settings.confirmationTemplateId, confirmation.templateId]);
 
   const addField = () => {
+    const clientId = createEditorClientId();
     const newKey = `field_${fields.length + 1}`;
     setFields(prev => [
       ...prev,
       {
+        clientId,
         key: newKey,
         label: 'Custom field',
         type: 'text',
@@ -123,15 +137,10 @@ export function FormEditor({mode, formId}: FormEditorProps) {
         placeholder: '',
       },
     ]);
-    setFieldOrder(prev => [...prev, newKey]);
+    setFieldOrder(prev => [...prev, clientId]);
   };
 
   const updateField = (index: number, patch: Partial<FormField>) => {
-    const oldKey = fields[index]?.key;
-    if (patch.key && oldKey && patch.key !== oldKey) {
-      setFieldOrder(order => order.map(k => (k === oldKey ? patch.key! : k)));
-    }
-
     setFields(prev =>
       prev.map((f, i) => {
         if (i !== index) return f;
@@ -147,8 +156,8 @@ export function FormEditor({mode, formId}: FormEditorProps) {
     );
   };
 
-  const updateFieldByKey = (key: string, patch: Partial<FormField>) => {
-    const index = fields.findIndex(f => f.key === key);
+  const updateFieldByClientId = (clientId: string, patch: Partial<FormField>) => {
+    const index = fields.findIndex(f => f.clientId === clientId);
     if (index >= 0) updateField(index, patch);
   };
 
@@ -183,9 +192,9 @@ export function FormEditor({mode, formId}: FormEditorProps) {
     );
   };
 
-  const removeField = (key: string) => {
-    setFields(prev => prev.filter(f => f.key !== key));
-    setFieldOrder(prev => prev.filter(k => k !== key));
+  const removeField = (clientId: string) => {
+    setFields(prev => prev.filter(f => f.clientId !== clientId));
+    setFieldOrder(prev => prev.filter(k => k !== clientId));
   };
 
   const moveFieldOrderItem = (fromIndex: number, toIndex: number) => {
@@ -234,16 +243,17 @@ export function FormEditor({mode, formId}: FormEditorProps) {
       if (tag.key.trim()) tagsRecord[tag.key.trim()] = tag.value;
     }
 
+    const persistedFieldOrder = toPersistedFieldOrder(fieldOrder, fields);
     const settingsPayload: FormSettings = {
       ...settings,
-      fieldOrder,
+      fieldOrder: persistedFieldOrder,
       tags: Object.keys(tagsRecord).length > 0 ? tagsRecord : undefined,
     };
 
     return {
       name,
       slug,
-      fields: reorderFieldsFromOrder(fields, fieldOrder),
+      fields: reorderFieldsFromOrder(toPersistedFields(fields), persistedFieldOrder),
       settings: settingsPayload,
       enabled,
       ...(destinationTab === 'static'
@@ -438,7 +448,7 @@ export function FormEditor({mode, formId}: FormEditorProps) {
               );
             }
 
-            const fieldIndex = fields.findIndex(f => f.key === orderKey);
+            const fieldIndex = fields.findIndex(f => f.clientId === orderKey);
             if (fieldIndex === -1) return null;
             const field = fields[fieldIndex];
             if (!field) return null;
@@ -538,7 +548,7 @@ export function FormEditor({mode, formId}: FormEditorProps) {
                     />
                     Required
                   </label>
-                  <Button type="button" variant="outline" size="sm" onClick={() => removeField(field.key)}>
+                  <Button type="button" variant="outline" size="sm" onClick={() => removeField(field.clientId)}>
                     <Trash2 className="h-4 w-4 mr-1" />
                     Remove
                   </Button>
@@ -734,17 +744,23 @@ export function FormEditor({mode, formId}: FormEditorProps) {
             {previewMode === 'edit' ? (
               <FormPreviewEditor
                 name={name}
-                settings={{...settings, fieldOrder}}
+                settings={{...settings, fieldOrder: toPersistedFieldOrder(fieldOrder, fields)}}
                 fields={fields}
                 fieldOrder={fieldOrder}
                 onSettingsChange={patch => setSettings(s => ({...s, ...patch}))}
-                onFieldUpdate={updateFieldByKey}
+                onFieldUpdate={updateFieldByClientId}
                 onFieldOrderChange={setFieldOrder}
                 onAddField={addField}
                 onRemoveField={removeField}
               />
             ) : (
-              <FormPreview name={name} settings={{...settings, fieldOrder}} fields={fields} disabled compact />
+              <FormPreview
+                name={name}
+                settings={{...settings, fieldOrder: toPersistedFieldOrder(fieldOrder, fields)}}
+                fields={toPersistedFields(fields)}
+                disabled
+                compact
+              />
             )}
           </div>
         </div>

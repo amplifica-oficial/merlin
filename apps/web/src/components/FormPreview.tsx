@@ -17,9 +17,16 @@ export type {FormFieldValues};
 export {
   FORM_EMAIL_FIELD_KEY,
   FORM_FIELD_TYPE_OPTIONS,
+  createEditorClientId,
+  hydrateEditorFieldOrder,
   reorderFieldsFromOrder,
+  resolveEditorFieldOrder,
   resolveFieldOrder,
+  toEditorFields,
+  toPersistedFieldOrder,
+  toPersistedFields,
 } from './formPreviewShared';
+export type {EditorFormField} from './formPreviewShared';
 
 export interface FormPreviewProps {
   name: string;
