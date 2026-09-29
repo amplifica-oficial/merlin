@@ -626,7 +626,7 @@ const formFieldSchema = z
     type: z.enum(['text', 'email', 'textarea', 'number', 'tel', 'url', 'date', 'select', 'checkbox']),
     required: z.boolean().default(false),
     placeholder: z.string().max(200).optional(),
-    options: z.array(z.string().min(1).max(100)).max(20).optional(),
+    options: z.array(z.string().min(1).max(100)).max(50).optional(),
   })
   .superRefine((field, ctx) => {
     if (field.type === 'select' && (!field.options || field.options.length === 0)) {
