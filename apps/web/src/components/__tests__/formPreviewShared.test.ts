@@ -2,7 +2,10 @@ import {describe, expect, it} from 'vitest';
 
 import {
   FORM_EMAIL_FIELD_KEY,
+  FORM_SELECT_OPTIONS_MAX,
   hydrateEditorFieldOrder,
+  insertPastedOptions,
+  parsePastedOptions,
   toPersistedFieldOrder,
   toPersistedFields,
   type EditorFormField,
@@ -49,5 +52,34 @@ describe('editor field identity helpers', () => {
       FORM_EMAIL_FIELD_KEY,
       'name',
     ]);
+  });
+});
+
+describe('parsePastedOptions', () => {
+  it('splits on newlines, trims, and drops empty lines', () => {
+    expect(parsePastedOptions('Acre\n Bahia \n\nCeará\r\nPiauí')).toEqual(['Acre', 'Bahia', 'Ceará', 'Piauí']);
+  });
+
+  it('strips list prefixes', () => {
+    expect(parsePastedOptions('- Acre\n* Bahia\n1. Ceará')).toEqual(['Acre', 'Bahia', 'Ceará']);
+  });
+});
+
+describe('insertPastedOptions', () => {
+  it('replaces the current option and inserts the rest below', () => {
+    expect(insertPastedOptions(['Option 1', 'Keep'], 0, ['Acre', 'Bahia', 'Ceará'])).toEqual({
+      options: ['Acre', 'Bahia', 'Ceará', 'Keep'],
+      truncated: false,
+    });
+  });
+
+  it('caps at the max and flags truncation', () => {
+    const existing = Array.from({length: 48}, (_, i) => `Keep ${i}`);
+    const pasted = ['A', 'B', 'C', 'D'];
+    const result = insertPastedOptions(existing, 0, pasted);
+
+    expect(result.truncated).toBe(true);
+    expect(result.options).toHaveLength(FORM_SELECT_OPTIONS_MAX);
+    expect(result.options.slice(0, 4)).toEqual(['A', 'B', 'C', 'D']);
   });
 });

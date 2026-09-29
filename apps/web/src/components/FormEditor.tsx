@@ -18,9 +18,12 @@ import {ConfirmationTemplatePicker, useConfirmationTemplate} from './Confirmatio
 import {
   FORM_EMAIL_FIELD_KEY,
   FORM_FIELD_TYPE_OPTIONS,
+  FORM_SELECT_OPTIONS_MAX,
   FormPreview,
   createEditorClientId,
   hydrateEditorFieldOrder,
+  insertPastedOptions,
+  parsePastedOptions,
   reorderFieldsFromOrder,
   toEditorFields,
   toPersistedFieldOrder,
@@ -30,7 +33,7 @@ import {
 import {FormPreviewEditor} from './FormPreviewEditor';
 import {ChevronDown, ChevronUp, GripVertical, Plus, Save, Trash2, X} from 'lucide-react';
 import {useRouter} from 'next/router';
-import {useEffect, useState, type DragEvent} from 'react';
+import {useEffect, useState, type ClipboardEvent, type DragEvent} from 'react';
 import {toast} from 'sonner';
 import useSWR from 'swr';
 
@@ -190,6 +193,36 @@ export function FormEditor({mode, formId}: FormEditorProps) {
         return {...f, options};
       }),
     );
+  };
+
+  const moveFieldOption = (fieldIndex: number, fromIndex: number, toIndex: number) => {
+    setFields(prev =>
+      prev.map((f, i) => {
+        if (i !== fieldIndex) return f;
+        const options = [...(f.options ?? [])];
+        if (fromIndex === toIndex || toIndex < 0 || toIndex >= options.length) return f;
+        const [item] = options.splice(fromIndex, 1);
+        if (item === undefined) return f;
+        options.splice(toIndex, 0, item);
+        return {...f, options};
+      }),
+    );
+  };
+
+  const handleOptionPaste = (fieldIndex: number, optionIndex: number, event: ClipboardEvent<HTMLInputElement>) => {
+    const text = event.clipboardData.getData('text');
+    if (!text.includes('\n') && !text.includes('\r')) return;
+
+    event.preventDefault();
+    const pasted = parsePastedOptions(text);
+    if (pasted.length === 0) return;
+
+    const current = fields[fieldIndex]?.options ?? [];
+    const {options, truncated} = insertPastedOptions(current, optionIndex, pasted);
+    setFields(prev => prev.map((f, i) => (i === fieldIndex ? {...f, options} : f)));
+    if (truncated) {
+      toast.error(`Select fields support up to ${FORM_SELECT_OPTIONS_MAX} options`);
+    }
   };
 
   const removeField = (clientId: string) => {
@@ -519,14 +552,36 @@ export function FormEditor({mode, formId}: FormEditorProps) {
                 {field.type === 'select' && (
                   <div className="space-y-2 pl-1">
                     <Label className="text-xs text-neutral-500">Options</Label>
+                    <p className="text-xs text-neutral-400">Paste a list to add many options at once (one per line)</p>
                     {(field.options ?? []).map((option, optionIndex) => (
                       <div key={optionIndex} className="flex gap-2">
                         <Input
                           value={option}
                           onChange={e => updateFieldOption(fieldIndex, optionIndex, e.target.value)}
+                          onPaste={e => handleOptionPaste(fieldIndex, optionIndex, e)}
                           placeholder={`Option ${optionIndex + 1}`}
                           className="flex-1"
                         />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          disabled={optionIndex === 0}
+                          onClick={() => moveFieldOption(fieldIndex, optionIndex, optionIndex - 1)}
+                          aria-label="Move option up"
+                        >
+                          <ChevronUp className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          disabled={optionIndex === (field.options?.length ?? 0) - 1}
+                          onClick={() => moveFieldOption(fieldIndex, optionIndex, optionIndex + 1)}
+                          aria-label="Move option down"
+                        >
+                          <ChevronDown className="h-4 w-4" />
+                        </Button>
                         <Button type="button" variant="outline" size="sm" onClick={() => removeFieldOption(fieldIndex, optionIndex)}>
                           <X className="h-4 w-4" />
                         </Button>

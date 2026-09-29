@@ -17,8 +17,11 @@ export type {FormFieldValues};
 export {
   FORM_EMAIL_FIELD_KEY,
   FORM_FIELD_TYPE_OPTIONS,
+  FORM_SELECT_OPTIONS_MAX,
   createEditorClientId,
   hydrateEditorFieldOrder,
+  insertPastedOptions,
+  parsePastedOptions,
   reorderFieldsFromOrder,
   resolveEditorFieldOrder,
   resolveFieldOrder,
