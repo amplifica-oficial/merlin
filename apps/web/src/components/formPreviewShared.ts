@@ -2,8 +2,23 @@ import type {FormField, FormFieldType} from '@merlin/types';
 
 export type FormFieldValues = Record<string, string | number | boolean>;
 
+/** Editor-only identity; never sent to the API */
+export type EditorFormField = FormField & {clientId: string};
+
 /** Reserved fieldOrder token for the required email field (not a custom field key) */
 export const FORM_EMAIL_FIELD_KEY = '$email';
+
+export function createEditorClientId(): string {
+  return crypto.randomUUID();
+}
+
+export function toEditorFields(fields: FormField[]): EditorFormField[] {
+  return fields.map(field => ({...field, clientId: createEditorClientId()}));
+}
+
+export function toPersistedFields(fields: EditorFormField[]): FormField[] {
+  return fields.map(({clientId: _clientId, ...field}) => field);
+}
 
 export function resolveFieldOrder(fieldOrder: string[] | undefined, fields: FormField[]): string[] {
   const fieldKeySet = new Set(fields.map(f => f.key));
@@ -35,6 +50,58 @@ export function resolveFieldOrder(fieldOrder: string[] | undefined, fields: Form
   }
 
   return result;
+}
+
+/** Same as resolveFieldOrder, but tokens (except $email) are editor clientIds */
+export function resolveEditorFieldOrder(fieldOrder: string[] | undefined, fields: EditorFormField[]): string[] {
+  const clientIdSet = new Set(fields.map(f => f.clientId));
+  const result: string[] = [];
+  const seen = new Set<string>();
+
+  for (const key of fieldOrder ?? []) {
+    if (key === FORM_EMAIL_FIELD_KEY) {
+      if (!seen.has(key)) {
+        result.push(key);
+        seen.add(key);
+      }
+      continue;
+    }
+    if (clientIdSet.has(key) && !seen.has(key)) {
+      result.push(key);
+      seen.add(key);
+    }
+  }
+
+  if (!seen.has(FORM_EMAIL_FIELD_KEY)) {
+    result.unshift(FORM_EMAIL_FIELD_KEY);
+  }
+
+  for (const field of fields) {
+    if (!seen.has(field.clientId)) {
+      result.push(field.clientId);
+    }
+  }
+
+  return result;
+}
+
+export function hydrateEditorFieldOrder(
+  persistedOrder: string[] | undefined,
+  fields: EditorFormField[],
+): string[] {
+  const keyToClientId = new Map(fields.map(f => [f.key, f.clientId]));
+  return resolveFieldOrder(persistedOrder, fields).map(key =>
+    key === FORM_EMAIL_FIELD_KEY ? key : (keyToClientId.get(key) ?? key),
+  );
+}
+
+export function toPersistedFieldOrder(editorOrder: string[], fields: EditorFormField[]): string[] {
+  const byClientId = new Map(fields.map(f => [f.clientId, f]));
+  return editorOrder.flatMap(id => {
+    if (id === FORM_EMAIL_FIELD_KEY) return [FORM_EMAIL_FIELD_KEY];
+    const field = byClientId.get(id);
+    return field?.key ? [field.key] : [];
+  });
 }
 
 export function reorderFieldsFromOrder(fields: FormField[], fieldOrder: string[]): FormField[] {

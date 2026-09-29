@@ -11,18 +11,18 @@ import {
   FormPreviewShell,
   FormPreviewSubmitButton,
 } from './formPreviewParts';
-import {resolveFieldOrder} from './formPreviewShared';
+import {resolveEditorFieldOrder, type EditorFormField} from './formPreviewShared';
 
 interface FormPreviewEditorProps {
   name: string;
   settings: FormSettings;
-  fields: FormField[];
+  fields: EditorFormField[];
   fieldOrder: string[];
   onSettingsChange: (patch: Partial<FormSettings>) => void;
-  onFieldUpdate: (key: string, patch: Partial<FormField>) => void;
+  onFieldUpdate: (clientId: string, patch: Partial<FormField>) => void;
   onFieldOrderChange: (order: string[]) => void;
   onAddField: () => void;
-  onRemoveField: (key: string) => void;
+  onRemoveField: (clientId: string) => void;
 }
 
 function EditableFieldWrapper({
@@ -99,8 +99,8 @@ export function FormPreviewEditor({
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
-  const orderedKeys = resolveFieldOrder(fieldOrder, fields);
-  const fieldsByKey = new Map(fields.map(f => [f.key, f]));
+  const orderedKeys = resolveEditorFieldOrder(fieldOrder, fields);
+  const fieldsByClientId = new Map(fields.map(f => [f.clientId, f]));
 
   const moveItem = (fromIndex: number, toIndex: number) => {
     if (fromIndex === toIndex || toIndex < 0 || toIndex >= orderedKeys.length) return;
@@ -154,17 +154,21 @@ export function FormPreviewEditor({
           );
         }
 
-        const field = fieldsByKey.get(orderKey);
+        const field = fieldsByClientId.get(orderKey);
         if (!field) return null;
 
         return (
           <EditableFieldWrapper
             key={orderKey}
             index={index}
-            onRemove={() => onRemoveField(field.key)}
+            onRemove={() => onRemoveField(field.clientId)}
             {...wrapperProps}
           >
-            <FormPreviewCustomField field={field} editable onFieldUpdate={onFieldUpdate} />
+            <FormPreviewCustomField
+              field={field}
+              editable
+              onFieldUpdate={(_key, patch) => onFieldUpdate(field.clientId, patch)}
+            />
           </EditableFieldWrapper>
         );
       })}
