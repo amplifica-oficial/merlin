@@ -2,12 +2,16 @@ import {describe, expect, it} from 'vitest';
 
 import {
   BRAZILIAN_STATES,
+  FORM_DEFAULT_BUTTON_LABEL,
   FORM_EMAIL_FIELD_KEY,
   FORM_REDIRECT_COUNTDOWN_SECONDS,
   FORM_SELECT_OPTIONS_MAX,
   hydrateEditorFieldOrder,
   insertPastedOptions,
+  parseFormButtonHexColor,
   parsePastedOptions,
+  resolveFormButtonLabel,
+  resolveFormButtonStyle,
   sortOptionsAlphabetically,
   tickRedirectCountdown,
   toPersistedFieldOrder,
@@ -117,5 +121,47 @@ describe('tickRedirectCountdown', () => {
 
   it('redirects when the countdown is already elapsed', () => {
     expect(tickRedirectCountdown(0)).toEqual({seconds: 0, shouldRedirect: true});
+  });
+});
+
+describe('resolveFormButtonLabel', () => {
+  it('defaults to Subscribe when the label is missing or blank', () => {
+    expect(resolveFormButtonLabel(undefined)).toBe(FORM_DEFAULT_BUTTON_LABEL);
+    expect(resolveFormButtonLabel('')).toBe(FORM_DEFAULT_BUTTON_LABEL);
+    expect(resolveFormButtonLabel('   ')).toBe(FORM_DEFAULT_BUTTON_LABEL);
+  });
+
+  it('uses a custom label when provided', () => {
+    expect(resolveFormButtonLabel('Join waitlist')).toBe('Join waitlist');
+  });
+});
+
+describe('parseFormButtonHexColor', () => {
+  it('accepts 3-digit and 6-digit hex colors', () => {
+    expect(parseFormButtonHexColor('#abc')).toBe('#abc');
+    expect(parseFormButtonHexColor('#AABBCC')).toBe('#AABBCC');
+  });
+
+  it('ignores invalid hex values', () => {
+    expect(parseFormButtonHexColor(undefined)).toBeUndefined();
+    expect(parseFormButtonHexColor('red')).toBeUndefined();
+    expect(parseFormButtonHexColor('#gg0000')).toBeUndefined();
+    expect(parseFormButtonHexColor('#1234')).toBeUndefined();
+  });
+});
+
+describe('resolveFormButtonStyle', () => {
+  it('returns no style when colors are unset', () => {
+    expect(resolveFormButtonStyle({})).toBeUndefined();
+  });
+
+  it('applies valid custom colors and ignores invalid ones', () => {
+    expect(resolveFormButtonStyle({buttonColor: '#2563eb', buttonTextColor: '#fff'})).toEqual({
+      backgroundColor: '#2563eb',
+      color: '#fff',
+    });
+    expect(resolveFormButtonStyle({buttonColor: 'blue', buttonTextColor: '#111111'})).toEqual({
+      color: '#111111',
+    });
   });
 });

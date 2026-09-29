@@ -178,7 +178,7 @@ export function FormPreviewEditor({
         Add field
       </Button>
 
-      <FormPreviewSubmitButton editable />
+      <FormPreviewSubmitButton editable settings={settings} />
     </FormPreviewShell>
   );
 }

@@ -199,6 +199,9 @@ export class FormService {
         redirectUrl: settings.redirectUrl,
         emailPlaceholder: settings.emailPlaceholder,
         fieldOrder: settings.fieldOrder,
+        buttonLabel: settings.buttonLabel,
+        buttonTextColor: settings.buttonTextColor,
+        buttonColor: settings.buttonColor,
       },
       language: form.project.language || DEFAULT_LANGUAGE,
     };

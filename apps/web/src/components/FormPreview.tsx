@@ -22,6 +22,7 @@ export {
   createEditorClientId,
   hydrateEditorFieldOrder,
   insertPastedOptions,
+  parseFormButtonHexColor,
   parsePastedOptions,
   reorderFieldsFromOrder,
   sortOptionsAlphabetically,
@@ -182,7 +183,12 @@ export function FormPreview({
         )}
       </AnimatePresence>
 
-      <FormPreviewSubmitButton interactive={isInteractive} submitting={submitting} disabled={disabled} />
+      <FormPreviewSubmitButton
+        interactive={isInteractive}
+        submitting={submitting}
+        disabled={disabled}
+        settings={settings}
+      />
     </>
   );
 
