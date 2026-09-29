@@ -651,6 +651,15 @@ const formSettingsSchema = z.object({
   tags: z.record(z.union([z.string(), z.boolean(), z.number()])).optional(),
   eventName: z.string().min(1).max(100).optional(),
   verifyEmail: z.boolean().default(false),
+  buttonLabel: z.string().max(50).optional(),
+  buttonTextColor: z
+    .string()
+    .regex(/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/, 'Must be a hex color')
+    .optional(),
+  buttonColor: z
+    .string()
+    .regex(/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/, 'Must be a hex color')
+    .optional(),
 });
 
 const landingPageSettingsSchema = z.object({

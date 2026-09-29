@@ -2,7 +2,13 @@ import {Button, Card, CardContent, IconSpinner, Input, Label, Textarea} from '@m
 import type {FormField, FormSettings} from '@merlin/types';
 import {useState} from 'react';
 
-import {FORM_EMAIL_FIELD_KEY, getFormFieldInputType, selectClassName} from './formPreviewShared';
+import {
+  FORM_EMAIL_FIELD_KEY,
+  getFormFieldInputType,
+  resolveFormButtonLabel,
+  resolveFormButtonStyle,
+  selectClassName,
+} from './formPreviewShared';
 
 const editingRingClass = 'ring-2 ring-blue-200 border-blue-300';
 
@@ -499,18 +505,24 @@ export function FormPreviewSubmitButton({
   interactive,
   submitting,
   disabled,
+  settings,
 }: {
   editable?: boolean;
   interactive?: boolean;
   submitting?: boolean;
   disabled?: boolean;
+  settings?: Pick<FormSettings, 'buttonLabel' | 'buttonColor' | 'buttonTextColor'>;
 }) {
+  const label = resolveFormButtonLabel(settings?.buttonLabel);
+  const style = resolveFormButtonStyle(settings ?? {});
+
   return (
     <Button
       type={interactive ? 'submit' : 'button'}
       className={`w-full ${editable ? 'pointer-events-none' : ''}`}
       disabled={disabled || submitting}
       tabIndex={editable ? -1 : undefined}
+      style={style}
     >
       {submitting ? (
         <span className="flex items-center justify-center gap-2">
@@ -518,7 +530,7 @@ export function FormPreviewSubmitButton({
           Submitting...
         </span>
       ) : (
-        'Subscribe'
+        label
       )}
     </Button>
   );

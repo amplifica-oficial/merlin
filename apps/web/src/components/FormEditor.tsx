@@ -24,6 +24,7 @@ import {
   createEditorClientId,
   hydrateEditorFieldOrder,
   insertPastedOptions,
+  parseFormButtonHexColor,
   parsePastedOptions,
   reorderFieldsFromOrder,
   sortOptionsAlphabetically,
@@ -48,6 +49,58 @@ function slugify(name: string): string {
     .replace(/-+/g, '-')
     .replace(/^-+|-+$/g, '')
     .slice(0, 50);
+}
+
+const FORM_DEFAULT_BUTTON_COLOR = '#171717';
+const FORM_DEFAULT_BUTTON_TEXT_COLOR = '#fafafa';
+
+function toColorInputValue(hex: string | undefined, fallback: string): string {
+  const parsed = parseFormButtonHexColor(hex) ?? fallback;
+  if (/^#[0-9a-fA-F]{3}$/.test(parsed)) {
+    return `#${parsed[1]}${parsed[1]}${parsed[2]}${parsed[2]}${parsed[3]}${parsed[3]}`;
+  }
+  return parsed;
+}
+
+function FormButtonColorField({
+  id,
+  label,
+  value,
+  fallback,
+  onChange,
+}: {
+  id: string;
+  label: string;
+  value?: string;
+  fallback: string;
+  onChange: (value: string | undefined) => void;
+}) {
+  return (
+    <div className="space-y-2">
+      <Label htmlFor={id}>{label}</Label>
+      <div className="flex items-center gap-2">
+        <input
+          id={id}
+          type="color"
+          value={toColorInputValue(value, fallback)}
+          onChange={e => onChange(e.target.value)}
+          className="h-9 w-12 cursor-pointer rounded-md border border-neutral-200 bg-white p-1"
+        />
+        <Input
+          value={value ?? ''}
+          onChange={e => onChange(e.target.value || undefined)}
+          placeholder={fallback}
+          className="font-mono"
+          aria-label={`${label} hex`}
+        />
+        {value ? (
+          <Button type="button" variant="outline" size="sm" onClick={() => onChange(undefined)}>
+            Reset
+          </Button>
+        ) : null}
+      </div>
+    </div>
+  );
 }
 
 interface FormEditorProps {
@@ -294,6 +347,9 @@ export function FormEditor({mode, formId}: FormEditorProps) {
     const persistedFieldOrder = toPersistedFieldOrder(fieldOrder, fields);
     const settingsPayload: FormSettings = {
       ...settings,
+      buttonLabel: settings.buttonLabel?.trim() || undefined,
+      buttonColor: parseFormButtonHexColor(settings.buttonColor),
+      buttonTextColor: parseFormButtonHexColor(settings.buttonTextColor),
       fieldOrder: persistedFieldOrder,
       tags: Object.keys(tagsRecord).length > 0 ? tagsRecord : undefined,
     };
@@ -406,6 +462,29 @@ export function FormEditor({mode, formId}: FormEditorProps) {
               placeholder="Get updates delivered to your inbox"
             />
           </div>
+          <div className="space-y-2">
+            <Label htmlFor="buttonLabel">Button text</Label>
+            <Input
+              id="buttonLabel"
+              value={settings.buttonLabel ?? ''}
+              onChange={e => setSettings(s => ({...s, buttonLabel: e.target.value || undefined}))}
+              placeholder="Subscribe"
+            />
+          </div>
+          <FormButtonColorField
+            id="buttonTextColor"
+            label="Button text color"
+            value={settings.buttonTextColor}
+            fallback={FORM_DEFAULT_BUTTON_TEXT_COLOR}
+            onChange={value => setSettings(s => ({...s, buttonTextColor: value}))}
+          />
+          <FormButtonColorField
+            id="buttonColor"
+            label="Button color"
+            value={settings.buttonColor}
+            fallback={FORM_DEFAULT_BUTTON_COLOR}
+            onChange={value => setSettings(s => ({...s, buttonColor: value}))}
+          />
           <div className="space-y-2">
             <Label htmlFor="successMessage">Success message</Label>
             <Input

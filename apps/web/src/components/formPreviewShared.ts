@@ -126,6 +126,36 @@ export function reorderFieldsFromOrder(fields: FormField[], fieldOrder: string[]
 
 export const FORM_SELECT_OPTIONS_MAX = 42;
 
+export const FORM_DEFAULT_BUTTON_LABEL = 'Subscribe';
+export const FORM_BUTTON_HEX_COLOR_REGEX = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/;
+
+export function resolveFormButtonLabel(label?: string): string {
+  const trimmed = label?.trim();
+  return trimmed ? trimmed : FORM_DEFAULT_BUTTON_LABEL;
+}
+
+export function parseFormButtonHexColor(value?: string): string | undefined {
+  if (!value || !FORM_BUTTON_HEX_COLOR_REGEX.test(value)) {
+    return undefined;
+  }
+  return value;
+}
+
+export function resolveFormButtonStyle(settings: {
+  buttonColor?: string;
+  buttonTextColor?: string;
+}): {backgroundColor?: string; color?: string} | undefined {
+  const backgroundColor = parseFormButtonHexColor(settings.buttonColor);
+  const color = parseFormButtonHexColor(settings.buttonTextColor);
+  if (!backgroundColor && !color) {
+    return undefined;
+  }
+  return {
+    ...(backgroundColor ? {backgroundColor} : {}),
+    ...(color ? {color} : {}),
+  };
+}
+
 export const FORM_REDIRECT_COUNTDOWN_SECONDS = 3;
 
 export function tickRedirectCountdown(seconds: number): {seconds: number; shouldRedirect: boolean} {

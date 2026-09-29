@@ -40,6 +40,12 @@ export interface FormSettings {
   eventName?: string;
   /** Validate email (disposable, MX) on submit */
   verifyEmail?: boolean;
+  /** Submit button label; omitted → Subscribe */
+  buttonLabel?: string;
+  /** Submit button text color (hex) */
+  buttonTextColor?: string;
+  /** Submit button background color (hex) */
+  buttonColor?: string;
 }
 
 /** Public-facing form config returned by GET /forms/public/:publicId */
@@ -47,7 +53,18 @@ export interface PublicFormConfig {
   publicId: string;
   name: string;
   fields: FormField[];
-  settings: Pick<FormSettings, 'title' | 'description' | 'successMessage' | 'redirectUrl' | 'emailPlaceholder' | 'fieldOrder'>;
+  settings: Pick<
+    FormSettings,
+    | 'title'
+    | 'description'
+    | 'successMessage'
+    | 'redirectUrl'
+    | 'emailPlaceholder'
+    | 'fieldOrder'
+    | 'buttonLabel'
+    | 'buttonTextColor'
+    | 'buttonColor'
+  >;
   language: string;
 }
 
