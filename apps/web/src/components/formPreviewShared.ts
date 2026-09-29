@@ -124,7 +124,7 @@ export function reorderFieldsFromOrder(fields: FormField[], fieldOrder: string[]
   return ordered;
 }
 
-export const FORM_SELECT_OPTIONS_MAX = 50;
+export const FORM_SELECT_OPTIONS_MAX = 42;
 
 /** Official UF names, alphabetical, within the select options cap */
 export const BRAZILIAN_STATES = [
