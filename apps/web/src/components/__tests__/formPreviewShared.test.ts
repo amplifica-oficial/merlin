@@ -1,11 +1,13 @@
 import {describe, expect, it} from 'vitest';
 
 import {
+  BRAZILIAN_STATES,
   FORM_EMAIL_FIELD_KEY,
   FORM_SELECT_OPTIONS_MAX,
   hydrateEditorFieldOrder,
   insertPastedOptions,
   parsePastedOptions,
+  sortOptionsAlphabetically,
   toPersistedFieldOrder,
   toPersistedFields,
   type EditorFormField,
@@ -81,5 +83,25 @@ describe('insertPastedOptions', () => {
     expect(result.truncated).toBe(true);
     expect(result.options).toHaveLength(FORM_SELECT_OPTIONS_MAX);
     expect(result.options.slice(0, 4)).toEqual(['A', 'B', 'C', 'D']);
+  });
+});
+
+describe('sortOptionsAlphabetically', () => {
+  it('sorts with Portuguese collation', () => {
+    expect(sortOptionsAlphabetically(['São Paulo', 'Acre', 'Ceará', 'Bahia'])).toEqual([
+      'Acre',
+      'Bahia',
+      'Ceará',
+      'São Paulo',
+    ]);
+  });
+});
+
+describe('BRAZILIAN_STATES', () => {
+  it('lists 27 unique states within the options cap', () => {
+    expect(BRAZILIAN_STATES).toHaveLength(27);
+    expect(new Set(BRAZILIAN_STATES).size).toBe(27);
+    expect(BRAZILIAN_STATES.length).toBeLessThanOrEqual(FORM_SELECT_OPTIONS_MAX);
+    expect([...BRAZILIAN_STATES]).toEqual(sortOptionsAlphabetically([...BRAZILIAN_STATES]));
   });
 });

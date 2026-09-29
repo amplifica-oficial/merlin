@@ -126,6 +126,41 @@ export function reorderFieldsFromOrder(fields: FormField[], fieldOrder: string[]
 
 export const FORM_SELECT_OPTIONS_MAX = 50;
 
+/** Official UF names, alphabetical, within the select options cap */
+export const BRAZILIAN_STATES = [
+  'Acre',
+  'Alagoas',
+  'Amapá',
+  'Amazonas',
+  'Bahia',
+  'Ceará',
+  'Distrito Federal',
+  'Espírito Santo',
+  'Goiás',
+  'Maranhão',
+  'Mato Grosso',
+  'Mato Grosso do Sul',
+  'Minas Gerais',
+  'Pará',
+  'Paraíba',
+  'Paraná',
+  'Pernambuco',
+  'Piauí',
+  'Rio de Janeiro',
+  'Rio Grande do Norte',
+  'Rio Grande do Sul',
+  'Rondônia',
+  'Roraima',
+  'Santa Catarina',
+  'São Paulo',
+  'Sergipe',
+  'Tocantins',
+] as const;
+
+export function sortOptionsAlphabetically(options: string[]): string[] {
+  return [...options].sort((a, b) => a.localeCompare(b, 'pt-BR', {sensitivity: 'base'}));
+}
+
 const PASTED_OPTION_PREFIX = /^(?:[-*]\s+|\d+\.\s+)/;
 
 export function parsePastedOptions(text: string): string[] {

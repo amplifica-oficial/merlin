@@ -15,6 +15,7 @@ import type {FormField, FormSettings} from '@merlin/types';
 
 export type {FormFieldValues};
 export {
+  BRAZILIAN_STATES,
   FORM_EMAIL_FIELD_KEY,
   FORM_FIELD_TYPE_OPTIONS,
   FORM_SELECT_OPTIONS_MAX,
@@ -23,6 +24,7 @@ export {
   insertPastedOptions,
   parsePastedOptions,
   reorderFieldsFromOrder,
+  sortOptionsAlphabetically,
   resolveEditorFieldOrder,
   resolveFieldOrder,
   toEditorFields,
