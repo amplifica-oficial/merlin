@@ -137,7 +137,7 @@ export function FormPreviewEditor({
   };
 
   return (
-    <FormPreviewShell>
+    <FormPreviewShell settings={settings}>
       <FormPreviewHeader name={name} settings={settings} compact editable onSettingsChange={onSettingsChange} />
 
       {orderedKeys.map((orderKey, index) => {

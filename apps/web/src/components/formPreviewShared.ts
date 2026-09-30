@@ -1,4 +1,14 @@
-import type {FormField, FormFieldType} from '@merlin/types';
+import type {FormField, FormFieldType, FormSettings} from '@merlin/types';
+
+import {
+  FORM_APPEARANCE_DEFAULTS,
+  FORM_COLOR_THEMES,
+  FORM_COLOR_TOKEN_KEYS,
+  type FormColorThemeId,
+  type FormColorTokens,
+} from '../lib/formColorThemes';
+
+export {applyFormColorTheme} from '../lib/formColorThemes';
 
 export type FormFieldValues = Record<string, string | number | boolean>;
 
@@ -154,6 +164,74 @@ export function resolveFormButtonStyle(settings: {
     ...(backgroundColor ? {backgroundColor} : {}),
     ...(color ? {color} : {}),
   };
+}
+
+export type FormAppearance = {
+  tokens: FormColorTokens;
+  wrapperStyle: {
+    backgroundColor: string;
+    borderColor: string;
+    '--form-placeholder': string;
+  };
+  titleStyle: {color: string};
+  descriptionStyle: {color: string};
+  labelStyle: {color: string};
+  inputStyle: {
+    backgroundColor: string;
+    borderColor: string;
+    color: string;
+  };
+  successStyle: {color: string};
+  errorStyle: {color: string};
+  buttonStyle: {backgroundColor: string; color: string};
+};
+
+export function resolveFormAppearanceTokens(settings?: Partial<FormSettings>): FormColorTokens {
+  const tokens = {...FORM_APPEARANCE_DEFAULTS};
+  for (const key of FORM_COLOR_TOKEN_KEYS) {
+    const parsed = parseFormButtonHexColor(settings?.[key]);
+    if (parsed) {
+      tokens[key] = parsed;
+    }
+  }
+  return tokens;
+}
+
+export function resolveFormAppearance(settings?: Partial<FormSettings>): FormAppearance {
+  const tokens = resolveFormAppearanceTokens(settings);
+  return {
+    tokens,
+    wrapperStyle: {
+      backgroundColor: tokens.formBackgroundColor,
+      borderColor: tokens.inputBorderColor,
+      '--form-placeholder': tokens.inputPlaceholderColor,
+    },
+    titleStyle: {color: tokens.titleColor},
+    descriptionStyle: {color: tokens.descriptionColor},
+    labelStyle: {color: tokens.labelColor},
+    inputStyle: {
+      backgroundColor: tokens.inputBackgroundColor,
+      borderColor: tokens.inputBorderColor,
+      color: tokens.inputTextColor,
+    },
+    successStyle: {color: tokens.successColor},
+    errorStyle: {color: tokens.errorColor},
+    buttonStyle: {
+      backgroundColor: tokens.buttonColor,
+      color: tokens.buttonTextColor,
+    },
+  };
+}
+
+export function getActiveFormColorThemeId(settings?: Partial<FormSettings>): FormColorThemeId | undefined {
+  const tokens = resolveFormAppearanceTokens(settings);
+  for (const theme of Object.values(FORM_COLOR_THEMES)) {
+    const matches = FORM_COLOR_TOKEN_KEYS.every(key => tokens[key].toLowerCase() === theme[key].toLowerCase());
+    if (matches) {
+      return theme.id;
+    }
+  }
+  return undefined;
 }
 
 export const FORM_REDIRECT_COUNTDOWN_SECONDS = 3;

@@ -1,15 +1,19 @@
 import {describe, expect, it} from 'vitest';
 
+import {FORM_COLOR_THEMES} from '../../lib/formColorThemes';
 import {
   BRAZILIAN_STATES,
   FORM_DEFAULT_BUTTON_LABEL,
   FORM_EMAIL_FIELD_KEY,
   FORM_REDIRECT_COUNTDOWN_SECONDS,
   FORM_SELECT_OPTIONS_MAX,
+  applyFormColorTheme,
+  getActiveFormColorThemeId,
   hydrateEditorFieldOrder,
   insertPastedOptions,
   parseFormButtonHexColor,
   parsePastedOptions,
+  resolveFormAppearance,
   resolveFormButtonLabel,
   resolveFormButtonStyle,
   sortOptionsAlphabetically,
@@ -163,5 +167,61 @@ describe('resolveFormButtonStyle', () => {
     expect(resolveFormButtonStyle({buttonColor: 'blue', buttonTextColor: '#111111'})).toEqual({
       color: '#111111',
     });
+  });
+});
+
+describe('resolveFormAppearance', () => {
+  it('uses the current look when settings are empty', () => {
+    const appearance = resolveFormAppearance({});
+
+    expect(appearance.wrapperStyle.backgroundColor).toBe('#ffffff');
+    expect(appearance.wrapperStyle.borderColor).toBe('#e5e5e5');
+    expect(appearance.wrapperStyle['--form-placeholder']).toBe('#737373');
+    expect(appearance.titleStyle).toEqual({color: '#171717'});
+    expect(appearance.descriptionStyle).toEqual({color: '#737373'});
+    expect(appearance.labelStyle).toEqual({color: '#171717'});
+    expect(appearance.inputStyle).toEqual({
+      backgroundColor: '#ffffff',
+      borderColor: '#e5e5e5',
+      color: '#171717',
+    });
+    expect(appearance.successStyle).toEqual({color: '#16a34a'});
+    expect(appearance.errorStyle).toEqual({color: '#ef4444'});
+    expect(appearance.buttonStyle).toEqual({backgroundColor: '#171717', color: '#fafafa'});
+  });
+
+  it('applies valid hex tokens', () => {
+    const appearance = resolveFormAppearance({
+      formBackgroundColor: '#0f172a',
+      titleColor: '#2563eb',
+      buttonColor: '#fff',
+    });
+
+    expect(appearance.wrapperStyle.backgroundColor).toBe('#0f172a');
+    expect(appearance.titleStyle).toEqual({color: '#2563eb'});
+    expect(appearance.buttonStyle.backgroundColor).toBe('#fff');
+  });
+
+  it('ignores invalid hex and keeps defaults', () => {
+    const appearance = resolveFormAppearance({
+      titleColor: 'red',
+      buttonColor: '#gg0000',
+      errorColor: '#1234',
+    });
+
+    expect(appearance.titleStyle).toEqual({color: '#171717'});
+    expect(appearance.buttonStyle.backgroundColor).toBe('#171717');
+    expect(appearance.errorStyle).toEqual({color: '#ef4444'});
+  });
+
+  it('matches the dark palette const', () => {
+    const dark = applyFormColorTheme('dark');
+    const appearance = resolveFormAppearance(dark);
+
+    expect(appearance.tokens.formBackgroundColor).toBe(FORM_COLOR_THEMES.dark.formBackgroundColor);
+    expect(appearance.tokens.titleColor).toBe(FORM_COLOR_THEMES.dark.titleColor);
+    expect(appearance.tokens.buttonColor).toBe(FORM_COLOR_THEMES.dark.buttonColor);
+    expect(appearance.tokens.buttonTextColor).toBe(FORM_COLOR_THEMES.dark.buttonTextColor);
+    expect(getActiveFormColorThemeId(dark)).toBe('dark');
   });
 });
