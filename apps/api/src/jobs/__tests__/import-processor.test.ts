@@ -4,7 +4,7 @@ import {factories, getPrismaClient} from '../../../../../test/helpers';
 import {ContactService} from '../../services/ContactService.js';
 import {EmailService} from '../../services/EmailService.js';
 import {EventService} from '../../services/EventService.js';
-import {coerceCustomValue, processImportContactRow} from '../import-processor.js';
+import {coerceCustomValue, mapImportCustomFieldValue, processImportContactRow} from '../import-processor.js';
 
 vi.mock('../../services/EventService.js', () => ({
   EventService: {
@@ -536,5 +536,49 @@ describe('coerceCustomValue', () => {
     it('leaves empty string as empty string', () => {
       expect(coerceCustomValue('')).toBe('');
     });
+  });
+});
+
+describe('mapImportCustomFieldValue', () => {
+  it.each(['DELETE', 'delete', 'Delete', ' delete '])('maps %j to null so merge can drop the key', value => {
+    expect(mapImportCustomFieldValue(value)).toBeNull();
+  });
+
+  it('does not treat "deleted" as a sentinel', () => {
+    expect(mapImportCustomFieldValue('deleted')).toBe('deleted');
+  });
+});
+
+describe('Contact Import - DELETE custom fields', () => {
+  let projectId: string;
+  const prisma = getPrismaClient();
+
+  beforeEach(async () => {
+    const {project} = await factories.createUserWithProject();
+    projectId = project.id;
+  });
+
+  it('removes existing keys when the CSV value is DELETE and merges the rest', async () => {
+    await factories.createContact({
+      projectId,
+      email: 'bulk-delete@example.com',
+      data: {firstName: 'Jane', lastName: 'Doe', plan: 'pro'},
+    });
+
+    const result = await processImportContactRow({
+      projectId,
+      record: {email: 'bulk-delete@example.com', firstName: 'DELETE', lastName: 'Smith'},
+      doubleOptIn: false,
+      confirmationEventName: 'contact.imported',
+      filename: 'contacts.csv',
+    });
+
+    expect(result).toEqual({success: true, isUpdate: true});
+
+    const contact = await prisma.contact.findFirst({
+      where: {projectId, email: 'bulk-delete@example.com'},
+    });
+
+    expect(contact?.data).toEqual({lastName: 'Smith', plan: 'pro'});
   });
 });

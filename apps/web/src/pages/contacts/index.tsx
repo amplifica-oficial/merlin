@@ -1150,7 +1150,7 @@ function ImportContactsDialog({open, onOpenChange, onSuccess}: ImportContactsDia
           <div className="space-y-4">
             {/* Instructions */}
             <div className="text-sm text-neutral-500 space-y-1">
-              <p>Required column: <code className="text-neutral-700 bg-neutral-100 px-1 py-0.5 rounded text-xs">email</code>. Optional: <code className="text-neutral-700 bg-neutral-100 px-1 py-0.5 rounded text-xs">subscribed</code> (true/false) and any custom fields. Max 5MB.</p>
+              <p>Required column: <code className="text-neutral-700 bg-neutral-100 px-1 py-0.5 rounded text-xs">email</code>. Optional: <code className="text-neutral-700 bg-neutral-100 px-1 py-0.5 rounded text-xs">subscribed</code> (true/false) and any custom fields. Use <code className="text-neutral-700 bg-neutral-100 px-1 py-0.5 rounded text-xs">DELETE</code> as a custom field value to remove that key. Max 5MB.</p>
             </div>
 
             {/* File Upload */}

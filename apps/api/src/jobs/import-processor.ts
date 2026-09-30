@@ -235,7 +235,7 @@ export async function processImportContactRow(
   const customEntries = Object.entries(customData);
   const data =
     customEntries.length > 0
-      ? Object.fromEntries(customEntries.map(([k, v]) => [k, coerceCustomValue(v)]))
+      ? Object.fromEntries(customEntries.map(([k, v]) => [k, mapImportCustomFieldValue(v)]))
       : undefined;
 
   const existingContact = await ContactService.findByEmail(projectId, email);
@@ -296,4 +296,11 @@ export function coerceCustomValue(value: string): string | boolean | number {
   if (BOOLEAN_FALSE.has(lower)) return false;
   if (NUMERIC_RE.test(trimmed)) return Number(trimmed);
   return value;
+}
+
+export function mapImportCustomFieldValue(value: string): string | boolean | number | null {
+  if (value.trim().toLowerCase() === 'delete') {
+    return null;
+  }
+  return coerceCustomValue(value);
 }

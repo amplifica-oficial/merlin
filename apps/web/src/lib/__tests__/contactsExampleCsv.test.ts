@@ -9,7 +9,7 @@ describe('buildContactsExampleCsv', () => {
     expect(csv.startsWith('\uFEFF')).toBe(true);
     expect(csv).toContain('email,subscribed,firstName,lastName');
     expect(csv).toContain('jane@example.com,true,Jane,Doe');
-    expect(csv).toContain('john@example.com,false,John,Smith');
+    expect(csv).toContain('john@example.com,false,DELETE,Smith');
     expect(CONTACTS_EXAMPLE_CSV_FILENAME).toBe('contacts-example.csv');
   });
 });

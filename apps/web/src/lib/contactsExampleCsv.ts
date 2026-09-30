@@ -3,7 +3,7 @@ export const CONTACTS_EXAMPLE_CSV_FILENAME = 'contacts-example.csv';
 const EXAMPLE_ROWS = [
   'email,subscribed,firstName,lastName',
   'jane@example.com,true,Jane,Doe',
-  'john@example.com,false,John,Smith',
+  'john@example.com,false,DELETE,Smith',
 ];
 
 export function buildContactsExampleCsv(): string {
