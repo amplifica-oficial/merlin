@@ -638,6 +638,10 @@ const formFieldSchema = z
     }
   });
 
+const hexColor = z
+  .string()
+  .regex(/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/, 'Must be a hex color');
+
 const formSettingsSchema = z.object({
   title: z.string().max(200).optional(),
   description: z.string().max(1000).optional(),
@@ -652,14 +656,19 @@ const formSettingsSchema = z.object({
   eventName: z.string().min(1).max(100).optional(),
   verifyEmail: z.boolean().default(false),
   buttonLabel: z.string().max(50).optional(),
-  buttonTextColor: z
-    .string()
-    .regex(/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/, 'Must be a hex color')
-    .optional(),
-  buttonColor: z
-    .string()
-    .regex(/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/, 'Must be a hex color')
-    .optional(),
+  buttonTextColor: hexColor.optional(),
+  buttonColor: hexColor.optional(),
+  formBackgroundColor: hexColor.optional(),
+  titleColor: hexColor.optional(),
+  descriptionColor: hexColor.optional(),
+  labelColor: hexColor.optional(),
+  inputBackgroundColor: hexColor.optional(),
+  inputBorderColor: hexColor.optional(),
+  inputTextColor: hexColor.optional(),
+  inputPlaceholderColor: hexColor.optional(),
+  successColor: hexColor.optional(),
+  errorColor: hexColor.optional(),
+  themeId: z.enum(['default', 'dark', 'slate', 'ocean']).optional(),
 });
 
 const landingPageSettingsSchema = z.object({

@@ -22,6 +22,8 @@ export interface FormField {
   options?: string[];
 }
 
+export type FormColorThemeId = 'default' | 'dark' | 'slate' | 'ocean';
+
 export interface FormSettings {
   title?: string;
   description?: string;
@@ -46,6 +48,19 @@ export interface FormSettings {
   buttonTextColor?: string;
   /** Submit button background color (hex) */
   buttonColor?: string;
+  /** Form card background (hex) */
+  formBackgroundColor?: string;
+  titleColor?: string;
+  descriptionColor?: string;
+  labelColor?: string;
+  inputBackgroundColor?: string;
+  inputBorderColor?: string;
+  inputTextColor?: string;
+  inputPlaceholderColor?: string;
+  successColor?: string;
+  errorColor?: string;
+  /** Last applied palette; hex overrides may deselect it */
+  themeId?: FormColorThemeId;
 }
 
 /** Public-facing form config returned by GET /forms/public/:publicId */
@@ -64,6 +79,17 @@ export interface PublicFormConfig {
     | 'buttonLabel'
     | 'buttonTextColor'
     | 'buttonColor'
+    | 'formBackgroundColor'
+    | 'titleColor'
+    | 'descriptionColor'
+    | 'labelColor'
+    | 'inputBackgroundColor'
+    | 'inputBorderColor'
+    | 'inputTextColor'
+    | 'inputPlaceholderColor'
+    | 'successColor'
+    | 'errorColor'
+    | 'themeId'
   >;
   language: string;
 }
