@@ -7,12 +7,23 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+  cn,
   Input,
   Label,
 } from '@merlin/ui';
 import type {FormField, FormFieldType, FormSettings} from '@merlin/types';
 import type {Segment} from '@merlin/db';
 import {FormSchemas} from '@merlin/shared';
+import {
+  FORM_APPEARANCE_DEFAULTS,
+  FORM_COLOR_THEMES,
+  FORM_COLOR_THEME_LIST,
+  FORM_COLOR_TOKEN_FIELDS,
+  FORM_COLOR_TOKEN_KEYS,
+} from '../lib/formColorThemes';
 import {network} from '../lib/network';
 import {ConfirmationTemplatePicker, useConfirmationTemplate} from './ConfirmationTemplatePicker';
 import {
@@ -21,7 +32,9 @@ import {
   FORM_FIELD_TYPE_OPTIONS,
   FORM_SELECT_OPTIONS_MAX,
   FormPreview,
+  applyFormColorTheme,
   createEditorClientId,
+  getActiveFormColorThemeId,
   hydrateEditorFieldOrder,
   insertPastedOptions,
   parseFormButtonHexColor,
@@ -36,7 +49,7 @@ import {
 import {FormPreviewEditor} from './FormPreviewEditor';
 import {ArrowDownAZ, ChevronDown, ChevronUp, GripVertical, Plus, Save, Trash2, X} from 'lucide-react';
 import {useRouter} from 'next/router';
-import {useEffect, useState, type ClipboardEvent, type DragEvent} from 'react';
+import {useEffect, useState, type ClipboardEvent, type DragEvent, type ReactNode} from 'react';
 import {toast} from 'sonner';
 import useSWR from 'swr';
 
@@ -51,9 +64,6 @@ function slugify(name: string): string {
     .slice(0, 50);
 }
 
-const FORM_DEFAULT_BUTTON_COLOR = '#171717';
-const FORM_DEFAULT_BUTTON_TEXT_COLOR = '#fafafa';
-
 function toColorInputValue(hex: string | undefined, fallback: string): string {
   const parsed = parseFormButtonHexColor(hex) ?? fallback;
   if (/^#[0-9a-fA-F]{3}$/.test(parsed)) {
@@ -62,7 +72,7 @@ function toColorInputValue(hex: string | undefined, fallback: string): string {
   return parsed;
 }
 
-function FormButtonColorField({
+function FormColorField({
   id,
   label,
   value,
@@ -103,6 +113,92 @@ function FormButtonColorField({
   );
 }
 
+const DEFAULT_SUCCESS_MESSAGE = 'Thanks for signing up!';
+const DEFAULT_FORM_TAGS: Array<{key: string; value: string}> = [{key: 'source', value: 'form'}];
+
+function isDefaultFormTags(tags: Array<{key: string; value: string}>): boolean {
+  return tags.length === 1 && tags[0]?.key === 'source' && tags[0]?.value === 'form';
+}
+
+function appearanceHint(settings: FormSettings): string | undefined {
+  const themeId = getActiveFormColorThemeId(settings);
+  if (themeId === 'default') return undefined;
+  if (!themeId) return 'Custom';
+  return FORM_COLOR_THEMES[themeId].label;
+}
+
+function afterSubmitHint(settings: FormSettings): string | undefined {
+  if (settings.redirectUrl) return 'Redirect';
+  if (settings.successMessage && settings.successMessage !== DEFAULT_SUCCESS_MESSAGE) return 'Custom message';
+  return undefined;
+}
+
+function destinationHint(
+  tab: 'static' | 'dynamic',
+  tags: Array<{key: string; value: string}>,
+): string | undefined {
+  if (tab === 'static') return 'Static segment';
+  if (!isDefaultFormTags(tags)) return 'Custom tags';
+  return undefined;
+}
+
+function optionsHint(settings: FormSettings): string | undefined {
+  if (settings.doubleOptIn) return 'Double opt-in';
+  if (settings.verifyEmail) return 'Validate email';
+  return undefined;
+}
+
+function shouldOpenAppearance(settings: FormSettings): boolean {
+  return getActiveFormColorThemeId(settings) !== 'default';
+}
+
+function shouldOpenAfterSubmit(settings: FormSettings): boolean {
+  return Boolean(settings.redirectUrl) || Boolean(settings.successMessage && settings.successMessage !== DEFAULT_SUCCESS_MESSAGE);
+}
+
+function FormEditorCollapsibleCard({
+  title,
+  description,
+  hint,
+  open,
+  onOpenChange,
+  children,
+}: {
+  title: string;
+  description: string;
+  hint?: string;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  children: ReactNode;
+}) {
+  return (
+    <Collapsible open={open} onOpenChange={onOpenChange}>
+      <Card>
+        <CardHeader className="p-0">
+          <CollapsibleTrigger asChild>
+            <button
+              type="button"
+              className="flex w-full items-start justify-between gap-3 p-6 text-left hover:bg-neutral-50/80"
+            >
+              <span className="flex min-w-0 flex-col gap-1.5">
+                <span className="font-semibold leading-none tracking-tight">{title}</span>
+                <span className="text-sm text-neutral-500">{description}</span>
+              </span>
+              <span className="flex items-center gap-2 shrink-0 pt-0.5">
+                {!open && hint ? <span className="text-xs font-medium text-neutral-500">{hint}</span> : null}
+                <ChevronDown className={cn('h-4 w-4 text-neutral-400 transition-transform', open && 'rotate-180')} />
+              </span>
+            </button>
+          </CollapsibleTrigger>
+        </CardHeader>
+        <CollapsibleContent>
+          <CardContent className="space-y-4">{children}</CardContent>
+        </CollapsibleContent>
+      </Card>
+    </Collapsible>
+  );
+}
+
 interface FormEditorProps {
   mode: 'create' | 'edit';
   formId?: string;
@@ -125,11 +221,11 @@ export function FormEditor({mode, formId}: FormEditorProps) {
   const [destinationTab, setDestinationTab] = useState<'static' | 'dynamic'>('dynamic');
   const [segmentId, setSegmentId] = useState<string>('');
   const [createSegment, setCreateSegment] = useState(false);
-  const [tags, setTags] = useState<Array<{key: string; value: string}>>([{key: 'source', value: 'form'}]);
+  const [tags, setTags] = useState<Array<{key: string; value: string}>>(DEFAULT_FORM_TAGS);
   const [settings, setSettings] = useState<FormSettings>({
     title: '',
     description: '',
-    successMessage: 'Thanks for signing up!',
+    successMessage: DEFAULT_SUCCESS_MESSAGE,
     doubleOptIn: false,
     verifyEmail: false,
   });
@@ -138,6 +234,10 @@ export function FormEditor({mode, formId}: FormEditorProps) {
   const [draggedFieldIndex, setDraggedFieldIndex] = useState<number | null>(null);
   const [dragOverFieldIndex, setDragOverFieldIndex] = useState<number | null>(null);
   const [previewMode, setPreviewMode] = useState<'edit' | 'preview'>('edit');
+  const [appearanceOpen, setAppearanceOpen] = useState(false);
+  const [afterSubmitOpen, setAfterSubmitOpen] = useState(false);
+  const [destinationOpen, setDestinationOpen] = useState(false);
+  const [optionsOpen, setOptionsOpen] = useState(false);
   const confirmation = useConfirmationTemplate(settings.doubleOptIn ?? false);
 
   useEffect(() => {
@@ -156,15 +256,23 @@ export function FormEditor({mode, formId}: FormEditorProps) {
       const loadedFields = toEditorFields(Array.isArray(form.fields) ? form.fields : []);
       setFields(loadedFields);
       setFieldOrder(hydrateEditorFieldOrder(form.settings?.fieldOrder, loadedFields));
-      setSettings(typeof form.settings === 'object' && form.settings ? form.settings : {});
+      const loadedSettings = typeof form.settings === 'object' && form.settings ? form.settings : {};
+      setSettings(loadedSettings);
       setSegmentId(form.segmentId ?? '');
       setCreateSegment(false);
-      setDestinationTab(form.segmentId ? 'static' : 'dynamic');
+      const nextTab = form.segmentId ? 'static' : 'dynamic';
+      setDestinationTab(nextTab);
       const formTags = form.settings?.tags;
-      if (formTags && typeof formTags === 'object') {
-        setTags(Object.entries(formTags).map(([key, value]) => ({key, value: String(value)})));
-      }
+      const loadedTags =
+        formTags && typeof formTags === 'object'
+          ? Object.entries(formTags).map(([key, value]) => ({key, value: String(value)}))
+          : DEFAULT_FORM_TAGS;
+      setTags(loadedTags);
       setEnabled(form.enabled);
+      setAppearanceOpen(shouldOpenAppearance(loadedSettings));
+      setAfterSubmitOpen(shouldOpenAfterSubmit(loadedSettings));
+      setDestinationOpen(nextTab === 'static' || !isDefaultFormTags(loadedTags));
+      setOptionsOpen(Boolean(loadedSettings.doubleOptIn || loadedSettings.verifyEmail));
     }
   }, [existingForm, mode]);
 
@@ -345,14 +453,21 @@ export function FormEditor({mode, formId}: FormEditorProps) {
     }
 
     const persistedFieldOrder = toPersistedFieldOrder(fieldOrder, fields);
+    const colorFields = Object.fromEntries(
+      FORM_COLOR_TOKEN_KEYS.map(key => [key, parseFormButtonHexColor(settings[key])]),
+    ) as Pick<FormSettings, (typeof FORM_COLOR_TOKEN_KEYS)[number]>;
+    const themeId = getActiveFormColorThemeId({...settings, ...colorFields});
     const settingsPayload: FormSettings = {
       ...settings,
       buttonLabel: settings.buttonLabel?.trim() || undefined,
-      buttonColor: parseFormButtonHexColor(settings.buttonColor),
-      buttonTextColor: parseFormButtonHexColor(settings.buttonTextColor),
+      ...colorFields,
       fieldOrder: persistedFieldOrder,
       tags: Object.keys(tagsRecord).length > 0 ? tagsRecord : undefined,
+      themeId,
     };
+    if (!themeId) {
+      delete settingsPayload.themeId;
+    }
 
     return {
       name,
@@ -469,38 +584,6 @@ export function FormEditor({mode, formId}: FormEditorProps) {
               value={settings.buttonLabel ?? ''}
               onChange={e => setSettings(s => ({...s, buttonLabel: e.target.value || undefined}))}
               placeholder="Subscribe"
-            />
-          </div>
-          <FormButtonColorField
-            id="buttonTextColor"
-            label="Button text color"
-            value={settings.buttonTextColor}
-            fallback={FORM_DEFAULT_BUTTON_TEXT_COLOR}
-            onChange={value => setSettings(s => ({...s, buttonTextColor: value}))}
-          />
-          <FormButtonColorField
-            id="buttonColor"
-            label="Button color"
-            value={settings.buttonColor}
-            fallback={FORM_DEFAULT_BUTTON_COLOR}
-            onChange={value => setSettings(s => ({...s, buttonColor: value}))}
-          />
-          <div className="space-y-2">
-            <Label htmlFor="successMessage">Success message</Label>
-            <Input
-              id="successMessage"
-              value={settings.successMessage ?? ''}
-              onChange={e => setSettings(s => ({...s, successMessage: e.target.value}))}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="redirectUrl">Redirect URL (optional)</Label>
-            <Input
-              id="redirectUrl"
-              type="url"
-              value={settings.redirectUrl ?? ''}
-              onChange={e => setSettings(s => ({...s, redirectUrl: e.target.value || undefined}))}
-              placeholder="https://yoursite.com/thanks"
             />
           </div>
         </CardContent>
@@ -739,12 +822,85 @@ export function FormEditor({mode, formId}: FormEditorProps) {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Destination</CardTitle>
-          <CardDescription>Where signups go after submit</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      <FormEditorCollapsibleCard
+        title="Appearance"
+        description="Palettes fill every color; you can override a token after."
+        hint={appearanceHint(settings)}
+        open={appearanceOpen}
+        onOpenChange={setAppearanceOpen}
+      >
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          {FORM_COLOR_THEME_LIST.map(theme => {
+            const active = getActiveFormColorThemeId(settings) === theme.id;
+            return (
+              <button
+                key={theme.id}
+                type="button"
+                aria-pressed={active}
+                onClick={() => setSettings(s => ({...s, ...applyFormColorTheme(theme.id)}))}
+                className={cn(
+                  'flex flex-col items-center gap-2 rounded-md border p-2 text-xs font-medium transition-colors',
+                  active ? 'border-blue-500 ring-2 ring-blue-200' : 'border-neutral-200 hover:border-neutral-300',
+                )}
+              >
+                <span className="flex h-8 w-full overflow-hidden rounded border border-neutral-200">
+                  <span className="flex-1" style={{backgroundColor: theme.formBackgroundColor}} />
+                  <span className="flex-1" style={{backgroundColor: theme.buttonColor}} />
+                  <span className="flex-1" style={{backgroundColor: theme.titleColor}} />
+                </span>
+                {theme.label}
+              </button>
+            );
+          })}
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          {FORM_COLOR_TOKEN_FIELDS.map(field => (
+            <FormColorField
+              key={field.key}
+              id={field.key}
+              label={field.label}
+              value={settings[field.key]}
+              fallback={FORM_APPEARANCE_DEFAULTS[field.key]}
+              onChange={value => setSettings(s => ({...s, [field.key]: value}))}
+            />
+          ))}
+        </div>
+      </FormEditorCollapsibleCard>
+
+      <FormEditorCollapsibleCard
+        title="After submit"
+        description="Message and optional redirect after a successful signup"
+        hint={afterSubmitHint(settings)}
+        open={afterSubmitOpen}
+        onOpenChange={setAfterSubmitOpen}
+      >
+        <div className="space-y-2">
+          <Label htmlFor="successMessage">Success message</Label>
+          <Input
+            id="successMessage"
+            value={settings.successMessage ?? ''}
+            onChange={e => setSettings(s => ({...s, successMessage: e.target.value}))}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="redirectUrl">Redirect URL (optional)</Label>
+          <Input
+            id="redirectUrl"
+            type="url"
+            value={settings.redirectUrl ?? ''}
+            onChange={e => setSettings(s => ({...s, redirectUrl: e.target.value || undefined}))}
+            placeholder="https://yoursite.com/thanks"
+          />
+        </div>
+      </FormEditorCollapsibleCard>
+
+      <FormEditorCollapsibleCard
+        title="Destination"
+        description="Where signups go after submit"
+        hint={destinationHint(destinationTab, tags)}
+        open={destinationOpen}
+        onOpenChange={setDestinationOpen}
+      >
           <div className="flex gap-2 p-1 bg-neutral-100 rounded-lg w-fit">
             <button
               type="button"
@@ -833,14 +989,15 @@ export function FormEditor({mode, formId}: FormEditorProps) {
               </p>
             </div>
           )}
-        </CardContent>
-      </Card>
+      </FormEditorCollapsibleCard>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Options</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
+      <FormEditorCollapsibleCard
+        title="Options"
+        description="Confirmation email and address checks"
+        hint={optionsHint(settings)}
+        open={optionsOpen}
+        onOpenChange={setOptionsOpen}
+      >
           <label className="flex items-start gap-2 text-sm">
             <input
               type="checkbox"
@@ -881,8 +1038,7 @@ export function FormEditor({mode, formId}: FormEditorProps) {
               <span className="block text-neutral-500">Reject disposable addresses and invalid domains</span>
             </span>
           </label>
-        </CardContent>
-      </Card>
+      </FormEditorCollapsibleCard>
 
       <div className="flex justify-end gap-2">
         <Button type="submit" disabled={isSubmitting}>
