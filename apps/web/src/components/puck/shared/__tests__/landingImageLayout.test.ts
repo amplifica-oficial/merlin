@@ -13,25 +13,29 @@ describe('resolveLandingImageLayout', () => {
     expect(layout.wrapperClass).toBe('w-full');
     expect(layout.wrapperClass).not.toMatch(/max-w-/);
     expect(layout.wrapperClass).not.toMatch(/\bpx-/);
-    expect(layout.imgClass.split(' ')).toEqual(expect.arrayContaining(['h-auto', 'rounded-xl']));
+    expect(layout.imgClass.split(' ')).toEqual(expect.arrayContaining(['h-auto', 'bg-transparent', 'rounded-xl']));
     expect(layout.imgClass).not.toMatch(/mr-auto|mx-auto|ml-auto/);
     expect(layout.imgStyle).toEqual({width: '100%'});
+    expect(layout.wrapperStyle).toEqual({backgroundColor: 'transparent'});
   });
 
   it('keeps the wrapper full-bleed while sizing and aligning the image', () => {
     expect(resolveLandingImageLayout('50', 'left')).toEqual({
       wrapperClass: 'w-full',
-      imgClass: 'block h-auto mr-auto rounded-xl',
+      wrapperStyle: {backgroundColor: 'transparent'},
+      imgClass: 'block h-auto bg-transparent mr-auto rounded-xl',
       imgStyle: {width: '50%'},
     });
     expect(resolveLandingImageLayout('50', 'center')).toEqual({
       wrapperClass: 'w-full',
-      imgClass: 'block h-auto mx-auto rounded-xl',
+      wrapperStyle: {backgroundColor: 'transparent'},
+      imgClass: 'block h-auto bg-transparent mx-auto rounded-xl',
       imgStyle: {width: '50%'},
     });
     expect(resolveLandingImageLayout('50', 'right')).toEqual({
       wrapperClass: 'w-full',
-      imgClass: 'block h-auto ml-auto rounded-xl',
+      wrapperStyle: {backgroundColor: 'transparent'},
+      imgClass: 'block h-auto bg-transparent ml-auto rounded-xl',
       imgStyle: {width: '50%'},
     });
   });
@@ -44,12 +48,14 @@ describe('resolveLandingImageLayout', () => {
   it('applies arbitrary percent widths', () => {
     expect(resolveLandingImageLayout('40', 'center')).toEqual({
       wrapperClass: 'w-full',
-      imgClass: 'block h-auto mx-auto rounded-xl',
+      wrapperStyle: {backgroundColor: 'transparent'},
+      imgClass: 'block h-auto bg-transparent mx-auto rounded-xl',
       imgStyle: {width: '40%'},
     });
     expect(resolveLandingImageLayout('33%', 'right')).toEqual({
       wrapperClass: 'w-full',
-      imgClass: 'block h-auto ml-auto rounded-xl',
+      wrapperStyle: {backgroundColor: 'transparent'},
+      imgClass: 'block h-auto bg-transparent ml-auto rounded-xl',
       imgStyle: {width: '33%'},
     });
   });
@@ -75,7 +81,8 @@ describe('resolveLandingImageLayout', () => {
   it('applies custom pixel radius without preset classes', () => {
     expect(resolveLandingImageLayout('50', 'left', '24')).toEqual({
       wrapperClass: 'w-full',
-      imgClass: 'block h-auto mr-auto',
+      wrapperStyle: {backgroundColor: 'transparent'},
+      imgClass: 'block h-auto bg-transparent mr-auto',
       imgStyle: {width: '50%', borderRadius: '24px'},
     });
     expect(resolveLandingImageLayout('50', 'left', '16px').imgStyle).toEqual({
@@ -91,6 +98,36 @@ describe('landingImageWidthIsFull', () => {
     expect(landingImageWidthIsFull('100')).toBe(true);
     expect(landingImageWidthIsFull('100%')).toBe(true);
     expect(landingImageWidthIsFull('40')).toBe(false);
+  });
+});
+
+describe('image background', () => {
+  it('paints leftover space with a hex color while keeping the image itself transparent', () => {
+    expect(resolveLandingImageLayout('50', 'center', 'xl', '#2563eb')).toEqual({
+      wrapperClass: 'w-full',
+      wrapperStyle: {backgroundColor: '#2563eb'},
+      imgClass: 'block h-auto bg-transparent mx-auto rounded-xl',
+      imgStyle: {width: '50%'},
+    });
+  });
+
+  it('keeps the wrapper transparent so PNG alpha and leftover space show the section behind', () => {
+    expect(resolveLandingImageLayout('50', 'left', 'none', 'transparent').wrapperStyle).toEqual({
+      backgroundColor: 'transparent',
+    });
+    expect(resolveLandingImageLayout('50', 'left', 'none', 'transparent').imgClass).toContain('bg-transparent');
+    expect(resolveLandingImageLayout('50', 'left', 'none', 'transparent').imgStyle).not.toHaveProperty(
+      'backgroundColor',
+    );
+  });
+
+  it('treats omitted or invalid background as transparent', () => {
+    expect(resolveLandingImageLayout('100', 'center', 'xl').wrapperStyle).toEqual({
+      backgroundColor: 'transparent',
+    });
+    expect(resolveLandingImageLayout('100', 'center', 'xl', 'red').wrapperStyle).toEqual({
+      backgroundColor: 'transparent',
+    });
   });
 });
 
