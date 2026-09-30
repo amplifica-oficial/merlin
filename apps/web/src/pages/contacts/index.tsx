@@ -47,6 +47,7 @@ import {
   useConfirmationTemplate,
 } from '../../components/ConfirmationTemplatePicker';
 import {KeyValueEditor} from '../../components/KeyValueEditor';
+import {downloadContactsExampleCsv} from '../../lib/contactsExampleCsv';
 import {network} from '../../lib/network';
 import {formatRelativeTime} from '../../lib/dateUtils';
 import {useColumnVisibility} from '../../lib/hooks/useColumnVisibility';
@@ -57,6 +58,7 @@ import {
   CheckCircle,
   ChevronLeft,
   ChevronRight,
+  Download,
   Edit,
   FileUp,
   Loader2,
@@ -1154,6 +1156,15 @@ function ImportContactsDialog({open, onOpenChange, onSuccess}: ImportContactsDia
             {/* File Upload */}
             {status === 'idle' || status === 'failed' ? (
               <div className="space-y-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={downloadContactsExampleCsv}
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Download example CSV
+                </Button>
                 <div>
                   <Label htmlFor="csv-file">Select CSV File</Label>
                   <div className="mt-2">
