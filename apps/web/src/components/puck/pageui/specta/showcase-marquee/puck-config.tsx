@@ -1,5 +1,6 @@
 import type {ComponentConfig} from '@puckeditor/core';
 
+import {puckImageUrlField} from '../../../shared/puckImageUrlField';
 import {SPECTA_PLACEHOLDER_BACKDROP} from '../shared-defaults';
 import {sectionIdField} from '../../front-centre/shared-fields';
 import {createDefaultSpectaShowcaseMarquee} from './defaults';
@@ -27,7 +28,7 @@ const rowArrayFields = {
       item.alt || 'Image',
     defaultItemProps: {imageSrc: SPECTA_PLACEHOLDER_BACKDROP, alt: 'Screenshot'},
     arrayFields: {
-      imageSrc: {type: 'text', label: 'Image URL'},
+      imageSrc: puckImageUrlField(),
       alt: {type: 'text', label: 'Alt text'},
     },
   },

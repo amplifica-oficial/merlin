@@ -1,5 +1,6 @@
 import type {ComponentConfig, Fields} from '@puckeditor/core';
 
+import {puckImageUrlField} from '../../../shared/puckImageUrlField';
 import {PAGEUI_PLACEHOLDER_800x600} from '../shared-defaults';
 import {sectionIdField} from '../shared-fields';
 import {createDefaultFeaturesGrid} from './defaults';
@@ -33,7 +34,7 @@ function buildFields(): Fields<PageUiFeaturesGridProps> {
         },
         title: {type: 'text', label: 'Title'},
         description: {type: 'textarea', label: 'Description'},
-        imageSrc: {type: 'text', label: 'Image URL'},
+        imageSrc: puckImageUrlField(),
         videoSrc: {type: 'text', label: 'Video URL'},
         autoPlay: {
           type: 'radio',

@@ -1,5 +1,6 @@
 import type {ComponentConfig, Fields} from '@puckeditor/core';
 
+import {puckImageUrlField} from '../../../shared/puckImageUrlField';
 import {yesNo, sectionIdField} from '../shared-fields';
 import {createDefaultProductFeature} from './defaults';
 import {PuckProductFeatureBlock} from './PuckProductFeatureBlock';
@@ -35,7 +36,7 @@ function buildFields(props: PageUiProductFeatureProps): Fields<PageUiProductFeat
     }
   }
   if (props.showImage) {
-    fields.imageSrc = {type: 'text', label: 'Image URL'};
+    fields.imageSrc = puckImageUrlField();
     fields.imageAlt = {type: 'text', label: 'Image alt'};
     fields.imagePosition = {
       type: 'select',

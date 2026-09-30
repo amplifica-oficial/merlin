@@ -1,5 +1,6 @@
 import type {ComponentConfig, Fields} from '@puckeditor/core';
 
+import {puckImageUrlField} from '../../../shared/puckImageUrlField';
 import {yesNo, sectionIdField} from '../shared-fields';
 import {createDefaultSocialBand} from './defaults';
 import {PuckSocialBandBlock} from './PuckSocialBandBlock';
@@ -23,7 +24,7 @@ function buildFields(props: PageUiSocialBandProps): Fields<PageUiSocialBandProps
       defaultItemProps: {name: 'User', imageSrc: 'https://avatar.vercel.sh/user'},
       arrayFields: {
         name: {type: 'text', label: 'Name'},
-        imageSrc: {type: 'text', label: 'Image URL'},
+        imageSrc: puckImageUrlField(),
       },
     };
   }

@@ -1,5 +1,6 @@
 import type {ComponentConfig, Fields} from '@puckeditor/core';
 
+import {puckImageUrlField} from '../../../shared/puckImageUrlField';
 import {createDefaultVideoCta} from './defaults';
 import {PuckVideoCtaBlock} from './PuckVideoCtaBlock';
 import type {PageUiVideoCtaProps} from './types';
@@ -53,7 +54,7 @@ function buildFields(props: PageUiVideoCtaProps): Fields<PageUiVideoCtaProps> {
       defaultItemProps: {name: 'User', imageSrc: 'https://avatar.vercel.sh/user'},
       arrayFields: {
         name: {type: 'text', label: 'Name'},
-        imageSrc: {type: 'text', label: 'Image URL'},
+        imageSrc: puckImageUrlField(),
       },
     };
   }

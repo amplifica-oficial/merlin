@@ -1,5 +1,6 @@
 import type {ComponentConfig, Fields} from '@puckeditor/core';
 
+import {puckImageUrlField} from '../../../shared/puckImageUrlField';
 import {yesNo, sectionIdField} from '../../front-centre/shared-fields';
 import {createDefaultSpectaSaleCta} from './defaults';
 import {PuckSpectaSaleCtaBlock} from './PuckSpectaSaleCtaBlock';
@@ -39,7 +40,7 @@ function buildFields(props: SpectaSaleCtaProps): Fields<SpectaSaleCtaProps> {
       defaultItemProps: {name: 'User', imageSrc: 'https://avatar.vercel.sh/user'},
       arrayFields: {
         name: {type: 'text', label: 'Name'},
-        imageSrc: {type: 'text', label: 'Image URL'},
+        imageSrc: puckImageUrlField(),
       },
     };
   }

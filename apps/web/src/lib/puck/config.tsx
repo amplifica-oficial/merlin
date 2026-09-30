@@ -1,4 +1,4 @@
-import type {Config, Slot} from '@puckeditor/core';
+import type {Config, Fields, Slot} from '@puckeditor/core';
 import React from 'react';
 
 import {Button} from '@merlin/ui';
@@ -91,6 +91,13 @@ import {
   type GnomieVideoCtaProps,
 } from '../../components/puck/pageui/gnomie';
 import {PAGEUI_PLACEHOLDER_1200x600} from '../../components/puck/pageui/front-centre/shared-defaults';
+import {
+  landingImageWidthIsFull,
+  resolveLandingImageLayout,
+} from '../../components/puck/shared/landingImageLayout';
+import {puckImageRoundedField} from '../../components/puck/shared/puckImageRoundedField';
+import {puckImageUrlField} from '../../components/puck/shared/puckImageUrlField';
+import {puckImageWidthField} from '../../components/puck/shared/puckImageWidthField';
 
 type LandingPageComponents = {
   Heading: {
@@ -105,7 +112,9 @@ type LandingPageComponents = {
   Image: {
     src: string;
     alt: string;
-    rounded: boolean;
+    rounded: boolean | string;
+    width: string;
+    align: 'left' | 'center' | 'right';
   };
   Button: {
     label: string;
@@ -181,6 +190,29 @@ const flexAlignClass: Record<'left' | 'center' | 'right', string> = {
   center: 'justify-center',
   right: 'justify-end',
 };
+
+function buildImageFields(width?: string): Fields<LandingPageComponents['Image']> {
+  const fields: Record<string, unknown> = {
+    src: puckImageUrlField(),
+    alt: {type: 'text', label: 'Alt text'},
+    width: puckImageWidthField(),
+    rounded: puckImageRoundedField(),
+  };
+
+  if (!landingImageWidthIsFull(width)) {
+    fields.align = {
+      type: 'select',
+      label: 'Align',
+      options: [
+        {label: 'Left', value: 'left'},
+        {label: 'Center', value: 'center'},
+        {label: 'Right', value: 'right'},
+      ],
+    };
+  }
+
+  return fields as Fields<LandingPageComponents['Image']>;
+}
 
 const spacerClass = {
   sm: 'h-4',
@@ -341,29 +373,31 @@ export const puckConfig: Config<LandingPageComponents> = {
       defaultProps: {
         src: PAGEUI_PLACEHOLDER_1200x600,
         alt: 'Image',
-        rounded: true,
+        rounded: 'xl',
+        width: '100',
+        align: 'center',
       },
-      fields: {
-        src: {type: 'text', label: 'Image URL'},
-        alt: {type: 'text', label: 'Alt text'},
-        rounded: {
-          type: 'radio',
-          options: [
-            {label: 'Rounded', value: true},
-            {label: 'Square', value: false},
-          ],
-        },
+      fields: buildImageFields('100'),
+      resolveFields: ({props}, {changed, lastFields}) => {
+        if (!changed.width && lastFields) {
+          return lastFields;
+        }
+        return buildImageFields(props.width);
       },
-      render: ({src, alt, rounded}) => (
-        <div className="px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto w-full">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={src}
-            alt={alt}
-            className={`w-full h-auto ${rounded ? 'rounded-xl' : ''}`}
-          />
-        </div>
-      ),
+      render: ({src, alt, rounded, width, align}) => {
+        const layout = resolveLandingImageLayout(width, align, rounded);
+        return (
+          <div className={layout.wrapperClass}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={src}
+              alt={alt}
+              className={layout.imgClass}
+              style={layout.imgStyle}
+            />
+          </div>
+        );
+      },
     },
     Button: {
       label: 'Button',

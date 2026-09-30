@@ -1,5 +1,6 @@
 import type {ComponentConfig, Fields} from '@puckeditor/core';
 
+import {puckImageUrlField} from '../../../shared/puckImageUrlField';
 import {yesNo, sectionIdField} from '../../front-centre/shared-fields';
 import {createDefaultSpectaProductFeatureCreate} from './defaults';
 import {PuckSpectaProductFeatureBlock} from './PuckSpectaProductFeatureBlock';
@@ -12,7 +13,7 @@ function buildFields(props: SpectaProductFeatureProps): Fields<SpectaProductFeat
     description: {type: 'textarea', label: 'Description', contentEditable: true},
     showKeyPoints: yesNo('Show key points'),
     showCta: yesNo('Show CTA'),
-    imageSrc: {type: 'text', label: 'Image URL'},
+    imageSrc: puckImageUrlField(),
     imageAlt: {type: 'text', label: 'Image alt'},
     imagePosition: {
       type: 'select',

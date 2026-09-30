@@ -1,5 +1,6 @@
 import type {ComponentConfig} from '@puckeditor/core';
 
+import {puckImageUrlField} from '../../../shared/puckImageUrlField';
 import {yesNo, sectionIdField} from '../../front-centre/shared-fields';
 import {createDefaultGnomieSaleCta} from './defaults';
 import {PuckGnomieSaleCtaBlock} from './PuckGnomieSaleCtaBlock';
@@ -25,7 +26,7 @@ export const gnomieSaleCtaPuckComponent: ComponentConfig<GnomieSaleCtaProps> = {
       getItemSummary: (item: GnomieSaleCtaProps['avatars'][number]) => item.name || 'Avatar',
       defaultItemProps: {imageSrc: 'https://picsum.photos/id/64/100/100', name: 'User'},
       arrayFields: {
-        imageSrc: {type: 'text', label: 'Image URL'},
+        imageSrc: puckImageUrlField(),
         name: {type: 'text', label: 'Name'},
       },
     },

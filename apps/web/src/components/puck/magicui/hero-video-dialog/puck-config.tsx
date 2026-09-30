@@ -1,5 +1,6 @@
 import type {ComponentConfig, Fields} from '@puckeditor/core';
 
+import {puckImageUrlField} from '../../shared/puckImageUrlField';
 import {createDefaultHeroVideoDialog} from './defaults';
 import {PuckHeroVideoDialogBlock} from './PuckHeroVideoDialogBlock';
 import type {HeroVideoAnimationStyle, HeroVideoDialogPuckProps} from './types';
@@ -31,10 +32,7 @@ function buildHeroVideoDialogFields(props: HeroVideoDialogPuckProps): Fields<Her
       type: 'text',
       label: 'Video URL (embed)',
     },
-    thumbnailSrc: {
-      type: 'text',
-      label: props.dualTheme ? 'Thumbnail URL (light)' : 'Thumbnail URL',
-    },
+    thumbnailSrc: puckImageUrlField(props.dualTheme ? 'Thumbnail URL (light)' : 'Thumbnail URL'),
     thumbnailAlt: {
       type: 'text',
       label: 'Thumbnail alt text',
@@ -58,10 +56,8 @@ function buildHeroVideoDialogFields(props: HeroVideoDialogPuckProps): Fields<Her
   };
 
   if (props.dualTheme) {
-    (fields as unknown as Fields<HeroVideoDialogPuckProps>).thumbnailSrcDark = {
-      type: 'text',
-      label: 'Thumbnail URL (dark)',
-    };
+    (fields as unknown as Fields<HeroVideoDialogPuckProps>).thumbnailSrcDark =
+      puckImageUrlField('Thumbnail URL (dark)');
   }
 
   return fields as unknown as Fields<HeroVideoDialogPuckProps>;
