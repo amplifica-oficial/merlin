@@ -1,5 +1,6 @@
 import type {ComponentConfig} from '@puckeditor/core';
 
+import {puckImageUrlField} from '../../../shared/puckImageUrlField';
 import {SPECTA_PLACEHOLDER_LOGO} from '../shared-defaults';
 import {yesNo, sectionIdField} from '../../front-centre/shared-fields';
 import {createDefaultSpectaMarquee} from './defaults';
@@ -30,7 +31,7 @@ export const spectaMarqueePuckComponent: ComponentConfig<SpectaMarqueeProps> = {
       getItemSummary: (item: SpectaMarqueeProps['items'][number]) => item.alt || 'Logo',
       defaultItemProps: {imageSrc: SPECTA_PLACEHOLDER_LOGO, alt: 'Logo'},
       arrayFields: {
-        imageSrc: {type: 'text', label: 'Image URL'},
+        imageSrc: puckImageUrlField(),
         alt: {type: 'text', label: 'Alt text'},
       },
     },

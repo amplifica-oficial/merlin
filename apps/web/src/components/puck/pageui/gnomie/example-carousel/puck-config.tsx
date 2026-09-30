@@ -1,6 +1,7 @@
 import type {ComponentConfig, Fields} from '@puckeditor/core';
 
 import type {ExampleCarouselSocial} from '../../../../pageui/landing';
+import {puckImageUrlField} from '../../../shared/puckImageUrlField';
 import {yesNo, sectionIdField} from '../../front-centre/shared-fields';
 import {createDefaultGnomieExampleCarouselMadeWith} from './defaults';
 import {PuckGnomieExampleCarouselBlock} from './PuckGnomieExampleCarouselBlock';
@@ -34,7 +35,7 @@ function buildFields(props: GnomieExampleCarouselProps): Fields<GnomieExampleCar
         socials: ['instagram'],
       },
       arrayFields: {
-        imageSrc: {type: 'text', label: 'Image URL'},
+        imageSrc: puckImageUrlField(),
         name: {type: 'text', label: 'Name'},
         location: {type: 'text', label: 'Location'},
         socials: {
@@ -71,7 +72,7 @@ function buildFields(props: GnomieExampleCarouselProps): Fields<GnomieExampleCar
       getItemSummary: (item: GnomieExampleCarouselProps['avatars'][number]) => item.name || 'Avatar',
       defaultItemProps: {imageSrc: 'https://picsum.photos/id/64/100/100', name: 'User'},
       arrayFields: {
-        imageSrc: {type: 'text', label: 'Image URL'},
+        imageSrc: puckImageUrlField(),
         name: {type: 'text', label: 'Name'},
       },
     };

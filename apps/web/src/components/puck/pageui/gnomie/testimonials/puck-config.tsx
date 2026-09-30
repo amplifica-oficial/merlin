@@ -1,5 +1,6 @@
 import type {ComponentConfig} from '@puckeditor/core';
 
+import {puckImageUrlField} from '../../../shared/puckImageUrlField';
 import {yesNo, sectionIdField} from '../../front-centre/shared-fields';
 import {createDefaultGnomieTestimonials} from './defaults';
 import {PuckGnomieTestimonialsBlock} from './PuckGnomieTestimonialsBlock';
@@ -35,7 +36,7 @@ export const gnomieTestimonialsPuckComponent: ComponentConfig<GnomieTestimonials
         name: {type: 'text', label: 'Name'},
         text: {type: 'textarea', label: 'Quote'},
         handle: {type: 'text', label: 'Handle'},
-        imageSrc: {type: 'text', label: 'Image URL'},
+        imageSrc: puckImageUrlField(),
         featured: yesNo('Featured'),
       },
     },

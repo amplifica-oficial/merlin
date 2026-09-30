@@ -1,5 +1,6 @@
 import type {ComponentConfig} from '@puckeditor/core';
 
+import {puckImageUrlField} from '../../../shared/puckImageUrlField';
 import {SPECTA_PLACEHOLDER_LOGO} from '../shared-defaults';
 import {sectionIdField} from '../../front-centre/shared-fields';
 import {createDefaultSpectaShowcase} from './defaults';
@@ -20,7 +21,7 @@ export const spectaShowcasePuckComponent: ComponentConfig<SpectaShowcaseProps> =
       getItemSummary: (item: SpectaShowcaseProps['items'][number]) => item.alt || 'Item',
       defaultItemProps: {imageSrc: SPECTA_PLACEHOLDER_LOGO, alt: 'Integration'},
       arrayFields: {
-        imageSrc: {type: 'text', label: 'Image URL'},
+        imageSrc: puckImageUrlField(),
         alt: {type: 'text', label: 'Alt text'},
       },
     },

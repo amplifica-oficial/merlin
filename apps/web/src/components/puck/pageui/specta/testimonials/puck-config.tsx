@@ -1,5 +1,6 @@
 import type {ComponentConfig} from '@puckeditor/core';
 
+import {puckImageUrlField} from '../../../shared/puckImageUrlField';
 import {yesNo, sectionIdField} from '../../front-centre/shared-fields';
 import {createDefaultSpectaTestimonials} from './defaults';
 import {PuckSpectaTestimonialsBlock} from './PuckSpectaTestimonialsBlock';
@@ -37,7 +38,7 @@ export const spectaTestimonialsPuckComponent: ComponentConfig<SpectaTestimonials
         name: {type: 'text', label: 'Name'},
         text: {type: 'textarea', label: 'Quote'},
         handle: {type: 'text', label: 'Handle'},
-        imageSrc: {type: 'text', label: 'Image URL'},
+        imageSrc: puckImageUrlField(),
         featured: yesNo('Featured'),
       },
     },
