@@ -8,6 +8,7 @@ import {
   FormPreviewHeader,
   FormPreviewShell,
   FormPreviewSubmitButton,
+  useFormAppearance,
 } from './formPreviewParts';
 import type {FormFieldValues} from './formPreviewShared';
 import {FORM_REDIRECT_COUNTDOWN_SECONDS, resolveFieldOrder, tickRedirectCountdown} from './formPreviewShared';
@@ -19,12 +20,15 @@ export {
   FORM_EMAIL_FIELD_KEY,
   FORM_FIELD_TYPE_OPTIONS,
   FORM_SELECT_OPTIONS_MAX,
+  applyFormColorTheme,
   createEditorClientId,
+  getActiveFormColorThemeId,
   hydrateEditorFieldOrder,
   insertPastedOptions,
   parseFormButtonHexColor,
   parsePastedOptions,
   reorderFieldsFromOrder,
+  resolveFormAppearance,
   sortOptionsAlphabetically,
   resolveEditorFieldOrder,
   resolveFieldOrder,
@@ -103,24 +107,12 @@ export function FormPreview({
   if (success) {
     return (
       <div className={compact ? '' : 'min-h-[200px] flex items-center justify-center'}>
-        <FormPreviewShell>
-          <div className="text-center">
-            <motion.div
-              initial={{scale: 0}}
-              animate={{scale: 1}}
-              className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4"
-            >
-              <svg className="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-              </svg>
-            </motion.div>
-            <h2 className="text-xl font-bold text-neutral-900">{successMessage}</h2>
-            {redirectUrl ? (
-              <p className="mt-3 text-sm text-neutral-500">
-                {redirectSeconds > 0 ? `Redirecting in ${redirectSeconds}...` : 'Redirecting...'}
-              </p>
-            ) : null}
-          </div>
+        <FormPreviewShell settings={settings}>
+          <FormPreviewSuccess
+            successMessage={successMessage}
+            redirectUrl={redirectUrl}
+            redirectSeconds={redirectSeconds}
+          />
         </FormPreviewShell>
       </div>
     );
@@ -172,14 +164,7 @@ export function FormPreview({
 
       <AnimatePresence>
         {error && (
-          <motion.p
-            initial={{opacity: 0, y: -10}}
-            animate={{opacity: 1, y: 0}}
-            exit={{opacity: 0, y: -10}}
-            className="text-sm font-medium text-red-500 text-center"
-          >
-            {error}
-          </motion.p>
+          <FormPreviewError error={error} />
         )}
       </AnimatePresence>
 
@@ -194,7 +179,7 @@ export function FormPreview({
 
   if (isInteractive) {
     return (
-      <FormPreviewShell>
+      <FormPreviewShell settings={settings}>
         <form onSubmit={e => onSubmit?.(e)} className="space-y-6 relative">
           {body}
         </form>
@@ -202,5 +187,59 @@ export function FormPreview({
     );
   }
 
-  return <FormPreviewShell>{body}</FormPreviewShell>;
+  return <FormPreviewShell settings={settings}>{body}</FormPreviewShell>;
+}
+
+function FormPreviewSuccess({
+  successMessage,
+  redirectUrl,
+  redirectSeconds,
+}: {
+  successMessage: string;
+  redirectUrl?: string;
+  redirectSeconds: number;
+}) {
+  const appearance = useFormAppearance();
+
+  return (
+    <div className="text-center">
+      <motion.div
+        initial={{scale: 0}}
+        animate={{scale: 1}}
+        className="h-12 w-12 rounded-full flex items-center justify-center mx-auto mb-4"
+        style={{
+          backgroundColor: `color-mix(in srgb, ${appearance.tokens.successColor} 20%, transparent)`,
+          color: appearance.tokens.successColor,
+        }}
+      >
+        <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+        </svg>
+      </motion.div>
+      <h2 className="text-xl font-bold" style={appearance.successStyle}>
+        {successMessage}
+      </h2>
+      {redirectUrl ? (
+        <p className="mt-3 text-sm" style={appearance.descriptionStyle}>
+          {redirectSeconds > 0 ? `Redirecting in ${redirectSeconds}...` : 'Redirecting...'}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+function FormPreviewError({error}: {error: string}) {
+  const appearance = useFormAppearance();
+
+  return (
+    <motion.p
+      initial={{opacity: 0, y: -10}}
+      animate={{opacity: 1, y: 0}}
+      exit={{opacity: 0, y: -10}}
+      className="text-sm font-medium text-center"
+      style={appearance.errorStyle}
+    >
+      {error}
+    </motion.p>
+  );
 }

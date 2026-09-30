@@ -1,28 +1,42 @@
 import {Button, Card, CardContent, IconSpinner, Input, Label, Textarea} from '@merlin/ui';
 import type {FormField, FormSettings} from '@merlin/types';
-import {useState} from 'react';
+import {createContext, useContext, useState, type CSSProperties, type ReactNode} from 'react';
 
 import {
   FORM_EMAIL_FIELD_KEY,
   getFormFieldInputType,
+  resolveFormAppearance,
   resolveFormButtonLabel,
-  resolveFormButtonStyle,
   selectClassName,
+  type FormAppearance,
 } from './formPreviewShared';
 
 const editingRingClass = 'ring-2 ring-blue-200 border-blue-300';
+const placeholderClass = 'placeholder:text-(--form-placeholder)!';
 
-export function formPreviewTitleClass(compact?: boolean) {
-  return `font-bold text-neutral-900 text-center w-full ${compact ? 'text-xl' : 'text-2xl'}`;
+const FormAppearanceContext = createContext<FormAppearance>(resolveFormAppearance());
+
+export function useFormAppearance() {
+  return useContext(FormAppearanceContext);
 }
 
-export function FormPreviewShell({children}: {children: React.ReactNode}) {
+export function formPreviewTitleClass(compact?: boolean) {
+  return `font-bold text-center w-full ${compact ? 'text-xl' : 'text-2xl'}`;
+}
+
+export function FormPreviewShell({children, settings}: {children: ReactNode; settings?: FormSettings}) {
+  const appearance = resolveFormAppearance(settings);
   return (
-    <Card className="w-full">
-      <CardContent className="p-6">
-        <div className="space-y-6 relative">{children}</div>
-      </CardContent>
-    </Card>
+    <FormAppearanceContext.Provider value={appearance}>
+      <Card
+        className="w-full [&_input::placeholder]:text-(--form-placeholder)! [&_textarea::placeholder]:text-(--form-placeholder)!"
+        style={appearance.wrapperStyle as CSSProperties}
+      >
+        <CardContent className="p-6">
+          <div className="space-y-6 relative">{children}</div>
+        </CardContent>
+      </Card>
+    </FormAppearanceContext.Provider>
   );
 }
 
@@ -39,6 +53,7 @@ function FormPreviewHeaderEditable({
 }) {
   const fallbackTitle = name || 'Subscribe';
   const titleClass = formPreviewTitleClass(compact);
+  const appearance = useFormAppearance();
   const [editingDescription, setEditingDescription] = useState(false);
   const showDescription = Boolean(settings.description) || editingDescription;
 
@@ -49,7 +64,8 @@ function FormPreviewHeaderEditable({
         value={settings.title ?? ''}
         onChange={e => onSettingsChange?.({title: e.target.value || undefined})}
         placeholder={fallbackTitle}
-        className={`${titleClass} bg-transparent border border-transparent rounded-md px-2 py-1 hover:border-neutral-200 focus:border-neutral-400 focus:outline-none placeholder:text-neutral-900 placeholder:font-bold`}
+        className={`${titleClass} bg-transparent border border-transparent rounded-md px-2 py-1 hover:border-neutral-200 focus:border-neutral-400 focus:outline-none placeholder:font-bold placeholder:opacity-60`}
+        style={appearance.titleStyle}
         aria-label="Form title"
       />
       {showDescription ? (
@@ -61,7 +77,8 @@ function FormPreviewHeaderEditable({
             if (!e.target.value.trim()) setEditingDescription(false);
           }}
           placeholder="Add a description (optional)"
-          className="w-full text-center text-neutral-500 text-sm bg-transparent border border-transparent rounded-md px-2 py-1 hover:border-neutral-200 focus:border-neutral-400 focus:outline-none"
+          className="w-full text-center text-sm bg-transparent border border-transparent rounded-md px-2 py-1 hover:border-neutral-200 focus:border-neutral-400 focus:outline-none"
+          style={appearance.descriptionStyle}
           aria-label="Form description"
           autoFocus={!settings.description}
         />
@@ -69,7 +86,8 @@ function FormPreviewHeaderEditable({
         <button
           type="button"
           onClick={() => setEditingDescription(true)}
-          className="text-neutral-400 text-sm hover:text-neutral-500 transition-colors"
+          className="text-sm transition-opacity hover:opacity-80"
+          style={appearance.descriptionStyle}
         >
           Add description
         </button>
@@ -93,6 +111,7 @@ export function FormPreviewHeader({
 }) {
   const fallbackTitle = name || 'Subscribe';
   const titleClass = formPreviewTitleClass(compact);
+  const appearance = useFormAppearance();
 
   if (editable) {
     return (
@@ -110,8 +129,14 @@ export function FormPreviewHeader({
 
   return (
     <div className="text-center space-y-2">
-      <h2 className={titleClass}>{title}</h2>
-      {description && <p className="text-neutral-500 text-sm">{description}</p>}
+      <h2 className={titleClass} style={appearance.titleStyle}>
+        {title}
+      </h2>
+      {description && (
+        <p className="text-sm" style={appearance.descriptionStyle}>
+          {description}
+        </p>
+      )}
     </div>
   );
 }
@@ -127,6 +152,7 @@ function EditableLabel({
   onChange: (value: string) => void;
   inline?: boolean;
 }) {
+  const appearance = useFormAppearance();
   return (
     <input
       type="text"
@@ -138,6 +164,7 @@ function EditableLabel({
           ? 'bg-transparent border border-transparent rounded px-0.5 -mx-0.5 text-sm hover:border-neutral-200 focus:border-neutral-400 focus:outline-none min-w-16'
           : 'text-sm font-medium leading-none w-full bg-transparent border border-transparent rounded px-0.5 -mx-0.5 hover:border-neutral-200 focus:border-neutral-400 focus:outline-none'
       }
+      style={appearance.labelStyle}
       aria-label="Field label"
     />
   );
@@ -156,6 +183,7 @@ function EditablePlaceholderInput({
   fallbackPlaceholder: string;
   onPlaceholderChange: (value: string | undefined) => void;
 }) {
+  const appearance = useFormAppearance();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState('');
   const displayPlaceholder = placeholder || fallbackPlaceholder;
@@ -183,7 +211,8 @@ function EditablePlaceholderInput({
       onKeyDown={e => {
         if (e.key === 'Enter') e.currentTarget.blur();
       }}
-      className={`cursor-text ${editing ? editingRingClass : ''}`}
+      className={`cursor-text ${placeholderClass} ${editing ? editingRingClass : ''}`}
+      style={appearance.inputStyle}
       aria-label="Edit placeholder"
     />
   );
@@ -200,6 +229,7 @@ function EditablePlaceholderTextarea({
   fallbackPlaceholder: string;
   onPlaceholderChange: (value: string | undefined) => void;
 }) {
+  const appearance = useFormAppearance();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState('');
   const displayPlaceholder = placeholder || fallbackPlaceholder;
@@ -223,7 +253,8 @@ function EditablePlaceholderTextarea({
       onFocus={startEditing}
       onBlur={commit}
       onChange={e => setDraft(e.target.value)}
-      className={`cursor-text resize-none ${editing ? editingRingClass : ''}`}
+      className={`cursor-text resize-none ${placeholderClass} ${editing ? editingRingClass : ''}`}
+      style={appearance.inputStyle}
       aria-label="Edit placeholder"
     />
   );
@@ -240,6 +271,7 @@ function EditablePlaceholderSelect({
   options: string[];
   onPlaceholderChange: (value: string | undefined) => void;
 }) {
+  const appearance = useFormAppearance();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState('');
   const displayPlaceholder = placeholder || 'Select...';
@@ -266,7 +298,8 @@ function EditablePlaceholderSelect({
         onKeyDown={e => {
           if (e.key === 'Enter') e.currentTarget.blur();
         }}
-        className={`${selectClassName} ${editingRingClass}`}
+        className={`${selectClassName} ${placeholderClass} ${editingRingClass}`}
+        style={appearance.inputStyle}
         aria-label="Edit select placeholder"
       />
     );
@@ -276,6 +309,7 @@ function EditablePlaceholderSelect({
     <select
       id={id}
       className={`${selectClassName} cursor-text`}
+      style={appearance.inputStyle}
       value=""
       onMouseDown={e => {
         e.preventDefault();
@@ -314,9 +348,13 @@ export function FormPreviewEmailField({
   disabled?: boolean;
   inputId?: string;
 }) {
+  const appearance = useFormAppearance();
+
   return (
     <div className="space-y-2">
-      <Label htmlFor={inputId}>Email</Label>
+      <Label htmlFor={inputId} style={appearance.labelStyle}>
+        Email
+      </Label>
       {editable ? (
         <EditablePlaceholderInput
           id={inputId}
@@ -335,6 +373,8 @@ export function FormPreviewEmailField({
           onChange={e => onEmailChange?.(e.target.value)}
           placeholder={settings.emailPlaceholder || 'you@example.com'}
           autoComplete="email"
+          className={placeholderClass}
+          style={appearance.inputStyle}
         />
       )}
     </div>
@@ -356,13 +396,20 @@ export function FormPreviewCustomField({
   onChange?: (key: string, value: string | number | boolean) => void;
   disabled?: boolean;
 }) {
+  const appearance = useFormAppearance();
   const inputId = editable ? `preview-${field.key}` : field.key;
 
   if (field.type === 'checkbox') {
     if (editable) {
       return (
-        <label className="flex items-center gap-2 text-sm">
-          <input type="checkbox" disabled tabIndex={-1} className="rounded pointer-events-none" />
+        <label className="flex items-center gap-2 text-sm" style={appearance.labelStyle}>
+          <input
+            type="checkbox"
+            disabled
+            tabIndex={-1}
+            className="rounded pointer-events-none"
+            style={{accentColor: appearance.tokens.buttonColor}}
+          />
           <EditableLabel
             inline
             value={field.label}
@@ -373,7 +420,7 @@ export function FormPreviewCustomField({
     }
 
     return (
-      <label className="flex items-center gap-2 text-sm cursor-pointer">
+      <label className="flex items-center gap-2 text-sm cursor-pointer" style={appearance.labelStyle}>
         <input
           type="checkbox"
           id={inputId}
@@ -382,6 +429,7 @@ export function FormPreviewCustomField({
           disabled={disabled}
           onChange={e => onChange?.(field.key, e.target.checked)}
           className="rounded"
+          style={{accentColor: appearance.tokens.buttonColor}}
         />
         <span>{field.label}</span>
       </label>
@@ -395,7 +443,9 @@ export function FormPreviewCustomField({
       onChange={label => onFieldUpdate?.(field.key, {label})}
     />
   ) : (
-    <Label htmlFor={inputId}>{field.label}</Label>
+    <Label htmlFor={inputId} style={appearance.labelStyle}>
+      {field.label}
+    </Label>
   );
 
   if (editable) {
@@ -440,6 +490,8 @@ export function FormPreviewCustomField({
           value={value !== undefined ? String(value) : ''}
           onChange={e => onChange?.(field.key, e.target.value)}
           placeholder={field.placeholder}
+          className={placeholderClass}
+          style={appearance.inputStyle}
         />
       </div>
     );
@@ -456,6 +508,7 @@ export function FormPreviewCustomField({
           value={value !== undefined ? String(value) : ''}
           onChange={e => onChange?.(field.key, e.target.value)}
           className={selectClassName}
+          style={appearance.inputStyle}
         >
           <option value="">{field.placeholder || 'Select...'}</option>
           {(field.options ?? []).map(opt => (
@@ -495,6 +548,8 @@ export function FormPreviewCustomField({
           }
         }}
         placeholder={field.placeholder}
+        className={placeholderClass}
+        style={appearance.inputStyle}
       />
     </div>
   );
@@ -514,7 +569,7 @@ export function FormPreviewSubmitButton({
   settings?: Pick<FormSettings, 'buttonLabel' | 'buttonColor' | 'buttonTextColor'>;
 }) {
   const label = resolveFormButtonLabel(settings?.buttonLabel);
-  const style = resolveFormButtonStyle(settings ?? {});
+  const appearance = useFormAppearance();
 
   return (
     <Button
@@ -522,7 +577,7 @@ export function FormPreviewSubmitButton({
       className={`w-full ${editable ? 'pointer-events-none' : ''}`}
       disabled={disabled || submitting}
       tabIndex={editable ? -1 : undefined}
-      style={style}
+      style={appearance.buttonStyle}
     >
       {submitting ? (
         <span className="flex items-center justify-center gap-2">
