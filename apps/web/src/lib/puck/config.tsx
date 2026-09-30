@@ -90,6 +90,20 @@ import {
   type GnomieTestimonialsProps,
   type GnomieVideoCtaProps,
 } from '../../components/puck/pageui/gnomie';
+import {
+  descomplicandoAgendaPuckComponent,
+  descomplicandoBannerPuckComponent,
+  descomplicandoFooterPuckComponent,
+  descomplicandoHeroPuckComponent,
+  descomplicandoSpeakerPuckComponent,
+  descomplicandoTemplatePuckComponent,
+  type DescomplicandoAgendaProps,
+  type DescomplicandoBannerProps,
+  type DescomplicandoFooterProps,
+  type DescomplicandoHeroProps,
+  type DescomplicandoSpeakerProps,
+  type DescomplicandoTemplateProps,
+} from '../../components/puck/pageui/descomplicando';
 import {PAGEUI_PLACEHOLDER_1200x600} from '../../components/puck/pageui/front-centre/shared-defaults';
 import {
   landingImageWidthIsFull,
@@ -173,6 +187,12 @@ type LandingPageComponents = {
   GnomieSaleCta: GnomieSaleCtaProps;
   GnomieFaq: GnomieFaqProps;
   GnomieTemplate: GnomieTemplateProps;
+  DescomplicandoBanner: DescomplicandoBannerProps;
+  DescomplicandoHero: DescomplicandoHeroProps;
+  DescomplicandoAgenda: DescomplicandoAgendaProps;
+  DescomplicandoSpeaker: DescomplicandoSpeakerProps;
+  DescomplicandoFooter: DescomplicandoFooterProps;
+  Descomplicando: DescomplicandoTemplateProps;
 };
 
 const headingClass: Record<LandingPageComponents['Heading']['level'], string> = {
@@ -257,7 +277,7 @@ export const puckConfig: Config<LandingPageComponents> = {
     },
     landingTemplates: {
       title: 'Landing Templates',
-      components: ['FrontCentre', 'Specta', 'GnomieTemplate'],
+      components: ['FrontCentre', 'Specta', 'GnomieTemplate', 'Descomplicando'],
     },
     pageui: {
       title: 'Front Centre',
@@ -298,6 +318,16 @@ export const puckConfig: Config<LandingPageComponents> = {
         'GnomiePricing',
         'GnomieSaleCta',
         'GnomieFaq',
+      ],
+    },
+    descomplicando: {
+      title: 'Descomplicando',
+      components: [
+        'DescomplicandoBanner',
+        'DescomplicandoHero',
+        'DescomplicandoAgenda',
+        'DescomplicandoSpeaker',
+        'DescomplicandoFooter',
       ],
     },
   },
@@ -538,6 +568,12 @@ export const puckConfig: Config<LandingPageComponents> = {
     GnomieSaleCta: gnomieSaleCtaPuckComponent,
     GnomieFaq: gnomieFaqPuckComponent,
     GnomieTemplate: gnomieTemplatePuckComponent,
+    DescomplicandoBanner: descomplicandoBannerPuckComponent,
+    DescomplicandoHero: descomplicandoHeroPuckComponent,
+    DescomplicandoAgenda: descomplicandoAgendaPuckComponent,
+    DescomplicandoSpeaker: descomplicandoSpeakerPuckComponent,
+    DescomplicandoFooter: descomplicandoFooterPuckComponent,
+    Descomplicando: descomplicandoTemplatePuckComponent,
     FormBlock: {
       label: 'Form',
       defaultProps: {

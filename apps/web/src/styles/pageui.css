@@ -242,3 +242,12 @@
 .gnomie-theme h4 {
     font-family: Montserrat, ui-sans-serif, system-ui, sans-serif;
 }
+
+/* Descomplicando Algoritmos template (Elementor port, Rubik + coral) */
+.descomplicando-theme {
+    font-family: Rubik, ui-sans-serif, system-ui, sans-serif;
+}
+
+.descomplicando-hero-form > div {
+    padding: 0;
+}

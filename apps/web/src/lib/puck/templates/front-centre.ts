@@ -1,6 +1,8 @@
 import type {PuckData} from '@merlin/types';
 
 import {createDefaultFrontCentreTemplate} from '../../../components/puck/pageui/front-centre/front-centre-template/defaults';
+
+import {DESCOMPLICANDO_TEMPLATE} from './descomplicando';
 import {GNOMIE_TEMPLATE} from './gnomie';
 import {SPECTA_TEMPLATE} from './specta';
 
@@ -41,6 +43,12 @@ export const LANDING_PAGE_TEMPLATES = [
     label: 'Gnomie AI',
     description: 'AI garden design landing with carousels, product tours, pricing, and FAQ.',
     data: GNOMIE_TEMPLATE,
+  },
+  {
+    id: 'descomplicando-algoritmos',
+    label: 'Descomplicando Algoritmos',
+    description: 'Event landing with hero form, agenda, speaker bio, and footer.',
+    data: DESCOMPLICANDO_TEMPLATE,
   },
 ] as const;
 
