@@ -18,6 +18,7 @@ const RADIUS_CLASS: Record<Exclude<LandingImageRadiusPreset, 'none' | 'custom'>,
 const WIDTH_PATTERN = /^(\d+(?:\.\d+)?)\s*%?$/;
 const RADIUS_PX_PATTERN = /^(\d+(?:\.\d+)?)\s*px$/i;
 const RADIUS_NUMBER_PATTERN = /^(\d+(?:\.\d+)?)$/;
+const HEX_COLOR_PATTERN = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/;
 
 function resolveAlign(align?: string): LandingImageAlign {
   if (align === 'left' || align === 'right') {
@@ -76,6 +77,28 @@ export function landingImageRadiusPreset(rounded?: boolean | string): LandingIma
   return 'xl';
 }
 
+export function parseLandingImageBackground(background?: string): string {
+  if (!background) {
+    return 'transparent';
+  }
+
+  const token = background.trim().toLowerCase();
+  if (token === '' || token === 'transparent' || token === 'none') {
+    return 'transparent';
+  }
+
+  const raw = background.trim();
+  if (HEX_COLOR_PATTERN.test(raw)) {
+    return raw;
+  }
+
+  return 'transparent';
+}
+
+export function landingImageBackgroundIsTransparent(background?: string): boolean {
+  return parseLandingImageBackground(background) === 'transparent';
+}
+
 function resolveRadius(rounded?: boolean | string): {className: string | null; borderRadius: string | null} {
   const preset = landingImageRadiusPreset(rounded);
   if (preset === 'none') {
@@ -94,10 +117,16 @@ export function resolveLandingImageLayout(
   width?: string,
   align?: string,
   rounded?: boolean | string,
-): {wrapperClass: string; imgClass: string; imgStyle: {width: string; borderRadius?: string}} {
+  background?: string,
+): {
+  wrapperClass: string;
+  wrapperStyle: {backgroundColor: string};
+  imgClass: string;
+  imgStyle: {width: string; borderRadius?: string};
+} {
   const percent = parseLandingImageWidthPercent(width);
   const radius = resolveRadius(rounded);
-  const parts = ['block', 'h-auto'];
+  const parts = ['block', 'h-auto', 'bg-transparent'];
   if (percent !== 100) {
     parts.push(ALIGN_CLASS[resolveAlign(align)]);
   }
@@ -112,6 +141,7 @@ export function resolveLandingImageLayout(
 
   return {
     wrapperClass: 'w-full',
+    wrapperStyle: {backgroundColor: parseLandingImageBackground(background)},
     imgClass: parts.join(' '),
     imgStyle,
   };

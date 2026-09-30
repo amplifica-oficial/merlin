@@ -95,6 +95,7 @@ import {
   landingImageWidthIsFull,
   resolveLandingImageLayout,
 } from '../../components/puck/shared/landingImageLayout';
+import {puckImageBackgroundField} from '../../components/puck/shared/puckImageBackgroundField';
 import {puckImageRoundedField} from '../../components/puck/shared/puckImageRoundedField';
 import {puckImageUrlField} from '../../components/puck/shared/puckImageUrlField';
 import {puckImageWidthField} from '../../components/puck/shared/puckImageWidthField';
@@ -115,6 +116,7 @@ type LandingPageComponents = {
     rounded: boolean | string;
     width: string;
     align: 'left' | 'center' | 'right';
+    background: string;
   };
   Button: {
     label: string;
@@ -197,6 +199,7 @@ function buildImageFields(width?: string): Fields<LandingPageComponents['Image']
     alt: {type: 'text', label: 'Alt text'},
     width: puckImageWidthField(),
     rounded: puckImageRoundedField(),
+    background: puckImageBackgroundField(),
   };
 
   if (!landingImageWidthIsFull(width)) {
@@ -376,6 +379,7 @@ export const puckConfig: Config<LandingPageComponents> = {
         rounded: 'xl',
         width: '100',
         align: 'center',
+        background: 'transparent',
       },
       fields: buildImageFields('100'),
       resolveFields: ({props}, {changed, lastFields}) => {
@@ -384,10 +388,10 @@ export const puckConfig: Config<LandingPageComponents> = {
         }
         return buildImageFields(props.width);
       },
-      render: ({src, alt, rounded, width, align}) => {
-        const layout = resolveLandingImageLayout(width, align, rounded);
+      render: ({src, alt, rounded, width, align, background}) => {
+        const layout = resolveLandingImageLayout(width, align, rounded, background);
         return (
-          <div className={layout.wrapperClass}>
+          <div className={layout.wrapperClass} style={layout.wrapperStyle}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={src}
