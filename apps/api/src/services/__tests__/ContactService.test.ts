@@ -796,4 +796,46 @@ describe('ContactService - Duplicate Prevention & Data Merging', () => {
       });
     });
   });
+
+  describe('Update replaces custom data', () => {
+    it('drops omitted keys instead of merging with existing data', async () => {
+      const contact = await factories.createContact({
+        projectId,
+        email: 'replace-data@example.com',
+        data: {firstName: 'Jane', lastName: 'Doe', plan: 'pro'},
+      });
+
+      const updated = await ContactService.update(projectId, contact.id, {
+        data: {firstName: 'Jane'},
+      });
+
+      expect(updated.data).toEqual({firstName: 'Jane'});
+    });
+
+    it('clears custom data when payload data is null', async () => {
+      const contact = await factories.createContact({
+        projectId,
+        email: 'clear-data@example.com',
+        data: {firstName: 'Jane'},
+      });
+
+      const updated = await ContactService.update(projectId, contact.id, {data: null});
+
+      expect(updated.data).toBeNull();
+    });
+
+    it('filters reserved keys from a replace payload', async () => {
+      const contact = await factories.createContact({
+        projectId,
+        email: 'reserved-data@example.com',
+        data: {firstName: 'Jane'},
+      });
+
+      const updated = await ContactService.update(projectId, contact.id, {
+        data: {firstName: 'Ada', merlin_id: 'malicious', email: 'hacker@evil.com'},
+      });
+
+      expect(updated.data).toEqual({firstName: 'Ada'});
+    });
+  });
 });

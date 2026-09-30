@@ -224,8 +224,8 @@ export class ContactService {
       if (data.data === null) {
         updateData.data = Prisma.JsonNull;
       } else if (typeof data.data === 'object' && !Array.isArray(data.data)) {
-        const merged = ContactService.mergeContactData(existing.data, data.data as Record<string, unknown>);
-        updateData.data = Object.keys(merged).length > 0 ? toPrismaJson(merged) : Prisma.JsonNull;
+        const replaced = ContactService.mergeContactData(null, data.data as Record<string, unknown>);
+        updateData.data = Object.keys(replaced).length > 0 ? toPrismaJson(replaced) : Prisma.JsonNull;
       } else {
         throw new HttpException(400, 'data must be an object');
       }
