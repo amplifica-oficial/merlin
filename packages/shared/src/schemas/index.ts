@@ -1,5 +1,5 @@
 import {CampaignAudienceType, TemplateType, TrackingMode, WorkflowStepType, WorkflowTriggerType} from '@merlin/db';
-import type {FilterCondition, FilterGroup} from '@merlin/types';
+import type {FilterCondition, FilterGroup, LandingAiFieldCatalog, LandingAiOutlineNode} from '@merlin/types';
 import {z} from 'zod';
 
 import {LANDING_PAGE_SLUG_REGEX, isLandingPageUuidShape} from '../slug.js';
@@ -720,6 +720,253 @@ export const LandingPageSchemas = {
     settings: landingPageSettingsSchema.optional(),
     published: z.boolean().optional(),
   }),
+} as const;
+
+const landingAiFieldCatalogSchema: z.ZodType<LandingAiFieldCatalog> = z.lazy(() =>
+  z.object({
+    type: z.string().min(1).max(40),
+    label: z.string().max(120).optional(),
+    hint: z.string().max(40).optional(),
+    options: z
+      .array(
+        z.object({
+          label: z.string(),
+          value: z.unknown(),
+        }),
+      )
+      .max(80)
+      .optional(),
+    allow: z.array(z.string().min(1).max(80)).max(80).optional(),
+    objectFields: z.record(landingAiFieldCatalogSchema).optional(),
+    arrayFields: z.record(landingAiFieldCatalogSchema).optional(),
+  }),
+);
+
+const landingAiComponentCatalogSchema = z.object({
+  type: z.string().min(1).max(80),
+  label: z.string().min(1).max(120),
+  category: z.string().max(80).optional(),
+  description: z.string().max(400).optional(),
+  useWhen: z.string().max(400).optional(),
+  fields: z.record(landingAiFieldCatalogSchema).default({}),
+  slots: z.array(z.string().min(1).max(80)).max(20).default([]),
+  defaultProps: z.record(z.unknown()).optional(),
+});
+
+const landingAiPickedElementSchema = z.object({
+  id: z.string().min(1).max(80),
+  blockId: z.string().max(200).nullable(),
+  blockType: z.string().max(80).nullable(),
+  selector: z.string().max(500),
+  tag: z.string().min(1).max(40),
+  classes: z.array(z.string().max(120)).max(20).default([]),
+  text: z.string().max(120).default(''),
+  outerHtml: z.string().max(1_500).default(''),
+  rect: z.object({
+    width: z.number(),
+    height: z.number(),
+  }),
+  styles: z.record(z.string().max(240)).refine(value => Object.keys(value).length <= 30),
+  propMatches: z.array(z.string().max(160)).max(20).default([]),
+});
+
+const landingAiOutlineNodeSchema: z.ZodType<LandingAiOutlineNode> = z.lazy(() =>
+  z.object({
+    id: z.string().max(200),
+    type: z.string().min(1).max(80),
+    props: z.record(z.unknown()),
+    slots: z.record(z.array(landingAiOutlineNodeSchema)).optional(),
+  }),
+);
+
+const LANDING_AI_TEXT_MAX = 8_000;
+const LANDING_AI_REASONING_MAX = 16_000;
+const LANDING_AI_TOOL_INPUT_MAX = 100_000;
+const LANDING_AI_TOOL_OUTPUT_MAX = 100_000;
+const LANDING_AI_METADATA_MAX = 20_000;
+const LANDING_AI_PROVIDER_METADATA_MAX = 4_000;
+
+function jsonChars(value: unknown): number {
+  try {
+    const serialized = JSON.stringify(value);
+    return serialized ? serialized.length : Number.POSITIVE_INFINITY;
+  } catch {
+    return Number.POSITIVE_INFINITY;
+  }
+}
+
+export const LANDING_AI_TOOL_NAMES = [
+  'get_block',
+  'get_component_schema',
+  'get_page',
+  'list_forms',
+  'update_block',
+  'update_block_prop',
+  'insert_block',
+  'move_block',
+  'remove_block',
+  'duplicate_block',
+  'set_block_css',
+  'set_element_style',
+  'set_page_style',
+  'update_page',
+  'replace_page',
+] as const;
+
+function isLandingAiToolPart(type: string): boolean {
+  if (!type.startsWith('tool-')) {
+    return false;
+  }
+  return (LANDING_AI_TOOL_NAMES as readonly string[]).includes(type.slice('tool-'.length));
+}
+
+const landingAiTextPartSchema = z
+  .object({
+    type: z.literal('text'),
+    text: z.string().max(LANDING_AI_TEXT_MAX),
+    state: z.enum(['streaming', 'done']).optional(),
+    providerMetadata: z.unknown().optional(),
+  })
+  .superRefine((part, ctx) => {
+    if (part.providerMetadata !== undefined && jsonChars(part.providerMetadata) > LANDING_AI_PROVIDER_METADATA_MAX) {
+      ctx.addIssue({code: z.ZodIssueCode.custom, message: 'Text metadata is too large'});
+    }
+  });
+
+const landingAiReasoningPartSchema = z
+  .object({
+    type: z.literal('reasoning'),
+    id: z.string().max(200).optional(),
+    text: z.string().max(LANDING_AI_REASONING_MAX),
+    state: z.enum(['streaming', 'done']).optional(),
+    providerMetadata: z.unknown().optional(),
+  })
+  .superRefine((part, ctx) => {
+    if (part.providerMetadata !== undefined && jsonChars(part.providerMetadata) > LANDING_AI_PROVIDER_METADATA_MAX) {
+      ctx.addIssue({code: z.ZodIssueCode.custom, message: 'Reasoning metadata is too large'});
+    }
+  });
+
+const landingAiStepStartPartSchema = z.object({
+  type: z.literal('step-start'),
+});
+
+const landingAiToolPartSchema = z
+  .object({
+    type: z.string().refine(isLandingAiToolPart, 'Unknown tool part'),
+    toolCallId: z.string().min(1).max(200),
+    state: z.enum(['input-streaming', 'input-available', 'output-available', 'output-error']),
+    input: z.unknown().optional(),
+    output: z.unknown().optional(),
+    errorText: z.string().max(4_000).optional(),
+    rawInput: z.string().max(LANDING_AI_TEXT_MAX).optional(),
+    providerExecuted: z.boolean().optional(),
+    preliminary: z.boolean().optional(),
+    callProviderMetadata: z.unknown().optional(),
+  })
+  .superRefine((part, ctx) => {
+    if (part.input !== undefined && jsonChars(part.input) > LANDING_AI_TOOL_INPUT_MAX) {
+      ctx.addIssue({code: z.ZodIssueCode.custom, message: 'Tool input is too large'});
+    }
+    if (part.output !== undefined && jsonChars(part.output) > LANDING_AI_TOOL_OUTPUT_MAX) {
+      ctx.addIssue({code: z.ZodIssueCode.custom, message: 'Tool output is too large'});
+    }
+    if (
+      part.callProviderMetadata !== undefined &&
+      jsonChars(part.callProviderMetadata) > LANDING_AI_PROVIDER_METADATA_MAX
+    ) {
+      ctx.addIssue({code: z.ZodIssueCode.custom, message: 'Tool metadata is too large'});
+    }
+  });
+
+const landingAiMessagePartSchema = z.union([
+  landingAiTextPartSchema,
+  landingAiReasoningPartSchema,
+  landingAiStepStartPartSchema,
+  landingAiToolPartSchema,
+]);
+
+const landingAiMessageSchema = z.object({
+  id: z.string().max(200).optional(),
+  role: z.enum(['user', 'assistant']),
+  metadata: z
+    .unknown()
+    .optional()
+    .refine(value => value === undefined || jsonChars(value) <= LANDING_AI_METADATA_MAX, 'Metadata is too large'),
+  parts: z.array(landingAiMessagePartSchema).min(1).max(40),
+});
+
+export const LandingPageAiSchemas = {
+  chat: z.object({
+    id: z.string().max(200).optional(),
+    messages: z.array(landingAiMessageSchema).min(1).max(60),
+    catalog: z.array(landingAiComponentCatalogSchema).max(80),
+    outline: z.object({
+      root: z.record(z.unknown()).default({}),
+      content: z.array(landingAiOutlineNodeSchema).max(200),
+      truncated: z.boolean().optional(),
+      omittedBlocks: z.number().int().min(0).optional(),
+    }),
+    selectedId: z.string().max(200).nullish(),
+    pickedElements: z.array(landingAiPickedElementSchema).max(10).optional(),
+  }),
+  tools: {
+    getBlock: z.object({
+      id: z.string().min(1).max(200),
+    }),
+    getComponentSchema: z.object({
+      type: z.string().min(1).max(80),
+    }),
+    getPage: z.object({}),
+    listForms: z.object({}),
+    updateBlock: z.object({
+      id: z.string().min(1).max(200),
+      props: z.record(z.unknown()),
+    }),
+    updateBlockProp: z.object({
+      id: z.string().min(1).max(200),
+      path: z.string().min(1).max(200),
+      value: z.unknown(),
+    }),
+    insertBlock: z.object({
+      type: z.string().min(1).max(80),
+      props: z.record(z.unknown()).optional(),
+      parentId: z.string().min(1).max(200).optional(),
+      slot: z.string().min(1).max(80).optional(),
+      index: z.number().int().min(0).optional(),
+    }),
+    moveBlock: z.object({
+      id: z.string().min(1).max(200),
+      parentId: z.string().min(1).max(200).optional(),
+      slot: z.string().min(1).max(80).optional(),
+      index: z.number().int().min(0).optional(),
+    }),
+    removeBlock: z.object({
+      id: z.string().min(1).max(200),
+    }),
+    duplicateBlock: z.object({
+      id: z.string().min(1).max(200),
+    }),
+    setBlockCss: z.object({
+      id: z.string().min(1).max(200),
+      css: z.string().max(20_000),
+    }),
+    setElementStyle: z.object({
+      blockId: z.string().min(1).max(200),
+      selector: z.string().min(1).max(500),
+      declarations: z.record(z.string().max(240)).refine(value => Object.keys(value).length <= 40),
+    }),
+    setPageStyle: z.object({
+      selector: z.string().min(1).max(500),
+      declarations: z.record(z.string().max(240)).refine(value => Object.keys(value).length <= 40),
+    }),
+    updatePage: z.object({
+      rootProps: z.record(z.unknown()),
+    }),
+    replacePage: z.object({
+      content: z.array(z.record(z.unknown())).max(80),
+    }),
+  },
 } as const;
 
 export const FormSchemas = {

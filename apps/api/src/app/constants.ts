@@ -167,3 +167,20 @@ export const PHISHING_DETECTION_ENABLED = OPENROUTER_API_KEY !== '';
 export const PHISHING_CONFIDENCE_THRESHOLD = Number(validateEnv('PHISHING_CONFIDENCE_THRESHOLD', '95')); // Confidence % required to auto-disable project from a single detection
 export const PHISHING_CUMULATIVE_THRESHOLD = Number(validateEnv('PHISHING_CUMULATIVE_THRESHOLD', '3')); // Number of phishing detections before auto-disable (default 3)
 export const PHISHING_CUMULATIVE_WINDOW_MS = Number(validateEnv('PHISHING_CUMULATIVE_WINDOW_MS', '3600000')); // Time window for cumulative tracking in ms (default 1 hour)
+
+export function parsePositiveInt(value: string, fallback: number): number {
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed) || parsed <= 0) {
+    return fallback;
+  }
+  return parsed;
+}
+
+// AI Landing Page Editor (optional — official OpenAI, not the Vercel AI Gateway)
+export const OPENAI_API_KEY = validateEnv('OPENAI_API_KEY', '');
+export const OPENAI_MODEL = validateEnv('OPENAI_MODEL', 'gpt-4.1');
+export const LANDING_AI_RATE_LIMIT_PER_MINUTE = parsePositiveInt(
+  validateEnv('LANDING_AI_RATE_LIMIT_PER_MINUTE', '60'),
+  60,
+);
+export const LANDING_AI_ENABLED = OPENAI_API_KEY !== '';

@@ -116,5 +116,11 @@ export const Keys = {
     slugCheckRateLimit(projectId: string): string {
       return `landing_page:slug_check_rl:${projectId}`;
     },
+    aiChatRateLimit(projectId: string): string {
+      return `landing_page:ai_chat_rl:${projectId}`;
+    },
+    aiChatUserRateLimit(userId: string): string {
+      return `landing_page:ai_chat_user_rl:${userId}`;
+    },
   },
 } as const;

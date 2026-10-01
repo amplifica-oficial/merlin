@@ -7,12 +7,17 @@ import {LandingPageSchemas} from '@merlin/shared';
 import {ArrowLeft, Save} from 'lucide-react';
 import Link from 'next/link';
 import {useRouter} from 'next/router';
-import {useCallback, useEffect, useState} from 'react';
+import {useCallback, useEffect, useMemo, useRef, useState, type ReactNode} from 'react';
 import {toast} from 'sonner';
 
+import {network} from '../lib/network';
 import {puckConfig} from '../lib/puck/config';
 import {normalizePuckData} from '../lib/puck/normalize-data';
-import {network} from '../lib/network';
+
+import {ElementInspector} from './landing-pages/ai/ElementInspector';
+import {InspectorToggle} from './landing-pages/ai/InspectorToggle';
+import {LandingAiProvider} from './landing-pages/ai/LandingAiProvider';
+import {RightSidebarTabs} from './landing-pages/ai/RightSidebarTabs';
 
 interface LandingPageRecord {
   id: string;
@@ -35,14 +40,17 @@ export default function LandingPagePuckEditor({landingPageId}: LandingPagePuckEd
   const [saving, setSaving] = useState(false);
   const [page, setPage] = useState<LandingPageRecord | null>(null);
   const [data, setData] = useState<Data>(() => normalizePuckData(null));
+  const dataRef = useRef<Data>(data);
 
   useEffect(() => {
     const fetchPage = async () => {
       try {
         setLoading(true);
         const result = await network.fetch<LandingPageRecord>('GET', `/landing-pages/${landingPageId}`);
+        const normalized = normalizeData(result.data);
+        dataRef.current = normalized;
         setPage(result);
-        setData(normalizeData(result.data));
+        setData(normalized);
       } catch (error) {
         toast.error(error instanceof Error ? error.message : 'Failed to load landing page');
         void router.push('/landing-pages');
@@ -67,8 +75,8 @@ export default function LandingPagePuckEditor({landingPageId}: LandingPagePuckEd
           `/landing-pages/${landingPageId}`,
           payload,
         );
+        dataRef.current = normalizeData(updated.data);
         setPage(updated);
-        setData(normalizeData(updated.data));
         toast.success(publish ? 'Landing page published' : 'Landing page saved');
       } catch (error) {
         toast.error(error instanceof Error ? error.message : 'Failed to save landing page');
@@ -76,6 +84,37 @@ export default function LandingPagePuckEditor({landingPageId}: LandingPagePuckEd
         setSaving(false);
       }
     },
+    [landingPageId],
+  );
+
+  const onPuckChange = useCallback((next: Data) => {
+    dataRef.current = next;
+  }, []);
+
+  const onPublish = useCallback(
+    (nextData: Data) => {
+      dataRef.current = nextData;
+      void save(nextData, true);
+    },
+    [save],
+  );
+
+  const overrides = useMemo(
+    () => ({
+      puck: ({children}: {children: ReactNode}) => (
+        <LandingAiProvider landingPageId={landingPageId}>
+          {children}
+          <ElementInspector />
+        </LandingAiProvider>
+      ),
+      headerActions: ({children}: {children: ReactNode}) => (
+        <>
+          <InspectorToggle compact />
+          {children}
+        </>
+      ),
+      fields: ({children}: {children: ReactNode}) => <RightSidebarTabs>{children}</RightSidebarTabs>,
+    }),
     [landingPageId],
   );
 
@@ -103,23 +142,25 @@ export default function LandingPagePuckEditor({landingPageId}: LandingPagePuckEd
           </div>
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          <Button variant="outline" size="sm" disabled={saving} onClick={() => void save(data)}>
+          <Button variant="outline" size="sm" disabled={saving} onClick={() => void save(dataRef.current)}>
             <Save className="h-4 w-4 mr-1" />
             Save
           </Button>
-          <Button size="sm" disabled={saving} onClick={() => void save(data, true)}>
+          <Button size="sm" disabled={saving} onClick={() => void save(dataRef.current, true)}>
             Publish
           </Button>
         </div>
       </div>
-      <div className="flex-1 min-h-0 [&_.Puck]:h-full">
+      <div className="flex-1 min-h-0 [&_.Puck]:h-full [&_[class*='FieldsPlugin']]:flex [&_[class*='FieldsPlugin']]:min-h-0 [&_[class*='FieldsPlugin']]:flex-col [&_[class*='FieldsPlugin']]:overflow-hidden">
         <Puck
+          key={landingPageId}
           config={puckConfig}
           data={data}
-          onChange={setData}
-          onPublish={nextData => void save(nextData, true)}
+          onChange={onPuckChange}
+          onPublish={onPublish}
           headerTitle={page.name}
           height="100%"
+          overrides={overrides}
         />
       </div>
     </div>
