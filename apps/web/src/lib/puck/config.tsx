@@ -114,6 +114,9 @@ import {puckImageRoundedField} from '../../components/puck/shared/puckImageRound
 import {puckImageUrlField} from '../../components/puck/shared/puckImageUrlField';
 import {puckImageWidthField} from '../../components/puck/shared/puckImageWidthField';
 
+import {sanitizeCss} from './sanitize-css';
+import {applyCustomCssToComponents} from './with-custom-css';
+
 type LandingPageComponents = {
   Heading: {
     text: string;
@@ -257,7 +260,7 @@ const sectionBackgroundClass = {
   dark: 'bg-neutral-900 text-white',
 };
 
-export const puckConfig: Config<LandingPageComponents> = {
+const puckConfigBase: Config<LandingPageComponents> = {
   categories: {
     content: {
       title: 'Content',
@@ -332,8 +335,15 @@ export const puckConfig: Config<LandingPageComponents> = {
     },
   },
   root: {
-    render: ({children}) => (
+    defaultProps: {
+      customCss: '',
+    },
+    fields: {
+      customCss: {type: 'textarea', label: 'Page CSS'},
+    },
+    render: ({children, customCss}) => (
       <div className="min-h-screen bg-white text-neutral-900 antialiased">
+        {typeof customCss === 'string' && customCss.trim() ? <style>{sanitizeCss(customCss)}</style> : null}
         {children}
       </div>
     ),
@@ -605,5 +615,7 @@ export const puckConfig: Config<LandingPageComponents> = {
     },
   },
 };
+
+export const puckConfig = applyCustomCssToComponents(puckConfigBase);
 
 export type {LandingPageComponents};
