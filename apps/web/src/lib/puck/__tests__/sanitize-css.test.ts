@@ -22,6 +22,23 @@ describe('sanitizeCss', () => {
     expect(sanitized.toLowerCase()).not.toContain('expression(');
   });
 
+  it('does not reassemble a style tag from nested fragments', () => {
+    const sanitized = sanitizeCss('</sty</stylele');
+    expect(sanitized).not.toContain('<');
+    expect(sanitized.toLowerCase()).not.toContain('style');
+  });
+
+  it('escapes raw angle brackets', () => {
+    expect(sanitizeCss('h1{content:"<"}')).toContain('\\3c ');
+    expect(sanitizeCss('h1{content:"<"}')).not.toContain('<');
+  });
+
+  it('drops at-rules whose name uses a css escape', () => {
+    const sanitized = sanitizeCss(String.raw`@\69mport url("https://evil.test");h1{color:red}`);
+    expect(sanitized).not.toContain('evil.test');
+    expect(sanitized).toContain('color:red');
+  });
+
   it('caps length', () => {
     const css = 'a'.repeat(MAX_CUSTOM_CSS_CHARS + 50);
     expect(sanitizeCss(css).length).toBe(MAX_CUSTOM_CSS_CHARS);

@@ -33,6 +33,14 @@ export function getSlotNames(type: string, catalog: LandingAiComponentCatalog[])
   return catalog.find(component => component.type === type)?.slots ?? [];
 }
 
+const FORBIDDEN_PROP_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
+
+function assertSafePropKey(key: string): void {
+  if (FORBIDDEN_PROP_KEYS.has(key)) {
+    throw new LandingAiOperationError(`Forbidden prop key: ${key}`);
+  }
+}
+
 export function deepMerge(target: unknown, source: unknown): unknown {
   if (Array.isArray(source)) {
     return source;
@@ -40,6 +48,7 @@ export function deepMerge(target: unknown, source: unknown): unknown {
   if (isPlainObject(source) && isPlainObject(target)) {
     const output: Record<string, unknown> = {...target};
     for (const [key, value] of Object.entries(source)) {
+      assertSafePropKey(key);
       output[key] = key in target ? deepMerge(target[key], value) : value;
     }
     return output;
@@ -415,6 +424,9 @@ function setAtParts(current: unknown, parts: string[], value: unknown): unknown 
   }
 
   const index = /^\d+$/.test(head) ? Number(head) : null;
+  if (index === null) {
+    assertSafePropKey(head);
+  }
   if (index !== null) {
     const list = Array.isArray(current) ? [...current] : [];
     while (list.length <= index) {

@@ -7,6 +7,7 @@ import {
   duplicateBlock,
   findBlock,
   insertBlock,
+  LandingAiOperationError,
   moveBlock,
   removeBlock,
   replacePage,
@@ -167,6 +168,14 @@ describe('landing AI operations', () => {
     const next = setElementStyle(withCss, 'Heading-1', 'h1', {color: 'blue', 'font-size': '32px'}, catalog);
     expect(findBlock(next, 'Heading-1', catalog)?.block.props.customCss).toContain('h1{color: blue; font-size: 32px}');
     expect(findBlock(next, 'Heading-1', catalog)?.block.props.customCss).toContain('p{margin:0}');
+  });
+
+  it('rejects prototype paths and keys', () => {
+    const data = page([heading('Heading-1')]);
+    expect(() => updateBlockProp(data, 'Heading-1', '__proto__.polluted', true, catalog)).toThrow(LandingAiOperationError);
+    expect(() => updateBlock(data, 'Heading-1', {constructor: {polluted: true}}, catalog)).toThrow(
+      LandingAiOperationError,
+    );
   });
 
   it('merges page-level CSS', () => {
