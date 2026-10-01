@@ -1,5 +1,5 @@
 import {CampaignAudienceType, TemplateType, TrackingMode, WorkflowStepType, WorkflowTriggerType} from '@merlin/db';
-import type {FilterCondition, FilterGroup} from '@merlin/types';
+import type {FilterCondition, FilterGroup, LandingAiFieldCatalog, LandingAiOutlineNode} from '@merlin/types';
 import {z} from 'zod';
 
 import {LANDING_PAGE_SLUG_REGEX, isLandingPageUuidShape} from '../slug.js';
@@ -720,6 +720,136 @@ export const LandingPageSchemas = {
     settings: landingPageSettingsSchema.optional(),
     published: z.boolean().optional(),
   }),
+} as const;
+
+const landingAiFieldCatalogSchema: z.ZodType<LandingAiFieldCatalog> = z.lazy(() =>
+  z.object({
+    type: z.string().min(1).max(40),
+    label: z.string().max(120).optional(),
+    hint: z.string().max(40).optional(),
+    options: z
+      .array(
+        z.object({
+          label: z.string(),
+          value: z.unknown(),
+        }),
+      )
+      .max(80)
+      .optional(),
+    allow: z.array(z.string().min(1).max(80)).max(80).optional(),
+    objectFields: z.record(landingAiFieldCatalogSchema).optional(),
+    arrayFields: z.record(landingAiFieldCatalogSchema).optional(),
+  }),
+);
+
+const landingAiComponentCatalogSchema = z.object({
+  type: z.string().min(1).max(80),
+  label: z.string().min(1).max(120),
+  category: z.string().max(80).optional(),
+  description: z.string().max(400).optional(),
+  useWhen: z.string().max(400).optional(),
+  fields: z.record(landingAiFieldCatalogSchema).default({}),
+  slots: z.array(z.string().min(1).max(80)).max(20).default([]),
+  defaultProps: z.record(z.unknown()).optional(),
+});
+
+const landingAiPickedElementSchema = z.object({
+  id: z.string().min(1).max(80),
+  blockId: z.string().max(200).nullable(),
+  blockType: z.string().max(80).nullable(),
+  selector: z.string().max(500),
+  tag: z.string().min(1).max(40),
+  classes: z.array(z.string().max(120)).max(20).default([]),
+  text: z.string().max(120).default(''),
+  outerHtml: z.string().max(1_500).default(''),
+  rect: z.object({
+    width: z.number(),
+    height: z.number(),
+  }),
+  styles: z.record(z.string().max(240)).refine(value => Object.keys(value).length <= 30),
+  propMatches: z.array(z.string().max(160)).max(20).default([]),
+});
+
+const landingAiOutlineNodeSchema: z.ZodType<LandingAiOutlineNode> = z.lazy(() =>
+  z.object({
+    id: z.string().max(200),
+    type: z.string().min(1).max(80),
+    props: z.record(z.unknown()),
+    slots: z.record(z.array(landingAiOutlineNodeSchema)).optional(),
+  }),
+);
+
+export const LandingPageAiSchemas = {
+  chat: z.object({
+    id: z.string().max(200).optional(),
+    messages: z.array(z.record(z.unknown())).min(1).max(60),
+    catalog: z.array(landingAiComponentCatalogSchema).max(80),
+    outline: z.object({
+      root: z.record(z.unknown()).default({}),
+      content: z.array(landingAiOutlineNodeSchema).max(200),
+      truncated: z.boolean().optional(),
+      omittedBlocks: z.number().int().min(0).optional(),
+    }),
+    selectedId: z.string().max(200).nullish(),
+    pickedElements: z.array(landingAiPickedElementSchema).max(10).optional(),
+  }),
+  tools: {
+    getBlock: z.object({
+      id: z.string().min(1).max(200),
+    }),
+    getComponentSchema: z.object({
+      type: z.string().min(1).max(80),
+    }),
+    getPage: z.object({}),
+    listForms: z.object({}),
+    updateBlock: z.object({
+      id: z.string().min(1).max(200),
+      props: z.record(z.unknown()),
+    }),
+    updateBlockProp: z.object({
+      id: z.string().min(1).max(200),
+      path: z.string().min(1).max(200),
+      value: z.unknown(),
+    }),
+    insertBlock: z.object({
+      type: z.string().min(1).max(80),
+      props: z.record(z.unknown()).optional(),
+      parentId: z.string().min(1).max(200).optional(),
+      slot: z.string().min(1).max(80).optional(),
+      index: z.number().int().min(0).optional(),
+    }),
+    moveBlock: z.object({
+      id: z.string().min(1).max(200),
+      parentId: z.string().min(1).max(200).optional(),
+      slot: z.string().min(1).max(80).optional(),
+      index: z.number().int().min(0).optional(),
+    }),
+    removeBlock: z.object({
+      id: z.string().min(1).max(200),
+    }),
+    duplicateBlock: z.object({
+      id: z.string().min(1).max(200),
+    }),
+    setBlockCss: z.object({
+      id: z.string().min(1).max(200),
+      css: z.string().max(20_000),
+    }),
+    setElementStyle: z.object({
+      blockId: z.string().min(1).max(200),
+      selector: z.string().min(1).max(500),
+      declarations: z.record(z.string().max(240)).refine(value => Object.keys(value).length <= 40),
+    }),
+    setPageStyle: z.object({
+      selector: z.string().min(1).max(500),
+      declarations: z.record(z.string().max(240)).refine(value => Object.keys(value).length <= 40),
+    }),
+    updatePage: z.object({
+      rootProps: z.record(z.unknown()),
+    }),
+    replacePage: z.object({
+      content: z.array(z.record(z.unknown())).max(80),
+    }),
+  },
 } as const;
 
 export const FormSchemas = {
