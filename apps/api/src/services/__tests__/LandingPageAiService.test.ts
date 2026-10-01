@@ -1,10 +1,11 @@
+import {LANDING_AI_TOOL_NAMES} from '@merlin/shared';
 import {describe, expect, it} from 'vitest';
 
+import {parsePositiveInt} from '../../app/constants.js';
 import {
   buildSystemPrompt,
   createLandingAiTools,
   isLandingAiEnabled,
-  isUserTurn,
   truncateJson,
   truncateOutline,
 } from '../LandingPageAiService.js';
@@ -46,9 +47,12 @@ describe('LandingPageAiService helpers', () => {
     expect(truncated.content.length).toBeLessThan(outline.content.length);
   });
 
-  it('counts rate limit only on user turns', () => {
-    expect(isUserTurn([{role: 'user', content: 'hi'}])).toBe(true);
-    expect(isUserTurn([{role: 'user'}, {role: 'assistant'}])).toBe(false);
+  it('falls back when the rate limit is not a positive integer', () => {
+    expect(parsePositiveInt('60', 60)).toBe(60);
+    expect(parsePositiveInt('abc', 60)).toBe(60);
+    expect(parsePositiveInt('0', 60)).toBe(60);
+    expect(parsePositiveInt('-3', 60)).toBe(60);
+    expect(parsePositiveInt('1.5', 60)).toBe(60);
   });
 
   it('includes catalog, outline, picked elements, and selected block in the system prompt', () => {
@@ -101,25 +105,7 @@ describe('LandingPageAiService helpers', () => {
 
   it('defines client-side tools without execute handlers', () => {
     const tools = createLandingAiTools();
-    expect(Object.keys(tools).sort()).toEqual(
-      [
-        'duplicate_block',
-        'get_block',
-        'get_component_schema',
-        'get_page',
-        'insert_block',
-        'list_forms',
-        'move_block',
-        'remove_block',
-        'replace_page',
-        'set_block_css',
-        'set_element_style',
-        'set_page_style',
-        'update_block',
-        'update_block_prop',
-        'update_page',
-      ].sort(),
-    );
+    expect(Object.keys(tools).sort()).toEqual([...LANDING_AI_TOOL_NAMES].sort());
     expect(tools.update_block.execute).toBeUndefined();
     expect(tools.insert_block.execute).toBeUndefined();
     expect(tools.update_block_prop.execute).toBeUndefined();

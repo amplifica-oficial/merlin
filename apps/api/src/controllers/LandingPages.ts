@@ -1,19 +1,39 @@
 import {Controller, Delete, Get, Middleware, Patch, Post} from '@overnightjs/core';
 import {LandingPageAiSchemas, LandingPageSchemas} from '@merlin/shared';
-import type {LandingPageSettings, PuckData} from '@merlin/types';
+import {isJwtAuth} from '@merlin/types';
+import type {AuthResponse, LandingPageSettings, PuckData} from '@merlin/types';
 import type {NextFunction, Request, Response} from 'express';
 
 import {LANDING_AI_RATE_LIMIT_PER_MINUTE} from '../app/constants.js';
 import {redis} from '../database/redis.js';
-import {ErrorCode, HttpException, RateLimitError} from '../exceptions/index.js';
+import {ErrorCode, HttpException, NotAllowed, RateLimitError} from '../exceptions/index.js';
 import {requireAuth, requireEmailVerified} from '../middleware/auth.js';
 import {Keys} from '../services/keys.js';
-import {isLandingAiEnabled, isUserTurn, LandingPageAiService} from '../services/LandingPageAiService.js';
+import {isLandingAiEnabled, LANDING_AI_MAX_BODY_CHARS, LandingPageAiService} from '../services/LandingPageAiService.js';
 import {LandingPageService} from '../services/LandingPageService.js';
 import {CatchAsync} from '../utils/asyncHandler.js';
 
 const SLUG_CHECK_RATE_LIMIT = 60;
 const SLUG_CHECK_RATE_WINDOW_SECONDS = 60;
+const LANDING_AI_RATE_WINDOW_SECONDS = 60;
+
+function assertLandingAiUser(auth: AuthResponse): asserts auth is AuthResponse & {userId: string} {
+  if (!isJwtAuth(auth)) {
+    throw new NotAllowed('Landing page AI is only available to signed-in users.');
+  }
+}
+
+async function consumeLandingAiRateLimit(key: string): Promise<void> {
+  const count = await redis.incr(key);
+
+  if (count === 1) {
+    await redis.expire(key, LANDING_AI_RATE_WINDOW_SECONDS);
+  }
+
+  if (count > LANDING_AI_RATE_LIMIT_PER_MINUTE) {
+    throw new RateLimitError('Too many AI requests. Please try again later.');
+  }
+}
 
 @Controller('landing-pages')
 export class LandingPages {
@@ -83,6 +103,7 @@ export class LandingPages {
   @Middleware([requireAuth, requireEmailVerified])
   @CatchAsync
   public async aiConfig(_req: Request, res: Response, _next: NextFunction) {
+    assertLandingAiUser(res.locals.auth);
     return res.status(200).json({enabled: isLandingAiEnabled()});
   }
 
@@ -103,28 +124,26 @@ export class LandingPages {
     }
 
     const auth = res.locals.auth;
+    assertLandingAiUser(auth);
     const landingPageId = req.params.id;
 
     if (!landingPageId) {
       return res.status(400).json({error: 'Landing page ID is required'});
     }
 
-    await LandingPageService.get(auth.projectId!, landingPageId);
+    const bodySize = JSON.stringify(req.body ?? null).length;
+    if (bodySize > LANDING_AI_MAX_BODY_CHARS) {
+      throw new HttpException(413, 'AI chat payload is too large.', ErrorCode.INVALID_REQUEST_BODY);
+    }
+
+    await LandingPageService.get(auth.projectId, landingPageId);
 
     const payload = LandingPageAiSchemas.chat.parse(req.body);
 
-    if (isUserTurn(payload.messages)) {
-      const key = Keys.LandingPage.aiChatRateLimit(auth.projectId!);
-      const count = await redis.incr(key);
-
-      if (count === 1) {
-        await redis.expire(key, 60);
-      }
-
-      if (count > LANDING_AI_RATE_LIMIT_PER_MINUTE) {
-        throw new RateLimitError('Too many AI requests. Please try again later.');
-      }
-    }
+    await Promise.all([
+      consumeLandingAiRateLimit(Keys.LandingPage.aiChatRateLimit(auth.projectId)),
+      consumeLandingAiRateLimit(Keys.LandingPage.aiChatUserRateLimit(auth.userId)),
+    ]);
 
     await LandingPageAiService.streamChat(res, payload);
   }

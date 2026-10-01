@@ -779,10 +779,127 @@ const landingAiOutlineNodeSchema: z.ZodType<LandingAiOutlineNode> = z.lazy(() =>
   }),
 );
 
+const LANDING_AI_TEXT_MAX = 8_000;
+const LANDING_AI_REASONING_MAX = 16_000;
+const LANDING_AI_TOOL_INPUT_MAX = 100_000;
+const LANDING_AI_TOOL_OUTPUT_MAX = 100_000;
+const LANDING_AI_METADATA_MAX = 20_000;
+const LANDING_AI_PROVIDER_METADATA_MAX = 4_000;
+
+function jsonChars(value: unknown): number {
+  try {
+    const serialized = JSON.stringify(value);
+    return serialized ? serialized.length : Number.POSITIVE_INFINITY;
+  } catch {
+    return Number.POSITIVE_INFINITY;
+  }
+}
+
+export const LANDING_AI_TOOL_NAMES = [
+  'get_block',
+  'get_component_schema',
+  'get_page',
+  'list_forms',
+  'update_block',
+  'update_block_prop',
+  'insert_block',
+  'move_block',
+  'remove_block',
+  'duplicate_block',
+  'set_block_css',
+  'set_element_style',
+  'set_page_style',
+  'update_page',
+  'replace_page',
+] as const;
+
+function isLandingAiToolPart(type: string): boolean {
+  if (!type.startsWith('tool-')) {
+    return false;
+  }
+  return (LANDING_AI_TOOL_NAMES as readonly string[]).includes(type.slice('tool-'.length));
+}
+
+const landingAiTextPartSchema = z
+  .object({
+    type: z.literal('text'),
+    text: z.string().max(LANDING_AI_TEXT_MAX),
+    state: z.enum(['streaming', 'done']).optional(),
+    providerMetadata: z.unknown().optional(),
+  })
+  .superRefine((part, ctx) => {
+    if (part.providerMetadata !== undefined && jsonChars(part.providerMetadata) > LANDING_AI_PROVIDER_METADATA_MAX) {
+      ctx.addIssue({code: z.ZodIssueCode.custom, message: 'Text metadata is too large'});
+    }
+  });
+
+const landingAiReasoningPartSchema = z
+  .object({
+    type: z.literal('reasoning'),
+    id: z.string().max(200).optional(),
+    text: z.string().max(LANDING_AI_REASONING_MAX),
+    state: z.enum(['streaming', 'done']).optional(),
+    providerMetadata: z.unknown().optional(),
+  })
+  .superRefine((part, ctx) => {
+    if (part.providerMetadata !== undefined && jsonChars(part.providerMetadata) > LANDING_AI_PROVIDER_METADATA_MAX) {
+      ctx.addIssue({code: z.ZodIssueCode.custom, message: 'Reasoning metadata is too large'});
+    }
+  });
+
+const landingAiStepStartPartSchema = z.object({
+  type: z.literal('step-start'),
+});
+
+const landingAiToolPartSchema = z
+  .object({
+    type: z.string().refine(isLandingAiToolPart, 'Unknown tool part'),
+    toolCallId: z.string().min(1).max(200),
+    state: z.enum(['input-streaming', 'input-available', 'output-available', 'output-error']),
+    input: z.unknown().optional(),
+    output: z.unknown().optional(),
+    errorText: z.string().max(4_000).optional(),
+    rawInput: z.string().max(LANDING_AI_TEXT_MAX).optional(),
+    providerExecuted: z.boolean().optional(),
+    preliminary: z.boolean().optional(),
+    callProviderMetadata: z.unknown().optional(),
+  })
+  .superRefine((part, ctx) => {
+    if (part.input !== undefined && jsonChars(part.input) > LANDING_AI_TOOL_INPUT_MAX) {
+      ctx.addIssue({code: z.ZodIssueCode.custom, message: 'Tool input is too large'});
+    }
+    if (part.output !== undefined && jsonChars(part.output) > LANDING_AI_TOOL_OUTPUT_MAX) {
+      ctx.addIssue({code: z.ZodIssueCode.custom, message: 'Tool output is too large'});
+    }
+    if (
+      part.callProviderMetadata !== undefined &&
+      jsonChars(part.callProviderMetadata) > LANDING_AI_PROVIDER_METADATA_MAX
+    ) {
+      ctx.addIssue({code: z.ZodIssueCode.custom, message: 'Tool metadata is too large'});
+    }
+  });
+
+const landingAiMessagePartSchema = z.union([
+  landingAiTextPartSchema,
+  landingAiReasoningPartSchema,
+  landingAiStepStartPartSchema,
+  landingAiToolPartSchema,
+]);
+
+const landingAiMessageSchema = z.object({
+  id: z.string().max(200).optional(),
+  role: z.enum(['user', 'assistant']),
+  metadata: z
+    .unknown()
+    .optional()
+    .refine(value => value === undefined || jsonChars(value) <= LANDING_AI_METADATA_MAX, 'Metadata is too large'),
+  parts: z.array(landingAiMessagePartSchema).min(1).max(40),
+});
+
 export const LandingPageAiSchemas = {
   chat: z.object({
     id: z.string().max(200).optional(),
-    messages: z.array(z.record(z.unknown())).min(1).max(60),
+    messages: z.array(landingAiMessageSchema).min(1).max(60),
     catalog: z.array(landingAiComponentCatalogSchema).max(80),
     outline: z.object({
       root: z.record(z.unknown()).default({}),

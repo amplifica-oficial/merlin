@@ -171,8 +171,10 @@ Merlin can use AI to detect and block phishing emails before they're sent. Requi
 
 The visual landing page editor can include an AI assistant that edits copy, styles, and blocks. Uses the official OpenAI API (not the Vercel AI Gateway). Disabled until `OPENAI_API_KEY` is set.
 
+Chat requests send the page outline, the component catalog, and any elements picked in the inspector to OpenAI.
+
 | Variable                            | Required | Description                                                                                         | Default    |
 | ----------------------------------- | -------- | --------------------------------------------------------------------------------------------------- | ---------- |
 | `OPENAI_API_KEY`                    | No       | Official OpenAI API key. When set, enables the AI tab in the landing page editor.                   | —          |
 | `OPENAI_MODEL`                      | No       | OpenAI model id used by the landing page editor. See [OpenAI models](https://platform.openai.com/docs/models). | `gpt-4.1`  |
-| `LANDING_AI_RATE_LIMIT_PER_MINUTE`  | No       | Max AI chat requests per project per minute.                                                        | `20`       |
+| `LANDING_AI_RATE_LIMIT_PER_MINUTE`  | No       | Max AI chat requests per minute, applied separately to each project and each signed-in user. Every request counts, including tool round-trips. Invalid values fall back to the default. | `60`       |

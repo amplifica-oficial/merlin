@@ -1,5 +1,5 @@
 import {createOpenAI} from '@ai-sdk/openai';
-import {LandingPageAiSchemas} from '@merlin/shared';
+import {LANDING_AI_TOOL_NAMES, LandingPageAiSchemas} from '@merlin/shared';
 import type {LandingAiComponentCatalog, LandingAiOutline, LandingAiPickedElement} from '@merlin/types';
 import {
   convertToModelMessages,
@@ -17,16 +17,12 @@ export const LANDING_AI_MAX_OUTPUT_TOKENS = 8000;
 export const LANDING_AI_MAX_STEPS = 12;
 export const LANDING_AI_MAX_OUTLINE_CHARS = 40_000;
 export const LANDING_AI_MAX_CATALOG_CHARS = 40_000;
+export const LANDING_AI_MAX_BODY_CHARS = 300_000;
 
 export type LandingPageAiChatPayload = z.infer<typeof LandingPageAiSchemas.chat>;
 
 export function isLandingAiEnabled(): boolean {
   return LANDING_AI_ENABLED;
-}
-
-export function isUserTurn(messages: unknown[]): boolean {
-  const last = messages[messages.length - 1];
-  return Boolean(last && typeof last === 'object' && 'role' in last && (last as {role?: unknown}).role === 'user');
 }
 
 export function truncateJson<T>(value: T, maxChars: number): T | {truncated: true; preview: string} {
@@ -144,8 +140,16 @@ export function buildSystemPrompt(input: {
     .join('\n');
 }
 
+type LandingAiToolName = (typeof LANDING_AI_TOOL_NAMES)[number];
+
+function bindLandingAiTools<T extends Record<LandingAiToolName, unknown>>(
+  tools: T & Record<Exclude<keyof T, LandingAiToolName>, never>,
+): T {
+  return tools;
+}
+
 export function createLandingAiTools() {
-  return {
+  return bindLandingAiTools({
     get_block: tool({
       description: 'Read the full props of an existing block by id.',
       inputSchema: LandingPageAiSchemas.tools.getBlock,
@@ -208,7 +212,7 @@ export function createLandingAiTools() {
       description: 'Replace the entire page content tree. Use only when rebuilding from scratch.',
       inputSchema: LandingPageAiSchemas.tools.replacePage,
     }),
-  };
+  });
 }
 
 export class LandingPageAiService {
@@ -230,15 +234,33 @@ export class LandingPageAiService {
       ignoreIncompleteToolCalls: true,
     });
 
-    const result = streamText({
-      model: openai(OPENAI_MODEL),
-      system,
-      messages,
-      tools: createLandingAiTools(),
-      stopWhen: stepCountIs(LANDING_AI_MAX_STEPS),
-      maxOutputTokens: LANDING_AI_MAX_OUTPUT_TOKENS,
-    });
+    const abortController = new AbortController();
+    const onClose = () => {
+      if (!res.writableEnded) {
+        abortController.abort();
+      }
+    };
+    res.on('close', onClose);
 
-    await result.pipeUIMessageStreamToResponse(res);
+    try {
+      const result = streamText({
+        model: openai(OPENAI_MODEL),
+        system,
+        messages,
+        tools: createLandingAiTools(),
+        stopWhen: stepCountIs(LANDING_AI_MAX_STEPS),
+        maxOutputTokens: LANDING_AI_MAX_OUTPUT_TOKENS,
+        abortSignal: abortController.signal,
+      });
+
+      await result.pipeUIMessageStreamToResponse(res);
+    } catch (error) {
+      if (abortController.signal.aborted) {
+        return;
+      }
+      throw error;
+    } finally {
+      res.off('close', onClose);
+    }
   }
 }
