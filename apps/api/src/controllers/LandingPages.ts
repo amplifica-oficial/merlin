@@ -1,12 +1,14 @@
 import {Controller, Delete, Get, Middleware, Patch, Post} from '@overnightjs/core';
-import {LandingPageSchemas} from '@merlin/shared';
+import {LandingPageAiSchemas, LandingPageSchemas} from '@merlin/shared';
 import type {LandingPageSettings, PuckData} from '@merlin/types';
 import type {NextFunction, Request, Response} from 'express';
 
+import {LANDING_AI_RATE_LIMIT_PER_MINUTE} from '../app/constants.js';
 import {redis} from '../database/redis.js';
-import {RateLimitError} from '../exceptions/index.js';
+import {ErrorCode, HttpException, RateLimitError} from '../exceptions/index.js';
 import {requireAuth, requireEmailVerified} from '../middleware/auth.js';
 import {Keys} from '../services/keys.js';
+import {isLandingAiEnabled, isUserTurn, LandingPageAiService} from '../services/LandingPageAiService.js';
 import {LandingPageService} from '../services/LandingPageService.js';
 import {CatchAsync} from '../utils/asyncHandler.js';
 
@@ -71,6 +73,60 @@ export class LandingPages {
 
     const result = await LandingPageService.isSlugAvailable(slug, excludeId);
     return res.status(200).json(result);
+  }
+
+  /**
+   * GET /landing-pages/ai/config
+   * Whether the landing page AI editor is enabled for this instance
+   */
+  @Get('ai/config')
+  @Middleware([requireAuth, requireEmailVerified])
+  @CatchAsync
+  public async aiConfig(_req: Request, res: Response, _next: NextFunction) {
+    return res.status(200).json({enabled: isLandingAiEnabled()});
+  }
+
+  /**
+   * POST /landing-pages/:id/ai/chat
+   * Stream an AI editor turn (client-side tools)
+   */
+  @Post(':id/ai/chat')
+  @Middleware([requireAuth, requireEmailVerified])
+  @CatchAsync
+  public async aiChat(req: Request, res: Response, _next: NextFunction) {
+    if (!isLandingAiEnabled()) {
+      throw new HttpException(
+        503,
+        'Landing page AI is not configured. Set OPENAI_API_KEY.',
+        ErrorCode.EXTERNAL_SERVICE_ERROR,
+      );
+    }
+
+    const auth = res.locals.auth;
+    const landingPageId = req.params.id;
+
+    if (!landingPageId) {
+      return res.status(400).json({error: 'Landing page ID is required'});
+    }
+
+    await LandingPageService.get(auth.projectId!, landingPageId);
+
+    const payload = LandingPageAiSchemas.chat.parse(req.body);
+
+    if (isUserTurn(payload.messages)) {
+      const key = Keys.LandingPage.aiChatRateLimit(auth.projectId!);
+      const count = await redis.incr(key);
+
+      if (count === 1) {
+        await redis.expire(key, 60);
+      }
+
+      if (count > LANDING_AI_RATE_LIMIT_PER_MINUTE) {
+        throw new RateLimitError('Too many AI requests. Please try again later.');
+      }
+    }
+
+    await LandingPageAiService.streamChat(res, payload);
   }
 
   /**
