@@ -1,4 +1,4 @@
-import {Controller, Delete, Get, Middleware, Patch, Post} from '@overnightjs/core';
+import {Controller, Delete, Get, Middleware, Patch, Post, Put} from '@overnightjs/core';
 import {LandingPageAiSchemas, LandingPageSchemas} from '@merlin/shared';
 import {isJwtAuth} from '@merlin/types';
 import type {AuthResponse, LandingPageSettings, PuckData} from '@merlin/types';
@@ -165,6 +165,7 @@ export class LandingPages {
       data: data.data as PuckData,
       settings: data.settings as LandingPageSettings,
       published: data.published,
+      kind: data.kind,
     });
 
     return res.status(201).json(page);
@@ -212,6 +213,31 @@ export class LandingPages {
       data: data.data as PuckData | undefined,
       settings: data.settings as LandingPageSettings | undefined,
       published: data.published,
+    });
+
+    return res.status(200).json(page);
+  }
+
+  /**
+   * PUT /landing-pages/:id/html
+   * Replace page content with imported HTML. Keeps identity, slug, name, publication, and settings.
+   * This is the only route that can change `kind`.
+   */
+  @Put(':id/html')
+  @Middleware([requireAuth, requireEmailVerified])
+  @CatchAsync
+  public async replaceHtml(req: Request, res: Response, _next: NextFunction) {
+    const auth = res.locals.auth;
+    const landingPageId = req.params.id;
+
+    if (!landingPageId) {
+      return res.status(400).json({error: 'Landing page ID is required'});
+    }
+
+    const data = LandingPageSchemas.replaceHtml.parse(req.body);
+    const page = await LandingPageService.replaceHtml(auth.projectId!, landingPageId, {
+      data: data.data as PuckData,
+      settings: data.settings as LandingPageSettings | undefined,
     });
 
     return res.status(200).json(page);

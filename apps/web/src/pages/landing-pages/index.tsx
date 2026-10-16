@@ -16,7 +16,7 @@ import {
 } from '@merlin/ui';
 import type {LandingPage} from '@merlin/db';
 import {LandingPageSchemas} from '@merlin/shared';
-import {EMPTY_PUCK_DATA} from '@merlin/types';
+import {EMPTY_PUCK_DATA, type LandingPageSettings, type PuckData} from '@merlin/types';
 import {ClipboardCopy, Edit, ExternalLink, Layout, Plus, Search, Settings, Trash2} from 'lucide-react';
 import {NextSeo} from 'next-seo';
 import Link from 'next/link';
@@ -26,22 +26,23 @@ import {toast} from 'sonner';
 import useSWR from 'swr';
 
 import {DashboardLayout} from '../../components/DashboardLayout';
-import {
-  isLandingPageSlugReady,
-  LandingPageSlugField,
-} from '../../components/landing-pages/LandingPageSlugField';
+import {isLandingPageSlugReady, LandingPageSlugField} from '../../components/landing-pages/LandingPageSlugField';
+import {HtmlImportForm} from '../../components/landing-pages/HtmlImportForm';
+import {LandingPageHtmlActions} from '../../components/landing-pages/LandingPageHtmlActions';
 import {LandingPageTemplatePicker} from '../../components/landing-pages/LandingPageTemplatePicker';
 import {DASHBOARD_URI} from '../../lib/constants';
 import {formatRelativeTime} from '../../lib/dateUtils';
 import {network} from '../../lib/network';
-import {
-  LANDING_PAGE_TEMPLATES,
-  type LandingPageTemplateId,
-} from '../../lib/puck/templates/front-centre';
+import type {HtmlImportResult} from '../../lib/puck/html/import/html-to-puck';
+import {LANDING_PAGE_TEMPLATES, type LandingPageTemplateId} from '../../lib/puck/templates/front-centre';
 
 export default function LandingPagesPage() {
   const router = useRouter();
-  const {data: pages, mutate, isLoading} = useSWR<LandingPage[]>('/landing-pages', {
+  const {
+    data: pages,
+    mutate,
+    isLoading,
+  } = useSWR<LandingPage[]>('/landing-pages', {
     revalidateOnFocus: false,
   });
 
@@ -54,6 +55,8 @@ export default function LandingPagesPage() {
   const [createSlugReady, setCreateSlugReady] = useState(false);
   const [createSlugFieldKey, setCreateSlugFieldKey] = useState(0);
   const [createTemplate, setCreateTemplate] = useState<LandingPageTemplateId>('blank');
+  const [createMode, setCreateMode] = useState<'template' | 'html'>('template');
+  const [htmlImport, setHtmlImport] = useState<HtmlImportResult | null>(null);
   const [creating, setCreating] = useState(false);
 
   const filteredPages = useMemo(() => {
@@ -80,6 +83,8 @@ export default function LandingPagesPage() {
     setCreateSlug('');
     setCreateSlugReady(false);
     setCreateTemplate('blank');
+    setCreateMode('template');
+    setHtmlImport(null);
     setCreateSlugFieldKey(key => key + 1);
   };
 
@@ -100,15 +105,21 @@ export default function LandingPagesPage() {
       return;
     }
 
+    if (createMode === 'html' && !htmlImport) {
+      toast.error('Paste or upload HTML first');
+      return;
+    }
+
     try {
       setCreating(true);
       const template = LANDING_PAGE_TEMPLATES.find(t => t.id === createTemplate);
       const payload = LandingPageSchemas.create.parse({
         name,
         slug: createSlug,
-        data: template?.data ?? EMPTY_PUCK_DATA,
-        settings: {},
+        data: createMode === 'html' ? (htmlImport?.data ?? EMPTY_PUCK_DATA) : (template?.data ?? EMPTY_PUCK_DATA),
+        settings: createMode === 'html' ? (htmlImport?.settings ?? {}) : {},
         published: false,
+        kind: createMode === 'html' ? 'HTML' : 'PUCK',
       });
       const page = await network.fetch<{id: string}, typeof LandingPageSchemas.create>(
         'POST',
@@ -188,6 +199,7 @@ export default function LandingPagesPage() {
                           <Badge variant={page.published ? 'default' : 'secondary'}>
                             {page.published ? 'Published' : 'Draft'}
                           </Badge>
+                          {page.kind === 'HTML' ? <Badge variant="outline">HTML</Badge> : null}
                         </div>
                         <p className="text-sm text-neutral-500 truncate">/p/{page.slug}</p>
                         <p className="text-xs text-neutral-400">Created {formatRelativeTime(page.createdAt)}</p>
@@ -208,6 +220,18 @@ export default function LandingPagesPage() {
                             Settings
                           </Link>
                         </Button>
+                        <LandingPageHtmlActions
+                          page={{
+                            id: page.id,
+                            name: page.name,
+                            slug: page.slug,
+                            kind: page.kind,
+                            published: page.published,
+                            settings: (page.settings ?? {}) as LandingPageSettings,
+                            getData: () => page.data as unknown as PuckData,
+                          }}
+                          onReimported={() => void mutate()}
+                        />
                         <Button variant="outline" size="sm" asChild>
                           <Link href={`/landing-pages/edit/${page.id}`} title="Edit page content">
                             <Edit className="h-4 w-4" />
@@ -245,7 +269,29 @@ export default function LandingPagesPage() {
             <DialogHeader>
               <DialogTitle>Create landing page</DialogTitle>
             </DialogHeader>
-            <LandingPageTemplatePicker value={createTemplate} onChange={setCreateTemplate} />
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                size="sm"
+                variant={createMode === 'template' ? 'default' : 'outline'}
+                onClick={() => setCreateMode('template')}
+              >
+                Template
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant={createMode === 'html' ? 'default' : 'outline'}
+                onClick={() => setCreateMode('html')}
+              >
+                Import HTML
+              </Button>
+            </div>
+            {createMode === 'template' ? (
+              <LandingPageTemplatePicker value={createTemplate} onChange={setCreateTemplate} />
+            ) : (
+              <HtmlImportForm onChange={setHtmlImport} />
+            )}
             <div className="space-y-2">
               <Label htmlFor="landing-page-name">Name</Label>
               <Input
@@ -271,7 +317,10 @@ export default function LandingPagesPage() {
               <Button variant="outline" onClick={() => setShowCreateDialog(false)}>
                 Cancel
               </Button>
-              <Button disabled={creating || !createSlugReady || !createName.trim()} onClick={() => void handleCreate()}>
+              <Button
+                disabled={creating || !createSlugReady || !createName.trim() || (createMode === 'html' && !htmlImport)}
+                onClick={() => void handleCreate()}
+              >
                 Create
               </Button>
             </DialogFooter>

@@ -9,13 +9,18 @@ import type {GetServerSideProps} from 'next';
 import {LandingPagePublicHead} from '../../components/LandingPagePublicHead';
 import {API_URI, DASHBOARD_URI} from '../../lib/constants';
 import {puckConfig} from '../../lib/puck/config';
+import {buildHtmlDocument} from '../../lib/puck/html/document';
 import {normalizePuckData} from '../../lib/puck/normalize-data';
 
 interface PublicLandingPageProps {
-  config: PublicLandingPageConfig;
+  config?: PublicLandingPageConfig;
 }
 
 export default function PublicLandingPage({config}: PublicLandingPageProps) {
+  if (!config) {
+    return null;
+  }
+
   const pageUrl = `${DASHBOARD_URI}/p/${config.slug}`;
 
   return (
@@ -60,6 +65,19 @@ export const getServerSideProps: GetServerSideProps<PublicLandingPageProps> = as
     }
 
     ctx.res.setHeader('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
+
+    if (config.kind === 'HTML') {
+      const html = buildHtmlDocument({
+        data: config.data,
+        settings: config.settings,
+        pageUrl: `${DASHBOARD_URI}/p/${config.slug}`,
+        name: config.name,
+      });
+      ctx.res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      ctx.res.statusCode = 200;
+      ctx.res.end(html);
+      return {props: {}};
+    }
 
     return {props: {config}};
   } catch {

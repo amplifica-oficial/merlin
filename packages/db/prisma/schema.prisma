@@ -335,6 +335,7 @@ model LandingPage {
   name      String
   data      Json
   settings  Json
+  kind      LandingPageKind @default(PUCK)
   published Boolean @default(false)
 
   createdAt DateTime @default(now())
@@ -941,6 +942,11 @@ enum EmailStatus {
 enum ProjectFileKind {
   FOLDER
   FILE
+}
+
+enum LandingPageKind {
+  PUCK
+  HTML
 }
 
 enum ProjectFileStatus {

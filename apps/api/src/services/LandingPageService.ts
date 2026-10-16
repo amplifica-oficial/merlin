@@ -4,7 +4,7 @@ import type {LandingPage} from '@merlin/db';
 import {Prisma} from '@merlin/db';
 import {classifyLandingPageSlug, isLandingPageUuidShape} from '@merlin/shared';
 import type {LandingPageSlugReason} from '@merlin/shared';
-import type {LandingPageSettings, PublicLandingPageConfig, PuckData} from '@merlin/types';
+import type {LandingPageKind, LandingPageSettings, PublicLandingPageConfig, PuckData} from '@merlin/types';
 import {fromPrismaJson, toPrismaJson} from '@merlin/types';
 
 import {prisma} from '../database/prisma.js';
@@ -16,6 +16,24 @@ export type LandingPageSlugAvailability = {
   available: boolean;
   reason?: LandingPageSlugReason;
 };
+
+function mergeEmptySettings(current: LandingPageSettings, incoming: LandingPageSettings): LandingPageSettings {
+  const next: LandingPageSettings = {...current};
+
+  for (const key of Object.keys(incoming) as Array<keyof LandingPageSettings>) {
+    const value = incoming[key];
+    if (value === undefined || value === '') {
+      continue;
+    }
+
+    const existing = next[key];
+    if (existing === undefined || existing === '') {
+      next[key] = value as never;
+    }
+  }
+
+  return next;
+}
 
 export class LandingPageService {
   public static async list(projectId: string): Promise<LandingPage[]> {
@@ -45,6 +63,7 @@ export class LandingPageService {
       data: PuckData;
       settings: LandingPageSettings;
       published?: boolean;
+      kind?: LandingPageKind;
     },
   ): Promise<LandingPage> {
     await this.assertSlugAvailable(data.slug);
@@ -59,6 +78,7 @@ export class LandingPageService {
           data: toPrismaJson(data.data),
           settings: toPrismaJson(data.settings),
           published: data.published ?? false,
+          kind: data.kind ?? 'PUCK',
         },
       });
     } catch (error) {
@@ -114,6 +134,37 @@ export class LandingPageService {
     }
 
     await this.invalidatePublicCache(existing.publicId, existing.slug, data.slug);
+
+    return updated;
+  }
+
+  public static async replaceHtml(
+    projectId: string,
+    landingPageId: string,
+    data: {
+      data: PuckData;
+      settings?: LandingPageSettings;
+    },
+  ): Promise<LandingPage> {
+    const existing = await this.get(projectId, landingPageId);
+
+    const updateData: Prisma.LandingPageUpdateInput = {
+      kind: 'HTML',
+      data: toPrismaJson(data.data),
+    };
+
+    if (data.settings) {
+      updateData.settings = toPrismaJson(
+        mergeEmptySettings(fromPrismaJson<LandingPageSettings>(existing.settings), data.settings),
+      );
+    }
+
+    const updated = await prisma.landingPage.update({
+      where: {id: landingPageId},
+      data: updateData,
+    });
+
+    await this.invalidatePublicCache(existing.publicId, existing.slug);
 
     return updated;
   }
@@ -195,6 +246,7 @@ export class LandingPageService {
       publicId: page.publicId,
       slug: page.slug,
       name: page.name,
+      kind: page.kind,
       data: puckData,
       settings: this.pickPublicSettings(settings),
     };

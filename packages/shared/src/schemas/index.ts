@@ -492,7 +492,12 @@ export const ActionSchemas = {
           ]),
         ),
       ]),
-      subject: z.string().min(1).max(998).regex(/^[^\r\n]*$/, 'Subject contains invalid characters').optional(),
+      subject: z
+        .string()
+        .min(1)
+        .max(998)
+        .regex(/^[^\r\n]*$/, 'Subject contains invalid characters')
+        .optional(),
       body: z.string().min(1).optional(),
       template: uuid.optional(),
       subscribed: z.boolean().optional(),
@@ -503,7 +508,10 @@ export const ActionSchemas = {
             email, // Simple email string (backward compatible)
             z.object({
               // Object with name and email
-              name: z.string().regex(/^[^\r\n]*$/, 'Name contains invalid characters').optional(),
+              name: z
+                .string()
+                .regex(/^[^\r\n]*$/, 'Name contains invalid characters')
+                .optional(),
               email: email,
             }),
           ],
@@ -524,24 +532,32 @@ export const ActionSchemas = {
       headers: z
         .record(
           z.string().regex(/^[^\r\n]+$/, 'Header key contains invalid characters'),
-          z.string().max(998).regex(/^[^\r\n]*$/, 'Header value contains invalid characters'),
+          z
+            .string()
+            .max(998)
+            .regex(/^[^\r\n]*$/, 'Header value contains invalid characters'),
         )
         .optional(),
       data: jsonSchema.optional(),
       attachments: z
         .array(
-          z.object({
-            filename: z.string().min(1).max(255).regex(/^[^\r\n"]+$/, 'Filename contains invalid characters'),
-            content: z.string().min(1), // Base64 encoded file content
-            contentType: z.string().min(1).max(255),
-            contentId: z
-              .string()
-              .min(1)
-              .max(255)
-              .regex(/^[^<>\r\n]+$/, 'Content ID cannot contain <, >, \\r, or \\n')
-              .optional(),
-            disposition: z.enum(['attachment', 'inline']).default('attachment'),
-          })
+          z
+            .object({
+              filename: z
+                .string()
+                .min(1)
+                .max(255)
+                .regex(/^[^\r\n"]+$/, 'Filename contains invalid characters'),
+              content: z.string().min(1), // Base64 encoded file content
+              contentType: z.string().min(1).max(255),
+              contentId: z
+                .string()
+                .min(1)
+                .max(255)
+                .regex(/^[^<>\r\n]+$/, 'Content ID cannot contain <, >, \\r, or \\n')
+                .optional(),
+              disposition: z.enum(['attachment', 'inline']).default('attachment'),
+            })
             .refine(data => data.disposition !== 'inline' || !!data.contentId, {
               message: 'Content ID is required when disposition is inline',
               path: ['contentId'],
@@ -602,7 +618,10 @@ const formFieldKey = z
   .string()
   .min(1)
   .max(50)
-  .regex(/^[a-zA-Z][a-zA-Z0-9_]*$/, 'Field key must start with a letter and contain only letters, numbers, and underscores');
+  .regex(
+    /^[a-zA-Z][a-zA-Z0-9_]*$/,
+    'Field key must start with a letter and contain only letters, numbers, and underscores',
+  );
 
 const formSlug = z
   .string()
@@ -638,9 +657,7 @@ const formFieldSchema = z
     }
   });
 
-const hexColor = z
-  .string()
-  .regex(/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/, 'Must be a hex color');
+const hexColor = z.string().regex(/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/, 'Must be a hex color');
 
 const formSettingsSchema = z.object({
   title: z.string().max(200).optional(),
@@ -690,11 +707,7 @@ const landingPageSettingsSchema = z.object({
     .regex(/^G-[A-Z0-9]+$/i, 'Invalid GA4 measurement ID')
     .max(20)
     .optional(),
-  fbPixelId: z
-    .string()
-    .regex(/^\d+$/, 'Invalid Facebook Pixel ID')
-    .max(20)
-    .optional(),
+  fbPixelId: z.string().regex(/^\d+$/, 'Invalid Facebook Pixel ID').max(20).optional(),
 });
 
 const puckDataSchema = z
@@ -704,6 +717,8 @@ const puckDataSchema = z
   })
   .passthrough();
 
+const landingPageKindSchema = z.enum(['PUCK', 'HTML']);
+
 export const LandingPageSchemas = {
   settings: landingPageSettingsSchema,
   create: z.object({
@@ -712,6 +727,7 @@ export const LandingPageSchemas = {
     data: puckDataSchema.default({root: {props: {}}, content: []}),
     settings: landingPageSettingsSchema.default({}),
     published: z.boolean().default(false),
+    kind: landingPageKindSchema.default('PUCK'),
   }),
   update: z.object({
     name: z.string().min(1).max(100).optional(),
@@ -719,6 +735,11 @@ export const LandingPageSchemas = {
     data: puckDataSchema.optional(),
     settings: landingPageSettingsSchema.optional(),
     published: z.boolean().optional(),
+    kind: z.never().optional(),
+  }),
+  replaceHtml: z.object({
+    data: puckDataSchema,
+    settings: landingPageSettingsSchema.optional(),
   }),
 } as const;
 
