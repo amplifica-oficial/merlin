@@ -795,6 +795,29 @@ function jsonChars(value: unknown): number {
   }
 }
 
+function compactProviderMetadata(value: unknown): unknown {
+  if (value === null || typeof value !== 'object' || Array.isArray(value)) {
+    return value;
+  }
+
+  const compacted: Record<string, unknown> = {};
+  for (const [provider, options] of Object.entries(value)) {
+    if (
+      options !== null &&
+      typeof options === 'object' &&
+      !Array.isArray(options) &&
+      'reasoningEncryptedContent' in options
+    ) {
+      const rest = {...options};
+      delete rest.reasoningEncryptedContent;
+      compacted[provider] = rest;
+    } else {
+      compacted[provider] = options;
+    }
+  }
+  return compacted;
+}
+
 export const LANDING_AI_TOOL_NAMES = [
   'get_block',
   'get_component_schema',
@@ -839,7 +862,7 @@ const landingAiReasoningPartSchema = z
     id: z.string().max(200).optional(),
     text: z.string().max(LANDING_AI_REASONING_MAX),
     state: z.enum(['streaming', 'done']).optional(),
-    providerMetadata: z.unknown().optional(),
+    providerMetadata: z.unknown().optional().transform(compactProviderMetadata),
   })
   .superRefine((part, ctx) => {
     if (part.providerMetadata !== undefined && jsonChars(part.providerMetadata) > LANDING_AI_PROVIDER_METADATA_MAX) {

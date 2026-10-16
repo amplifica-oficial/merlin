@@ -16,7 +16,7 @@ import {serializeCatalog, serializeCatalogSummary} from '../../../lib/puck/ai/ca
 import {executeLandingAiTool, MUTATING_AI_TOOLS} from '../../../lib/puck/ai/execute-tool';
 import {buildOutline} from '../../../lib/puck/ai/outline';
 import {applyPick} from '../../../lib/puck/ai/inspector/pick-list';
-import {pruneMessages} from '../../../lib/puck/ai/prune-messages';
+import {pruneMessages, stripReasoningMetadata} from '../../../lib/puck/ai/prune-messages';
 import {puckConfig} from '../../../lib/puck/config';
 
 export const LANDING_AI_MAX_ROUND_TRIPS = 10;
@@ -129,7 +129,7 @@ export function LandingAiProvider({landingPageId, children}: LandingAiProviderPr
           return {
             body: {
               ...body,
-              messages: pruneMessages(messages),
+              messages: stripReasoningMetadata(pruneMessages(messages)),
               catalog: catalogSummary,
               outline: buildOutline(puck.appState.data as Data, catalog),
               selectedId: puck.selectedItem?.props.id ?? null,
