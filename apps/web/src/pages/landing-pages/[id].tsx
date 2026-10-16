@@ -13,7 +13,7 @@ import {
   Textarea,
 } from '@merlin/ui';
 import type {LandingPage} from '@merlin/db';
-import type {LandingPageSettings} from '@merlin/types';
+import type {LandingPageSettings, PuckData} from '@merlin/types';
 import {LandingPageSchemas} from '@merlin/shared';
 import {ArrowLeft, ClipboardCopy, ExternalLink, Pencil} from 'lucide-react';
 import Link from 'next/link';
@@ -24,10 +24,8 @@ import {toast} from 'sonner';
 import useSWR from 'swr';
 
 import {DashboardLayout} from '../../components/DashboardLayout';
-import {
-  isLandingPageSlugReady,
-  LandingPageSlugField,
-} from '../../components/landing-pages/LandingPageSlugField';
+import {LandingPageHtmlActions} from '../../components/landing-pages/LandingPageHtmlActions';
+import {isLandingPageSlugReady, LandingPageSlugField} from '../../components/landing-pages/LandingPageSlugField';
 import {DASHBOARD_URI} from '../../lib/constants';
 import {network} from '../../lib/network';
 
@@ -61,10 +59,7 @@ export default function LandingPageDetailPage() {
     setSettings(parseSettings(page.settings));
   }, [page]);
 
-  const updateSetting = <K extends keyof LandingPageSettings>(
-    key: K,
-    value: LandingPageSettings[K] | undefined,
-  ) => {
+  const updateSetting = <K extends keyof LandingPageSettings>(key: K, value: LandingPageSettings[K] | undefined) => {
     setSettings(current => ({...current, [key]: value}));
   };
 
@@ -125,6 +120,18 @@ export default function LandingPageDetailPage() {
                     Preview
                   </a>
                 </Button>
+                <LandingPageHtmlActions
+                  page={{
+                    id: page.id,
+                    name: page.name,
+                    slug: page.slug,
+                    kind: page.kind,
+                    published: page.published,
+                    settings,
+                    getData: () => page.data as unknown as PuckData,
+                  }}
+                  onReimported={() => void mutate()}
+                />
                 <Button size="sm" asChild>
                   <Link href={`/landing-pages/edit/${page.id}`}>
                     <Pencil className="h-4 w-4 mr-1" />
