@@ -1,4 +1,5 @@
 import {beforeEach, describe, expect, it} from 'vitest';
+import {LandingPageSchemas} from '@merlin/shared';
 import {EMPTY_PUCK_DATA} from '@merlin/types';
 
 import {factories, getPrismaClient} from '../../../../../test/helpers';
@@ -32,9 +33,7 @@ describe('LandingPageService', () => {
 
       expect(page.projectId).toBe(projectId);
       expect(page.slug).toBe(slug);
-      expect(page.publicId).toMatch(
-        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
-      );
+      expect(page.publicId).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
       expect(page.published).toBe(false);
     });
 
@@ -154,9 +153,7 @@ describe('LandingPageService', () => {
         settings: {},
       });
 
-      await expect(
-        LandingPageService.update(projectId, page.id, {slug: takenSlug}),
-      ).rejects.toMatchObject({
+      await expect(LandingPageService.update(projectId, page.id, {slug: takenSlug})).rejects.toMatchObject({
         code: 409,
         message: 'This slug is already taken',
       });
@@ -170,9 +167,7 @@ describe('LandingPageService', () => {
         settings: {},
       });
 
-      await expect(
-        LandingPageService.update(projectId, page.id, {slug: UUID_SLUG}),
-      ).rejects.toMatchObject({
+      await expect(LandingPageService.update(projectId, page.id, {slug: UUID_SLUG})).rejects.toMatchObject({
         code: 400,
         message: 'Slug cannot be a UUID',
       });
@@ -250,6 +245,102 @@ describe('LandingPageService', () => {
       await expect(LandingPageService.isSlugAvailable(uniqueSlug('open'))).resolves.toEqual({
         available: true,
       });
+    });
+  });
+
+  describe('kind and replaceHtml', () => {
+    const htmlData = {
+      root: {
+        props: {
+          headHtml: '<style>.hero{color:red}</style>',
+          htmlAttributes: [{name: 'lang', value: 'pt-BR'}],
+          bodyAttributes: [],
+          scripts: [],
+        },
+      },
+      content: [{type: 'HtmlText', props: {id: 't1', tag: 'h1', html: 'Hi', richSafe: true}}],
+    };
+
+    it('defaults kind to PUCK and accepts HTML on create', async () => {
+      const puck = await LandingPageService.create(projectId, {
+        name: 'Puck',
+        slug: uniqueSlug('puck'),
+        data: EMPTY_PUCK_DATA,
+        settings: {},
+      });
+      expect(puck.kind).toBe('PUCK');
+
+      const html = await LandingPageService.create(projectId, {
+        name: 'Html',
+        slug: uniqueSlug('html'),
+        data: htmlData,
+        settings: {title: 'Imported'},
+        kind: 'HTML',
+      });
+      expect(html.kind).toBe('HTML');
+    });
+
+    it('rejects kind changes on the update schema and leaves kind untouched', async () => {
+      expect(() => LandingPageSchemas.update.parse({kind: 'HTML'})).toThrow();
+
+      const page = await LandingPageService.create(projectId, {
+        name: 'Stay',
+        slug: uniqueSlug('stay'),
+        data: htmlData,
+        settings: {},
+        kind: 'HTML',
+      });
+
+      const updated = await LandingPageService.update(projectId, page.id, {
+        name: 'Stay renamed',
+        data: EMPTY_PUCK_DATA,
+      });
+
+      expect(updated.kind).toBe('HTML');
+      expect(updated.name).toBe('Stay renamed');
+    });
+
+    it('replaces HTML without changing identity and turns PUCK pages into HTML', async () => {
+      const slug = uniqueSlug('reimport');
+      const page = await LandingPageService.create(projectId, {
+        name: 'Template',
+        slug,
+        data: EMPTY_PUCK_DATA,
+        settings: {title: 'Keep me', description: ''},
+        published: true,
+      });
+
+      const first = await LandingPageService.replaceHtml(projectId, page.id, {
+        data: htmlData,
+        settings: {title: 'Ignore', description: 'Filled'},
+      });
+
+      expect(first.kind).toBe('HTML');
+      expect(first.id).toBe(page.id);
+      expect(first.publicId).toBe(page.publicId);
+      expect(first.slug).toBe(slug);
+      expect(first.name).toBe('Template');
+      expect(first.published).toBe(true);
+      expect(first.settings).toMatchObject({title: 'Keep me', description: 'Filled'});
+
+      const publicConfig = await LandingPageService.getPublicConfig(slug);
+      expect(publicConfig.kind).toBe('HTML');
+      expect(publicConfig.data).toEqual(htmlData);
+
+      const nextData = {
+        ...htmlData,
+        content: [{type: 'HtmlText', props: {id: 't2', tag: 'p', html: 'Again', richSafe: true}}],
+      };
+      const second = await LandingPageService.replaceHtml(projectId, page.id, {data: nextData});
+
+      expect(second.kind).toBe('HTML');
+      expect(second.slug).toBe(slug);
+      expect(second.publicId).toBe(page.publicId);
+      expect(second.settings).toMatchObject({title: 'Keep me', description: 'Filled'});
+
+      const refreshed = await LandingPageService.getPublicConfig(slug);
+      expect(refreshed.data).toEqual(nextData);
+      expect(refreshed.kind).toBe('HTML');
     });
   });
 
