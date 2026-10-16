@@ -2,6 +2,76 @@ const DEFAULT_MAX_MESSAGES = 20;
 
 type RoleMessage = {role?: string};
 
+type MessageWithParts = {parts?: unknown[]};
+
+function stripPartMetadata(part: unknown): unknown {
+  if (part === null || typeof part !== 'object' || Array.isArray(part)) {
+    return part;
+  }
+
+  const reasoningPart = part as {type?: unknown; providerMetadata?: unknown};
+  if (reasoningPart.type !== 'reasoning') {
+    return part;
+  }
+
+  const metadata = reasoningPart.providerMetadata;
+  if (metadata === null || typeof metadata !== 'object' || Array.isArray(metadata)) {
+    return part;
+  }
+
+  let changed = false;
+  const nextMetadata: Record<string, unknown> = {};
+  for (const [provider, options] of Object.entries(metadata)) {
+    if (
+      options !== null &&
+      typeof options === 'object' &&
+      !Array.isArray(options) &&
+      'reasoningEncryptedContent' in options
+    ) {
+      const rest = {...options};
+      delete rest.reasoningEncryptedContent;
+      nextMetadata[provider] = rest;
+      changed = true;
+    } else {
+      nextMetadata[provider] = options;
+    }
+  }
+
+  if (!changed) {
+    return part;
+  }
+
+  return {...reasoningPart, providerMetadata: nextMetadata};
+}
+
+export function stripReasoningMetadata<T>(messages: T[]): T[] {
+  return messages.map(message => {
+    if (message === null || typeof message !== 'object' || !('parts' in message)) {
+      return message;
+    }
+
+    const parts = (message as MessageWithParts).parts;
+    if (!Array.isArray(parts)) {
+      return message;
+    }
+
+    let changed = false;
+    const nextParts = parts.map(part => {
+      const next = stripPartMetadata(part);
+      if (next !== part) {
+        changed = true;
+      }
+      return next;
+    });
+
+    if (!changed) {
+      return message;
+    }
+
+    return {...message, parts: nextParts};
+  });
+}
+
 export function pruneMessages<T extends RoleMessage>(messages: T[], max = DEFAULT_MAX_MESSAGES): T[] {
   if (messages.length <= max) {
     return messages;
