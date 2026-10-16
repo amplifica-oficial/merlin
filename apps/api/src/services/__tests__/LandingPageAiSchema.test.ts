@@ -58,4 +58,51 @@ describe('LandingPageAiSchemas.chat', () => {
     expect(parsed.messages).toHaveLength(2);
     expect(parsed.messages[1]?.role).toBe('assistant');
   });
+
+  it('strips oversized reasoning encrypted content and keeps the item id', () => {
+    const parsed = LandingPageAiSchemas.chat.parse(
+      chatBody([
+        {
+          role: 'assistant',
+          parts: [
+            {
+              type: 'reasoning',
+              text: 'pensar',
+              providerMetadata: {
+                openai: {
+                  itemId: 'rs_1',
+                  reasoningEncryptedContent: 'x'.repeat(10_000),
+                },
+              },
+            },
+          ],
+        },
+      ]),
+    );
+
+    expect(parsed.messages[0]?.parts[0]).toMatchObject({
+      type: 'reasoning',
+      providerMetadata: {openai: {itemId: 'rs_1'}},
+    });
+    expect(JSON.stringify(parsed.messages[0]?.parts[0])).not.toContain('reasoningEncryptedContent');
+  });
+
+  it('rejects other oversized reasoning metadata', () => {
+    expect(() =>
+      LandingPageAiSchemas.chat.parse(
+        chatBody([
+          {
+            role: 'assistant',
+            parts: [
+              {
+                type: 'reasoning',
+                text: 'pensar',
+                providerMetadata: {openai: {blob: 'x'.repeat(5_000)}},
+              },
+            ],
+          },
+        ]),
+      ),
+    ).toThrow(/Reasoning metadata is too large/);
+  });
 });
