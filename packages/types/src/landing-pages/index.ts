@@ -4,6 +4,28 @@ export interface PuckData {
   content: Array<Record<string, unknown>>;
 }
 
+export type LandingPageKind = 'PUCK' | 'HTML';
+
+export interface HtmlAttribute {
+  name: string;
+  value: string;
+}
+
+export interface HtmlPageScript {
+  src?: string;
+  content?: string;
+  attributes: HtmlAttribute[];
+  placement: 'head' | 'body';
+  runInEditor: boolean;
+}
+
+export interface HtmlPageRootProps {
+  headHtml: string;
+  htmlAttributes: HtmlAttribute[];
+  bodyAttributes: HtmlAttribute[];
+  scripts: HtmlPageScript[];
+}
+
 export interface LandingPageSettings {
   title?: string;
   description?: string;
@@ -22,6 +44,7 @@ export interface PublicLandingPageConfig {
   publicId: string;
   slug: string;
   name: string;
+  kind: LandingPageKind;
   data: PuckData;
   settings: LandingPageSettings;
 }
